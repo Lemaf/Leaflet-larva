@@ -1,0 +1,23 @@
+{
+  "name": "Leaflet-larva",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Lemaf/Leaflet-larva",
+  "description": "Leaflet larva (leaflet + edit geometry)",
+  "main": "dist/leaflet-larva.js",
+  "moduleType": [],
+  "keywords": [
+    "leaflet",
+    "draw"
+  ],
+  "authors": [
+    "rthoth <ronaldo.silva@lemaf.ufla.br>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

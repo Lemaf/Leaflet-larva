@@ -1,0 +1,23 @@
+{
+  "name": "Leaflet-larva",
+  "version": "0.1.0",
+  "description": "Leaflet larva (leaflet + edit geometry)",
+  "main": "dist/leaflet-larva.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lemaf/Leaflet-larva.git"
+  },
+  "keywords": [
+    "leaflet",
+    "draw"
+  ],
+  "author": "rthoth <ronaldo.silva@lemaf.ufla.br>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lemaf/Leaflet-larva/issues"
+  },
+  "homepage": "https://github.com/Lemaf/Leaflet-larva"
+}
