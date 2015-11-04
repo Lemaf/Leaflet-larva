@@ -1,5 +1,12 @@
 var gulp = require('gulp');
 
+var SOURCES = {
+	JS: [
+		'L.larva.js',
+		'handler/Polyline.Move.js'
+	]
+};
+
 gulp.task('lint:javascript', function () {
 
 	var jshint = require('gulp-jshint');
@@ -20,37 +27,22 @@ gulp.task('clean:javascript', function () {
 	]);
 });
 
-function javascriptSources () {
-	return [
-		'L.larva.js',
-		'handler/Polyline.Move.js'
-	];
-}
-
-gulp.task('concat:javascript', ['lint:javascript', 'clean:javascript'], function () {
-
+gulp.task('uglify:javascript', ['lint:javascript'], function () {
 	var concat = require('gulp-concat'),
+	rename = require('gulp-rename'),
 	resolveDeps = require('gulp-resolve-dependencies'),
-	sourcemaps = require('gulp-sourcemaps');
-
-	return gulp.src(javascriptSources(), {cwd: 'src/js'})
-		.pipe(resolveDeps())
-		.pipe(sourcemaps.init())
-		.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ################################# \n\n'}))
-		.pipe(sourcemaps.write('./'))
-		.pipe(gulp.dest('dist/'));
-
-});
-
-gulp.task('uglify:javascript', ['concat:javascript'], function () {
-
-	var rename = require('gulp-rename'),
+	sourcemaps = require('gulp-sourcemaps'),
 	uglify = require('gulp-uglify');
 
-	return gulp.src('dist/*.js')
-		.pipe(uglify())
-		.pipe(rename({extname: '-min.js'}))
-		.pipe(gulp.dest('dist'));
+	return gulp.src(SOURCES.JS, {cwd: 'src/js'})
+		.pipe(resolveDeps())
+		.pipe(sourcemaps.init())
+			.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ############################################# \n\n'}))
+			.pipe(gulp.dest('dist/'))
+			.pipe(uglify())
+			.pipe(rename({extname: '-min.js'}))
+		.pipe(sourcemaps.write('./'))
+		.pipe(gulp.dest('dist/'));
 });
 
 gulp.task('test:javascript', ['lint:javascript'], function (done) {
@@ -63,7 +55,7 @@ gulp.task('test:javascript', ['lint:javascript'], function (done) {
 	}, done).start();
 });
 
-gulp.task('serve', ['concat:javascript'], function () {
+gulp.task('serve', ['uglify:javascript'], function () {
 
 	var connect = require('gulp-connect'),
 	connectJade = require('connect-jade'),
@@ -80,7 +72,8 @@ gulp.task('serve', ['concat:javascript'], function () {
 
 				function (req, res, next) {
 					var path = url.parse(req.url).pathname;
-					if (path.endsWith(".jade"))
+
+					if (path.lastIndexOf(".jade") === path.length - 5)
 						res.render(path.substring(1, path.length -5));
 					else
 						next();
