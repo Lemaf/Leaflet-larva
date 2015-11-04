@@ -20,16 +20,23 @@ gulp.task('clean:javascript', function () {
 	]);
 });
 
+function javascriptSources () {
+	return [
+		'L.larva.js',
+		'handler/Polyline.Move.js'
+	];
+}
+
 gulp.task('concat:javascript', ['lint:javascript', 'clean:javascript'], function () {
 
 	var concat = require('gulp-concat'),
 	resolveDeps = require('gulp-resolve-dependencies'),
 	sourcemaps = require('gulp-sourcemaps');
 
-	return gulp.src(['L.larva.js', 'handler/**/$*.js', 'handler/**/!($)*.js'], {cwd: 'src/js'})
+	return gulp.src(javascriptSources(), {cwd: 'src/js'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
-		.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ##### \n\n'}))
+		.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ################################# \n\n'}))
 		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest('dist/'));
 
@@ -83,3 +90,5 @@ gulp.task('serve', ['concat:javascript'], function () {
 	});
 
 });
+
+gulp.task('build', ['test:javascript', 'uglify:javascript']);
