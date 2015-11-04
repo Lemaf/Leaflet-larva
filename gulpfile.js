@@ -23,25 +23,32 @@ gulp.task('clean:javascript', function () {
 	var del = require('del')
 
 	return del([
-		'dist/*.js'
+		'dist/*.js',
+		'dist/*.js.map'
 	]);
 });
 
-gulp.task('uglify:javascript', ['lint:javascript'], function () {
+gulp.task('concat:javascript', ['lint:javascript'], function () {
+
 	var concat = require('gulp-concat'),
-	rename = require('gulp-rename'),
 	resolveDeps = require('gulp-resolve-dependencies'),
-	sourcemaps = require('gulp-sourcemaps'),
-	uglify = require('gulp-uglify');
+	sourcemaps = require('gulp-sourcemaps');
 
 	return gulp.src(SOURCES.JS, {cwd: 'src/js'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
-			.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ############################################# \n\n'}))
-			.pipe(gulp.dest('dist/'))
-			.pipe(uglify())
-			.pipe(rename({extname: '-min.js'}))
+		.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ############################################# \n\n'}))
 		.pipe(sourcemaps.write('./'))
+		.pipe(gulp.dest('dist/'));
+});
+
+gulp.task('uglify:javascript', ['concat:javascript'], function () {
+	var rename = require('gulp-rename'),
+	uglify = require('gulp-uglify');
+
+	return gulp.src('dist/leaflet-larva.js')
+		.pipe(uglify())
+		.pipe(rename({extname: '-min.js'}))
 		.pipe(gulp.dest('dist/'));
 });
 
