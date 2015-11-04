@@ -5,12 +5,13 @@
 
 	"globals": {
 		"L": false,
-		"console": false
+		"console": false,
+		"window": false
 	},
 
 	"undef": true,
 
 	"unused": true,
 
-	"strict": true
+	"strict": false
 }

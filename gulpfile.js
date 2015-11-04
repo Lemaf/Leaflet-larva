@@ -30,14 +30,29 @@ gulp.task('clean:javascript', function () {
 
 gulp.task('concat:javascript', ['lint:javascript'], function () {
 
-	var concat = require('gulp-concat'),
+	var cached = require('gulp-cached'),
+	concat = require('gulp-concat'),
+	remember = require('gulp-remember'),
 	resolveDeps = require('gulp-resolve-dependencies'),
-	sourcemaps = require('gulp-sourcemaps');
+	sourcemaps = require('gulp-sourcemaps'),
+	wrapJS = require('gulp-wrap-js'),
+	path = require('path');
+
+	var baseDir = path.join(process.cwd(), 'src', 'js');
 
 	return gulp.src(SOURCES.JS, {cwd: 'src/js'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
-		.pipe(concat('leaflet-larva.js', {newLine: '\n\n// ############################################# \n\n'}))
+		.pipe(cached('js'))
+		.pipe(remember('js'))
+		.pipe(concat('leaflet-larva.js'))
+		.pipe(wrapJS('(function() {%= body %})()', {
+			newline: '\n',
+			indent: {
+				adjustMultilineComment: true,
+				style: '\t',
+			}
+		}))
 		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest('dist/'));
 });
@@ -62,11 +77,36 @@ gulp.task('test:javascript', ['lint:javascript'], function (done) {
 	}, done).start();
 });
 
-gulp.task('serve', ['uglify:javascript'], function () {
+gulp.task('less:less', function () {
+
+	var less = require('gulp-less'),
+	path = require('path');
+
+	return gulp.src('*.less', {cwd: 'src/less'})
+		.pipe(less({
+			paths: [path.join(__dirname, 'src', 'less', 'includes')]
+		}))
+		.pipe(gulp.dest('dist/'));
+});
+
+gulp.task('serve', ['uglify:javascript', 'less:less'], function () {
 
 	var connect = require('gulp-connect'),
 	connectJade = require('connect-jade'),
 	url = require('url');
+
+	var watcher = gulp.watch(['src/js/**/*.js'], ['concat:javascript']);
+
+	var cached = require('gulp-cached');
+
+	watcher.on('change', function (evt) {
+		if (evt.type === 'deleted') {
+			delete cached.caches.js[evt.path];
+			remember.forget('js', evt.path);
+		}
+	});
+
+	gulp.watch(['src/less/**/*.less'], ['less:less']);
 
 	return connect.server({
 		root: ['demos/', 'dist', 'bower_components'],

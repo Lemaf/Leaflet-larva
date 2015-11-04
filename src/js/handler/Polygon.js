@@ -1,6 +1,6 @@
 /**
  * @requires Polyline.js
  */
-L.larva.handler.Polygon = L.Class.extend({
+L.larva.handler.Polygon = L.larva.handler.Polyline.extend({
 
 });
