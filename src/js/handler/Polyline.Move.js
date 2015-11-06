@@ -1,6 +1,6 @@
 /**
  * @requires Polyline.js
- * @requires ../PathFrame.js
+ * @requires ../frame/Path.js
  * @requires ../ext/L.Polyline.js
  * 
  * @type {[type]}
@@ -8,8 +8,10 @@
 L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	addHooks: function() {
-		this._frame = new L.larva.PathFrame(this._path).addTo(this._path._map);
+		this._frame = L.larva.pathFrame(this._path).addTo(this._path._map);
 		this._draggable = this._frame.getDraggable();
+
+		this._frame.hideHandle(L.larva.frame.Path.MIDDLE_MIDDLE);
 
 		this._draggable.on({
 			drag: this._onDrag,
@@ -24,8 +26,6 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		var map = this._path._map;
 		var offset = this._frame.getPosition().subtract(this._layerProjectedPoint);
 		var projected, newLatLng;
-
-		console.log(offset);
 
 		this._path.forEachLatLng(function (latlng) {
 

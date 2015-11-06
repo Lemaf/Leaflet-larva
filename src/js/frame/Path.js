@@ -1,14 +1,26 @@
 /**
- * 
+ * @requires package.js
  */
-L.larva.PathFrame = L.Layer.extend({
+L.larva.frame.Path = L.Layer.extend({
+
+	statics: {
+		TOP_LEFT: 'tl',
+		TOP_MIDDLE: 'tm',
+		TOP_RIGHT: 'tl',
+		MIDDLE_LEFT: 'ml',
+		MIDDLE_MIDDLE: 'mm',
+		MIDDLE_RIGHT: 'mr',
+		BOTTOM_LEFT: 'bl',
+		BOTTOM_MIDDLE: 'bm',
+		BOTTOM_RIGHT: 'br'
+	},
 
 	options: {
 		pane: 'llarvaPathframe'
 	},
 
 	initialize: function (path) {
-		if (path._pathFrame && path._pathFrame instanceof L.larva.PathFrame) {
+		if (path._pathFrame && path._pathFrame instanceof L.larva.frame.Path) {
 			return path._pathFrame;
 		}
 
@@ -36,6 +48,14 @@ L.larva.PathFrame = L.Layer.extend({
 		return L.DomUtil.getPosition(this._el);
 	},
 
+	hideHandle: function() {
+		for (var i = 0; i < arguments.length; i++) {
+			if (this._elements[arguments[i]]) {
+				this._elements[arguments[i]].style.display = 'none';
+			}
+		}
+	},
+
 	onAdd: function () {
 		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
 		L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
@@ -48,6 +68,7 @@ L.larva.PathFrame = L.Layer.extend({
 
 		for (var id in this._elements) {
 			this._elements[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id + " " + id, el);
+			L.DomEvent.on(this._elements[id], 'mousedown click', L.DomEvent.stop);
 		}
 
 		this._draggable = new L.Draggable(el);
@@ -55,6 +76,19 @@ L.larva.PathFrame = L.Layer.extend({
 		this._updateHandles();
 
 		this._onZoom();
+	},
+
+	onRemove: function() {
+		if (this._draggable) {
+			this._draggable.disable();
+		}
+
+		L.DomEvent.off(this._el, 'mousedown', L.DomEvent.stop);
+
+		L.DomUtil.remove(this._el);
+		L.DomUtil.empty(this._el);
+
+		delete this._el;
 	},
 
 	_onZoom: function () {
@@ -179,5 +213,5 @@ L.larva.PathFrame = L.Layer.extend({
 });
 
 L.larva.pathFrame = function pathframe (path) {
-	return new L.larva.PathFrame(path);
+	return new L.larva.frame.Path(path);
 };

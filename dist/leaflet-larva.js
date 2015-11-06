@@ -25,13 +25,25 @@
 	 * @requires Path.js
 	 */
 	L.larva.handler.Polyline = L.larva.handler.Path.extend({ options: {} });
+	L.larva.frame = {};
 	/**
-	 * 
+	 * @requires package.js
 	 */
-	L.larva.PathFrame = L.Layer.extend({
+	L.larva.frame.Path = L.Layer.extend({
+		statics: {
+			TOP_LEFT: 'tl',
+			TOP_MIDDLE: 'tm',
+			TOP_RIGHT: 'tl',
+			MIDDLE_LEFT: 'ml',
+			MIDDLE_MIDDLE: 'mm',
+			MIDDLE_RIGHT: 'mr',
+			BOTTOM_LEFT: 'bl',
+			BOTTOM_MIDDLE: 'bm',
+			BOTTOM_RIGHT: 'br'
+		},
 		options: { pane: 'llarvaPathframe' },
 		initialize: function (path) {
-			if (path._pathFrame && path._pathFrame instanceof L.larva.PathFrame) {
+			if (path._pathFrame && path._pathFrame instanceof L.larva.frame.Path) {
 				return path._pathFrame;
 			}
 			path._pathFrame = this;
@@ -51,6 +63,13 @@
 		getPosition: function () {
 			return L.DomUtil.getPosition(this._el);
 		},
+		hideHandle: function () {
+			for (var i = 0; i < arguments.length; i++) {
+				if (this._elements[arguments[i]]) {
+					this._elements[arguments[i]].style.display = 'none';
+				}
+			}
+		},
 		onAdd: function () {
 			var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
 			L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
@@ -67,10 +86,20 @@
 			};
 			for (var id in this._elements) {
 				this._elements[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id + ' ' + id, el);
+				L.DomEvent.on(this._elements[id], 'mousedown click', L.DomEvent.stop);
 			}
 			this._draggable = new L.Draggable(el);
 			this._updateHandles();
 			this._onZoom();
+		},
+		onRemove: function () {
+			if (this._draggable) {
+				this._draggable.disable();
+			}
+			L.DomEvent.off(this._el, 'mousedown', L.DomEvent.stop);
+			L.DomUtil.remove(this._el);
+			L.DomUtil.empty(this._el);
+			delete this._el;
 		},
 		_onZoom: function () {
 			var bounds = this._path.getBounds();
@@ -168,7 +197,7 @@
 		}
 	});
 	L.larva.pathFrame = function pathframe(path) {
-		return new L.larva.PathFrame(path);
+		return new L.larva.frame.Path(path);
 	};
 	if (!L.Polyline.prototype.forEachLatLng) {
 		L.Polyline.include({
@@ -189,15 +218,16 @@
 	}
 	/**
 	 * @requires Polyline.js
-	 * @requires ../PathFrame.js
+	 * @requires ../frame/Path.js
 	 * @requires ../ext/L.Polyline.js
 	 * 
 	 * @type {[type]}
 	 */
 	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		addHooks: function () {
-			this._frame = new L.larva.PathFrame(this._path).addTo(this._path._map);
+			this._frame = L.larva.pathFrame(this._path).addTo(this._path._map);
 			this._draggable = this._frame.getDraggable();
+			this._frame.hideHandle(L.larva.frame.Path.MIDDLE_MIDDLE);
 			this._draggable.on({
 				drag: this._onDrag,
 				dragstart: this._onDragStart,
@@ -209,7 +239,6 @@
 			var map = this._path._map;
 			var offset = this._frame.getPosition().subtract(this._layerProjectedPoint);
 			var projected, newLatLng;
-			console.log(offset);
 			this._path.forEachLatLng(function (latlng) {
 				projected = map.latLngToLayerPoint(latlng._original);
 				newLatLng = map.layerPointToLatLng(projected.add(offset));

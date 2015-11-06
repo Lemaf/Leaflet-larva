@@ -1,0 +1,3 @@
+L.larva.frame = {
+
+};
