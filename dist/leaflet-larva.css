@@ -1,6 +1,6 @@
 .llarva-pathframe {
   background: rgba(255, 255, 255, 0.5);
-  border: 10px solid #000;
+  border: 2px solid #000;
   position: relative;
 }
 .llarva-pathframe-tl,

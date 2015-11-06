@@ -63,10 +63,16 @@ L.larva.PathFrame = L.Layer.extend({
 		var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()),
 		northWestPoint = this._map.latLngToLayerPoint(bounds.getNorthWest());
 
+		var computedStyle = getComputedStyle(this._el);
+
 		L.DomUtil.setPosition(this._el, northWestPoint);
 
-		this._el.style.width = (southEastPoint.x - northWestPoint.x) + 'px';
-		this._el.style.height = (southEastPoint.y - northWestPoint.y) + 'px';
+
+		var x = parseInt(computedStyle.borderLeftWidth) + parseInt(computedStyle.borderRightWidth),
+		y = parseInt(computedStyle.borderTopWidth) + parseInt(computedStyle.borderBottomWidth);
+
+		this._el.style.width = (southEastPoint.x - northWestPoint.x - x) + 'px';
+		this._el.style.height = (southEastPoint.y - northWestPoint.y - y) + 'px';
 
 		this.southEastPoint = southEastPoint;
 		this.northWestPoint = northWestPoint;
@@ -88,8 +94,6 @@ L.larva.PathFrame = L.Layer.extend({
 		for (var id in borderWidth) {
 			borderWidth[id] = parseInt(computedStyle[borderWidth[id]]) / 2;
 		}
-
-		// bottom-right
 
 		el = this._elements.br;
 
