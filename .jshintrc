@@ -6,7 +6,8 @@
 	"globals": {
 		"L": false,
 		"console": false,
-		"window": false
+		"window": false,
+		"getComputedStyle": false
 	},
 
 	"undef": true,

@@ -1,3 +1,23 @@
 .llarva-pathframe {
-  background-color: rgba(255, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.5);
+  border: 10px solid #000;
+  position: relative;
+}
+.llarva-pathframe-tl,
+.llarva-pathframe-tm,
+.llarva-pathframe-tr,
+.llarva-pathframe-ml,
+.llarva-pathframe-mm,
+.llarva-pathframe-mr,
+.llarva-pathframe-bl,
+.llarva-pathframe-bm,
+.llarva-pathframe-br {
+  background: #fff;
+  border: 2px solid;
+  height: 10px;
+  position: absolute;
+  width: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
 }

@@ -1,3 +1,25 @@
+@import (reference) "includes/theme.less";
+@import (reference) "includes/mixins.less";
+
 .llarva-pathframe {
-	background-color: rgba(255, 0, 0, 0.5);
+	background: @pathframe-background;
+	border: @pathframe-border;
+	position: relative;
+}
+
+.llarva-pathframe-tl,
+.llarva-pathframe-tm,
+.llarva-pathframe-tr,
+.llarva-pathframe-ml,
+.llarva-pathframe-mm,
+.llarva-pathframe-mr,
+.llarva-pathframe-bl,
+.llarva-pathframe-bm,
+.llarva-pathframe-br {
+	background: @pathframe-handle-background;
+	border: @pathframe-handle-border;
+	height: @pathframe-handle-height;
+	position: absolute;
+	width: @pathframe-handle-width;
+	.border-radius(@pathframe-handle-border-radius);
 }
