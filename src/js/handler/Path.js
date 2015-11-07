@@ -7,10 +7,15 @@ L.larva.handler.Path = L.Handler.extend({
 
 	includes: [L.Evented.prototype],
 
-	initialize: function (path, options) {
+	initialize: function (path, frameStyle, options) {
 		L.setOptions(this, options);
 
 		this._path = path;
+		this._frameStyle = frameStyle;
 	}
 
+});
+
+L.Path.addInitHook(function () {
+	this.larva = {};
 });

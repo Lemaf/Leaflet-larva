@@ -2,6 +2,7 @@
  * @requires Polyline.js
  * @requires ../frame/Path.js
  * @requires ../ext/L.Polyline.js
+ * @requires ../frame/Style.js
  * 
  * @type {[type]}
  */
@@ -9,17 +10,17 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	addHooks: function() {
 		this._frame = L.larva.pathFrame(this._path).addTo(this._path._map);
-		this._draggable = this._frame.getDraggable();
 
-		this._frame.hideHandle(L.larva.frame.Path.MIDDLE_MIDDLE);
+		this._frame.setStyle(this._frameStyle);
+		// this._draggable = this._frame.getDraggable();
 
-		this._draggable.on({
-			drag: this._onDrag,
-			dragstart: this._onDragStart,
-			dragend: this._onDragEnd,
-		}, this);
+		// this._draggable.on({
+		// 	drag: this._onDrag,
+		// 	dragstart: this._onDragStart,
+		// 	dragend: this._onDragEnd,
+		// }, this);
 
-		this._draggable.enable();
+		// this._draggable.enable();
 	},
 
 	_onDrag: function () {
@@ -52,11 +53,5 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 });
 
 L.Polyline.addInitHook(function () {
-
-	if (!this.larva) {
-		this.larva = {};
-	}
-
-	this.larva.move = new L.larva.handler.Polyline.Move(this);
-
+	this.larva.move = new L.larva.handler.Polyline.Move(this, L.larva.frame.Style.Move);
 });

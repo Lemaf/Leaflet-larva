@@ -89,10 +89,11 @@ gulp.task('less:less', function () {
 		.pipe(gulp.dest('dist/'));
 });
 
-gulp.task('serve', ['uglify:javascript', 'less:less'], function () {
+gulp.task('serve', ['concat:javascript', 'less:less'], function () {
 
 	var connect = require('gulp-connect'),
 	connectJade = require('connect-jade'),
+	remember = require('gulp-remember'),
 	url = require('url');
 
 	var watcher = gulp.watch(['src/js/**/*.js'], ['concat:javascript']);

@@ -36,7 +36,7 @@ L.larva.frame.Path = L.Layer.extend({
 
 	getEvents: function () {
 		return {
-			zoom: this._onZoom
+			zoom: this._updateFrame
 		};
 	},
 
@@ -60,22 +60,22 @@ L.larva.frame.Path = L.Layer.extend({
 		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
 		L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
 
-		this._elements = {
-			tl: null, tm: null, tr: null,
-			ml: null, mm: null, mr: null,
-			bl: null, bm: null, br: null
-		};
+		this._elements = {};
 
-		for (var id in this._elements) {
+		['tl','tm','tr','ml','mm','mr','bl','bm','br'].forEach(function (id) {
+
 			this._elements[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id + " " + id, el);
 			L.DomEvent.on(this._elements[id], 'mousedown click', L.DomEvent.stop);
-		}
+
+		}, this);
+
+		this._draggables = {};
 
 		this._draggable = new L.Draggable(el);
 
-		this._updateHandles();
+		this._updateFrame();
 
-		this._onZoom();
+		this._updateHandles();
 	},
 
 	onRemove: function() {
@@ -85,13 +85,79 @@ L.larva.frame.Path = L.Layer.extend({
 
 		L.DomEvent.off(this._el, 'mousedown', L.DomEvent.stop);
 
+		for (var id in this._elements) {
+			L.DomEvent.off(this._elements[id], 'mousedown click', L.DomEvent.stop);
+		}
+
 		L.DomUtil.remove(this._el);
 		L.DomUtil.empty(this._el);
 
 		delete this._el;
 	},
 
-	_onZoom: function () {
+	setStyle: function (style) {
+		var id, el, oldStyle = this._style;
+
+		for (id in this._elements) {
+			el = this._elements[id];
+			el.style.display = 'block';
+
+			if (this._draggables[id]) {
+				this._draggables[id].disable();
+				delete this._draggables[id];
+			}
+
+			if (oldStyle) {
+				L.DomUtil.removeClass(el, oldStyle.className + '-' + id);
+			}
+
+			L.DomUtil.addClass(el, style.className + '-' + id);
+
+			if (style[id]) {
+				if (style[id].hide) {
+					el.style.display = 'none';
+				}
+
+				if (style[id].draggable) {
+					this._draggables[id] = new L.Draggable(el);
+					this._draggables[id].enable();
+					L.DomEvent.off(el, 'mousedown click', L.DomEvent.stop);
+
+					this._updateDraggable(id);
+				}
+			}
+		}
+
+		if (oldStyle) {
+			L.DomUtil.removeClass(this._el, oldStyle.className);
+		}
+
+		L.DomUtil.addClass(this._el, style.className);
+
+		this._style = style;
+	},
+
+	_updateDraggable: function (id) {
+		var el = this._elements[id];
+		var left = el.offsetLeft,
+		top = el.offsetTop;
+
+		if (el.style.marginLeft) {
+			left -= parseInt(el.style.marginLeft);
+		}
+
+		if (el.style.marginTop) {
+			top -= parseInt(el.style.marginTop);
+		}
+
+		L.extend(el.style, {
+			left: '0px', top: '0px'
+		});
+
+		L.DomUtil.setPosition(el, L.point(left, top));
+	},
+
+	_updateFrame: function () {
 		var bounds = this._path.getBounds();
 
 		var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()),

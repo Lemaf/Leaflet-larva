@@ -1,6 +1,28 @@
+.llarva-pathframe-move {
+  cursor: move;
+}
+.llarva-pathframe-move-tm,
+.llarva-pathframe-move-ml,
+.llarva-pathframe-move-mr,
+.llarva-pathframe-move-bm {
+  background: url(leaflet-larva.png);
+  cursor: move;
+}
+.llarva-pathframe-move-mr {
+  background-position: 0px 0px;
+}
+.llarva-pathframe-move-tm {
+  background-position: -24px 0px;
+}
+.llarva-pathframe-move-ml {
+  background-position: -48px 0px;
+}
+.llarva-pathframe-move-bm {
+  background-position: -70px 0px;
+}
 .llarva-pathframe {
   background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #000;
+  border: 1px solid #000;
   position: relative;
 }
 .llarva-pathframe-tl,
@@ -12,11 +34,10 @@
 .llarva-pathframe-bl,
 .llarva-pathframe-bm,
 .llarva-pathframe-br {
-  background: #fff;
-  border: 2px solid;
-  height: 10px;
+  border: none;
+  height: 12px;
   position: absolute;
-  width: 10px;
+  width: 12px;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
