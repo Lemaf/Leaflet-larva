@@ -18,6 +18,19 @@ if (!L.Polyline.prototype.forEachLatLng) {
 
 			latlngs.forEach(fn, context);
 		}
+	});
+}
+
+if (!L.Polyline.prototype.updateBounds) {
+	L.Polyline.include({
+
+		updateBounds: function () {
+			var bounds = this._bounds = new L.LatLngBounds();
+
+			this.forEachLatLng(function (latlng) {
+				bounds.extend(latlng);
+			});
+		}
 
 	});
 }

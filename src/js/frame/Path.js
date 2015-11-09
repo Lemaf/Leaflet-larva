@@ -58,23 +58,21 @@ L.larva.frame.Path = L.Layer.extend({
 
 	onAdd: function () {
 		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
-		L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
+		L.DomEvent.on(el, 'mousedown', this._onStart, this);
 
 		this._handles = {};
 
 		['tl','tm','tr','ml','mm','mr','bl','bm','br'].forEach(function (id) {
 
 			this._handles[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id, el);
-			L.DomEvent.on(this._handles[id], 'mousedown click', L.DomEvent.stop);
+			this._handles[id]._id = id;
+			L.DomEvent.on(this._handles[id], L.Draggable.START.join(' '), this._onStart, this);
 
 		}, this);
 
-		this._draggables = {};
-
 		this._draggable = new L.Draggable(el);
-
+		this._draggables = {};
 		this._updateFrame();
-
 		this._updateHandles();
 	},
 
@@ -141,6 +139,45 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomUtil.addClass(this._el, style.className);
 
 		this._style = style;
+	},
+
+	updateBounds: function () {
+		this._updateFrame();
+	},
+
+	_onStart: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:start', {
+			mouseEvent: evt,
+			id: evt.target._id
+		});
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
+			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
+	},
+
+	_onMove: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:move', {
+			mouseEvent: evt
+		});
+	},
+
+	_onEnd: function (evt) {
+		L.DomEvent.stop(evt);
+
+		for (var id in L.Draggable.MOVE) {
+			L.DomEvent
+				.off(document, L.Draggable.MOVE[id], this._onMove, this)
+				.off(document, L.Draggable.END[id], this._onEnd, this);
+		}
+
+		this.fire('drag:end', {
+			mouseEvent: evt
+		});
 	},
 
 	_updateDraggable: function (id) {

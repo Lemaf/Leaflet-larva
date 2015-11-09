@@ -5,6 +5,7 @@
 
 	"globals": {
 		"L": false,
+		"document": false,
 		"console": false,
 		"window": false,
 		"getComputedStyle": false

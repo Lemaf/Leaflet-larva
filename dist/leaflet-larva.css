@@ -1,5 +1,5 @@
 .llarva-pathframe-move {
-  cursor: move;
+  cursor: grab;
 }
 .llarva-pathframe-move-tm,
 .llarva-pathframe-move-ml,
