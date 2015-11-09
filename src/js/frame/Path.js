@@ -6,7 +6,7 @@ L.larva.frame.Path = L.Layer.extend({
 	statics: {
 		TOP_LEFT: 'tl',
 		TOP_MIDDLE: 'tm',
-		TOP_RIGHT: 'tl',
+		TOP_RIGHT: 'tr',
 		MIDDLE_LEFT: 'ml',
 		MIDDLE_MIDDLE: 'mm',
 		MIDDLE_RIGHT: 'mr',
@@ -44,6 +44,10 @@ L.larva.frame.Path = L.Layer.extend({
 		return this._draggable;
 	},
 
+	getFrameClientRect: function () {
+		return this._el.getBoundingClientRect();
+	},
+
 	getPosition: function() {
 		return L.DomUtil.getPosition(this._el);
 	},
@@ -64,7 +68,7 @@ L.larva.frame.Path = L.Layer.extend({
 
 		['tl','tm','tr','ml','mm','mr','bl','bm','br'].forEach(function (id) {
 
-			this._handles[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id, el);
+			this._handles[id] = L.DomUtil.create('div', 'llarva-' + id, el);
 			this._handles[id]._id = id;
 			L.DomEvent.on(this._handles[id], L.Draggable.START.join(' '), this._onStart, this);
 
@@ -111,11 +115,11 @@ L.larva.frame.Path = L.Layer.extend({
 				delete this._draggables[id];
 			}
 
-			if (oldStyle) {
-				L.DomUtil.removeClass(el, oldStyle.className + '-' + id);
-			}
+			// if (oldStyle) {
+			// 	L.DomUtil.removeClass(el, oldStyle.className + '-' + id);
+			// }
 
-			L.DomUtil.addClass(el, style.className + '-' + id);
+			// L.DomUtil.addClass(el, style.className + '-' + id);
 
 			if (style[id]) {
 				if (style[id].hide) {
@@ -139,6 +143,8 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomUtil.addClass(this._el, style.className);
 
 		this._style = style;
+
+		this._updateHandles();
 	},
 
 	updateBounds: function () {
@@ -156,6 +162,8 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomEvent
 			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
 			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
 	_onMove: function (evt) {
@@ -174,6 +182,8 @@ L.larva.frame.Path = L.Layer.extend({
 				.off(document, L.Draggable.MOVE[id], this._onMove, this)
 				.off(document, L.Draggable.END[id], this._onEnd, this);
 		}
+
+		L.DomUtil.removeClass(document.body, 'leaflet-dragging');
 
 		this.fire('drag:end', {
 			mouseEvent: evt
@@ -321,6 +331,6 @@ L.larva.frame.Path = L.Layer.extend({
 	}
 });
 
-L.larva.pathFrame = function pathframe (path) {
+L.larva.frame.path = function pathframe (path) {
 	return new L.larva.frame.Path(path);
 };

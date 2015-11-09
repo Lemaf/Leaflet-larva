@@ -9,7 +9,7 @@
 L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	addHooks: function() {
-		this._frame = L.larva.pathFrame(this._path).addTo(this._path._map);
+		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
 
 		this._frame.setStyle(this._frameStyle);
 
@@ -18,8 +18,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		this._frame.on('drag:end', this._onDragEnd, this);
 	},
 
-	_onDragEnd: function (evt) {
-		console.log(evt);
+	_onDragEnd: function () {
 	},
 
 	_onDragMove: function (evt) {

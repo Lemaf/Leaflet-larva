@@ -4,21 +4,38 @@
 .llarva-pathframe {
 	background: @pathframe-background;
 	border: @pathframe-border;
-	position: relative;
+	position: absolute;
 }
 
-.llarva-pathframe-tl,
-.llarva-pathframe-tm,
-.llarva-pathframe-tr,
-.llarva-pathframe-ml,
-.llarva-pathframe-mm,
-.llarva-pathframe-mr,
-.llarva-pathframe-bl,
-.llarva-pathframe-bm,
-.llarva-pathframe-br {
-	border: @pathframe-handle-border;
-	height: @pathframe-handle-height;
-	position: absolute;
-	width: @pathframe-handle-width;
-	.border-radius(@pathframe-handle-border-radius);
+// .llarva-pathframe {
+// 	.llarva-tl,
+// 	.llarva-tm,
+// 	.llarva-tr,
+// 	.llarva-ml,
+// 	.llarva-mm,
+// 	.llarva-mr,
+// 	.llarva-bl,
+// 	.llarva-bm,
+// 	.llarva-br {
+
+// 		border: @pathframe-handle-border;
+// 		height: @pathframe-handle-height;
+// 		position: absolute;
+// 		width: @pathframe-handle-width;
+// 		.border-radius(@pathframe-handle-border-radius);
+// 	}
+// }
+
+.llarva-pathframe {
+	.llarva-tl,
+	.llarva-tm,
+	.llarva-tr,
+	.llarva-ml,
+	.llarva-mm,
+	.llarva-mr,
+	.llarva-bl,
+	.llarva-bm,
+	.llarva-br {
+		position: absolute;
+	}
 }

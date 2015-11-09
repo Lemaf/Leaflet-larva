@@ -15,27 +15,82 @@
 	cursor: grab;
 }
 
-.llarva-pathframe-move-tm,
-.llarva-pathframe-move-ml,
-.llarva-pathframe-move-mr,
-.llarva-pathframe-move-bm {
+.llarva-pathframe div {
 	background: url(leaflet-larva.png);
 	cursor: move;
 }
 
-.llarva-pathframe-move-mr {
-	background-position: 0px 0px;
+.llarva-pathframe-move {
+
+	.llarva-mr,
+	.llarva-tm,
+	.llarva-ml,
+	.llarva-bm {
+		height: 12px;
+		width: 12px;
+	}
+
+	.llarva-mr {
+		background-position: -6px -6px;
+	}
+
+	.llarva-tm {
+		background-position: -30px -6px;
+	}
+
+	.llarva-ml {
+		background-position: -54px -6px;
+	}
+
+	.llarva-bm {
+		background-position: -78px -6px;
+	}
 }
 
-.llarva-pathframe-move-tm {
-	background-position: -24px 0px;
-}
+.llarva-pathframe-resize {
 
-.llarva-pathframe-move-ml {
-	background-position: -48px 0px;
-}
+	.llarva-tl,
+	.llarva-tm,
+	.llarva-tr,
+	.llarva-ml,
+	.llarva-mm,
+	.llarva-mr,
+	.llarva-bl,
+	.llarva-bm,
+	.llarva-br {
+		width: 24px;
+		height: 24px
+	}
 
-.llarva-pathframe-move-bm {
-	background-position: -72px 0px;
+	.llarva-tl {
+		background-position: -144px 0px;
+	}
 
+	.llarva-tm {
+		background-position: -96px 0px;
+	}
+
+	.llarva-tr {
+		background-position: -168px 0px;
+	}
+
+	.llarva-ml {
+		background-position: -120px 0px;
+	}
+
+	.llarva-mr {
+		background-position: -120px 0px;
+	}
+
+	.llarva-bl {
+		background-position: -168px 0px;
+	}
+
+	.llarva-bm {
+		background-position: -96px 0px;
+	}
+
+	.llarva-br {
+		background-position: -144px 0px;
+	}
 }

@@ -12,7 +12,7 @@ window.onload = function moveHandler () {
 		[-15.79790, -47.86672],
 		[-15.79947, -47.86196],
 		[-15.80129, -47.86256]
-	]).addTo(map).larva.move.enable();
+	]).addTo(map).larva.resize.enable();
 
 	L.polyline([
 		[-15.79682119727878664, -47.87021988827178376],
@@ -30,7 +30,7 @@ window.onload = function moveHandler () {
 		[-15.79967910273423115, -47.86720338352409243],
 		[-15.79928997065812446, -47.86707078990880859],
 		[-15.7998130660628, -47.86545977748311742]
-	]).addTo(map).larva.move.enable();
+	]).addTo(map).larva.resize.enable();
 
 
 	L.polygon([
@@ -40,5 +40,5 @@ window.onload = function moveHandler () {
 		[-15.80032340174062178, -47.870060775933446],
 		[-15.80009375084477341, -47.87090937507125687],
 		[-15.79884980396577809, -47.87044529741776699]
-	]).addTo(map).larva.move.enable();
+	]).addTo(map).larva.resize.enable();
 }

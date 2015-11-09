@@ -1,44 +1,78 @@
 .llarva-pathframe-move {
   cursor: grab;
 }
-.llarva-pathframe-move-tm,
-.llarva-pathframe-move-ml,
-.llarva-pathframe-move-mr,
-.llarva-pathframe-move-bm {
+.llarva-pathframe div {
   background: url(leaflet-larva.png);
   cursor: move;
 }
-.llarva-pathframe-move-mr {
-  background-position: 0px 0px;
+.llarva-pathframe-move .llarva-mr,
+.llarva-pathframe-move .llarva-tm,
+.llarva-pathframe-move .llarva-ml,
+.llarva-pathframe-move .llarva-bm {
+  height: 12px;
+  width: 12px;
 }
-.llarva-pathframe-move-tm {
-  background-position: -24px 0px;
+.llarva-pathframe-move .llarva-mr {
+  background-position: -6px -6px;
 }
-.llarva-pathframe-move-ml {
-  background-position: -48px 0px;
+.llarva-pathframe-move .llarva-tm {
+  background-position: -30px -6px;
 }
-.llarva-pathframe-move-bm {
-  background-position: -72px 0px;
+.llarva-pathframe-move .llarva-ml {
+  background-position: -54px -6px;
+}
+.llarva-pathframe-move .llarva-bm {
+  background-position: -78px -6px;
+}
+.llarva-pathframe-resize .llarva-tl,
+.llarva-pathframe-resize .llarva-tm,
+.llarva-pathframe-resize .llarva-tr,
+.llarva-pathframe-resize .llarva-ml,
+.llarva-pathframe-resize .llarva-mm,
+.llarva-pathframe-resize .llarva-mr,
+.llarva-pathframe-resize .llarva-bl,
+.llarva-pathframe-resize .llarva-bm,
+.llarva-pathframe-resize .llarva-br {
+  width: 24px;
+  height: 24px;
+}
+.llarva-pathframe-resize .llarva-tl {
+  background-position: -144px 0px;
+}
+.llarva-pathframe-resize .llarva-tm {
+  background-position: -96px 0px;
+}
+.llarva-pathframe-resize .llarva-tr {
+  background-position: -168px 0px;
+}
+.llarva-pathframe-resize .llarva-ml {
+  background-position: -120px 0px;
+}
+.llarva-pathframe-resize .llarva-mr {
+  background-position: -120px 0px;
+}
+.llarva-pathframe-resize .llarva-bl {
+  background-position: -168px 0px;
+}
+.llarva-pathframe-resize .llarva-bm {
+  background-position: -96px 0px;
+}
+.llarva-pathframe-resize .llarva-br {
+  background-position: -144px 0px;
 }
 .llarva-pathframe {
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid #000;
-  position: relative;
-}
-.llarva-pathframe-tl,
-.llarva-pathframe-tm,
-.llarva-pathframe-tr,
-.llarva-pathframe-ml,
-.llarva-pathframe-mm,
-.llarva-pathframe-mr,
-.llarva-pathframe-bl,
-.llarva-pathframe-bm,
-.llarva-pathframe-br {
-  border: none;
-  height: 12px;
   position: absolute;
-  width: 12px;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
+}
+.llarva-pathframe .llarva-tl,
+.llarva-pathframe .llarva-tm,
+.llarva-pathframe .llarva-tr,
+.llarva-pathframe .llarva-ml,
+.llarva-pathframe .llarva-mm,
+.llarva-pathframe .llarva-mr,
+.llarva-pathframe .llarva-bl,
+.llarva-pathframe .llarva-bm,
+.llarva-pathframe .llarva-br {
+  position: absolute;
 }
