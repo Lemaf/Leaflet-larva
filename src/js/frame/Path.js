@@ -50,8 +50,8 @@ L.larva.frame.Path = L.Layer.extend({
 
 	hideHandle: function() {
 		for (var i = 0; i < arguments.length; i++) {
-			if (this._elements[arguments[i]]) {
-				this._elements[arguments[i]].style.display = 'none';
+			if (this._handles[arguments[i]]) {
+				this._handles[arguments[i]].style.display = 'none';
 			}
 		}
 	},
@@ -60,12 +60,12 @@ L.larva.frame.Path = L.Layer.extend({
 		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
 		L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
 
-		this._elements = {};
+		this._handles = {};
 
 		['tl','tm','tr','ml','mm','mr','bl','bm','br'].forEach(function (id) {
 
-			this._elements[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id + " " + id, el);
-			L.DomEvent.on(this._elements[id], 'mousedown click', L.DomEvent.stop);
+			this._handles[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id, el);
+			L.DomEvent.on(this._handles[id], 'mousedown click', L.DomEvent.stop);
 
 		}, this);
 
@@ -79,14 +79,20 @@ L.larva.frame.Path = L.Layer.extend({
 	},
 
 	onRemove: function() {
+		var id;
+
 		if (this._draggable) {
 			this._draggable.disable();
 		}
 
-		L.DomEvent.off(this._el, 'mousedown', L.DomEvent.stop);
+		for (id in this._draggables) {
+			this._draggables[id].disable();
+		}
 
-		for (var id in this._elements) {
-			L.DomEvent.off(this._elements[id], 'mousedown click', L.DomEvent.stop);
+		L.DomEvent.off(this._el, 'mousedown click', L.DomEvent.stop);
+
+		for (id in this._handles) {
+			L.DomEvent.off(this._handles[id], 'mousedown click', L.DomEvent.stop);
 		}
 
 		L.DomUtil.remove(this._el);
@@ -98,8 +104,8 @@ L.larva.frame.Path = L.Layer.extend({
 	setStyle: function (style) {
 		var id, el, oldStyle = this._style;
 
-		for (id in this._elements) {
-			el = this._elements[id];
+		for (id in this._handles) {
+			el = this._handles[id];
 			el.style.display = 'block';
 
 			if (this._draggables[id]) {
@@ -138,7 +144,7 @@ L.larva.frame.Path = L.Layer.extend({
 	},
 
 	_updateDraggable: function (id) {
-		var el = this._elements[id];
+		var el = this._handles[id];
 		var left = el.offsetLeft,
 		top = el.offsetTop;
 
@@ -195,7 +201,7 @@ L.larva.frame.Path = L.Layer.extend({
 			borderWidth[id] = parseInt(computedStyle[borderWidth[id]]) / 2;
 		}
 
-		el = this._elements.br;
+		el = this._handles.br;
 
 		right = (- (widthOf(el) / 2) - borderWidth.right) + 'px';
 		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
@@ -205,7 +211,7 @@ L.larva.frame.Path = L.Layer.extend({
 			bottom: bottom
 		});
 
-		el = this._elements.bm;
+		el = this._handles.bm;
 		left = (-(widthOf(el) / 2)) + 'px';
 		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
 
@@ -215,7 +221,7 @@ L.larva.frame.Path = L.Layer.extend({
 			bottom: bottom
 		});
 
-		el = this._elements.bl;
+		el = this._handles.bl;
 		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
 		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
 		L.extend(el.style, {
@@ -223,7 +229,7 @@ L.larva.frame.Path = L.Layer.extend({
 			bottom: bottom
 		});
 
-		el = this._elements.mm;
+		el = this._handles.mm;
 		left = -(widthOf(el) / 2) + 'px';
 		top = -(heightOf(el) / 2) + 'px';
 		L.extend(el.style, {
@@ -233,7 +239,7 @@ L.larva.frame.Path = L.Layer.extend({
 			'margin-top': top
 		});
 
-		el = this._elements.ml;
+		el = this._handles.ml;
 		top = -(heightOf(el) / 2) + 'px';
 		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
 		L.extend(el.style, {
@@ -242,7 +248,7 @@ L.larva.frame.Path = L.Layer.extend({
 			left: left
 		});
 
-		el = this._elements.mr;
+		el = this._handles.mr;
 		right = (- (widthOf(el) / 2) - borderWidth.right) + 'px';
 		top = -(heightOf(el) / 2) + 'px';
 		L.extend(el.style, {
@@ -251,7 +257,7 @@ L.larva.frame.Path = L.Layer.extend({
 			'margin-top': top
 		});
 
-		el = this._elements.tr;
+		el = this._handles.tr;
 		right = (-(widthOf(el) / 2) - borderWidth.right) + 'px';
 		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
 		L.extend(el.style, {
@@ -259,7 +265,7 @@ L.larva.frame.Path = L.Layer.extend({
 			top: top
 		});
 
-		el = this._elements.tm;
+		el = this._handles.tm;
 		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
 		left = -(widthOf(el) / 2) + 'px';
 		L.extend(el.style, {
@@ -268,7 +274,7 @@ L.larva.frame.Path = L.Layer.extend({
 			top: top
 		});
 
-		el = this._elements.tl;
+		el = this._handles.tl;
 		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
 		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
 		L.extend(el.style, {

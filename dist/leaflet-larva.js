@@ -69,15 +69,15 @@
 		},
 		hideHandle: function () {
 			for (var i = 0; i < arguments.length; i++) {
-				if (this._elements[arguments[i]]) {
-					this._elements[arguments[i]].style.display = 'none';
+				if (this._handles[arguments[i]]) {
+					this._handles[arguments[i]].style.display = 'none';
 				}
 			}
 		},
 		onAdd: function () {
 			var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
 			L.DomEvent.on(el, 'mousedown', L.DomEvent.stop);
-			this._elements = {};
+			this._handles = {};
 			[
 				'tl',
 				'tm',
@@ -89,8 +89,8 @@
 				'bm',
 				'br'
 			].forEach(function (id) {
-				this._elements[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id + ' ' + id, el);
-				L.DomEvent.on(this._elements[id], 'mousedown click', L.DomEvent.stop);
+				this._handles[id] = L.DomUtil.create('div', 'llarva-pathframe-' + id, el);
+				L.DomEvent.on(this._handles[id], 'mousedown click', L.DomEvent.stop);
 			}, this);
 			this._draggables = {};
 			this._draggable = new L.Draggable(el);
@@ -98,12 +98,16 @@
 			this._updateHandles();
 		},
 		onRemove: function () {
+			var id;
 			if (this._draggable) {
 				this._draggable.disable();
 			}
-			L.DomEvent.off(this._el, 'mousedown', L.DomEvent.stop);
-			for (var id in this._elements) {
-				L.DomEvent.off(this._elements[id], 'mousedown click', L.DomEvent.stop);
+			for (id in this._draggables) {
+				this._draggables[id].disable();
+			}
+			L.DomEvent.off(this._el, 'mousedown click', L.DomEvent.stop);
+			for (id in this._handles) {
+				L.DomEvent.off(this._handles[id], 'mousedown click', L.DomEvent.stop);
 			}
 			L.DomUtil.remove(this._el);
 			L.DomUtil.empty(this._el);
@@ -111,8 +115,8 @@
 		},
 		setStyle: function (style) {
 			var id, el, oldStyle = this._style;
-			for (id in this._elements) {
-				el = this._elements[id];
+			for (id in this._handles) {
+				el = this._handles[id];
 				el.style.display = 'block';
 				if (this._draggables[id]) {
 					this._draggables[id].disable();
@@ -141,7 +145,7 @@
 			this._style = style;
 		},
 		_updateDraggable: function (id) {
-			var el = this._elements[id];
+			var el = this._handles[id];
 			var left = el.offsetLeft, top = el.offsetTop;
 			if (el.style.marginLeft) {
 				left -= parseInt(el.style.marginLeft);
@@ -179,14 +183,14 @@
 			for (var id in borderWidth) {
 				borderWidth[id] = parseInt(computedStyle[borderWidth[id]]) / 2;
 			}
-			el = this._elements.br;
+			el = this._handles.br;
 			right = -(widthOf(el) / 2) - borderWidth.right + 'px';
 			bottom = -(heightOf(el) / 2) - borderWidth.bottom + 'px';
 			L.extend(el.style, {
 				right: right,
 				bottom: bottom
 			});
-			el = this._elements.bm;
+			el = this._handles.bm;
 			left = -(widthOf(el) / 2) + 'px';
 			bottom = -(heightOf(el) / 2) - borderWidth.bottom + 'px';
 			L.extend(el.style, {
@@ -194,14 +198,14 @@
 				'margin-left': left,
 				bottom: bottom
 			});
-			el = this._elements.bl;
+			el = this._handles.bl;
 			left = -(widthOf(el) / 2) - borderWidth.left + 'px';
 			bottom = -(heightOf(el) / 2) - borderWidth.bottom + 'px';
 			L.extend(el.style, {
 				left: left,
 				bottom: bottom
 			});
-			el = this._elements.mm;
+			el = this._handles.mm;
 			left = -(widthOf(el) / 2) + 'px';
 			top = -(heightOf(el) / 2) + 'px';
 			L.extend(el.style, {
@@ -210,7 +214,7 @@
 				'margin-left': left,
 				'margin-top': top
 			});
-			el = this._elements.ml;
+			el = this._handles.ml;
 			top = -(heightOf(el) / 2) + 'px';
 			left = -(widthOf(el) / 2) - borderWidth.left + 'px';
 			L.extend(el.style, {
@@ -218,7 +222,7 @@
 				'margin-top': top,
 				left: left
 			});
-			el = this._elements.mr;
+			el = this._handles.mr;
 			right = -(widthOf(el) / 2) - borderWidth.right + 'px';
 			top = -(heightOf(el) / 2) + 'px';
 			L.extend(el.style, {
@@ -226,14 +230,14 @@
 				top: '50%',
 				'margin-top': top
 			});
-			el = this._elements.tr;
+			el = this._handles.tr;
 			right = -(widthOf(el) / 2) - borderWidth.right + 'px';
 			top = -(heightOf(el) / 2) - borderWidth.top + 'px';
 			L.extend(el.style, {
 				right: right,
 				top: top
 			});
-			el = this._elements.tm;
+			el = this._handles.tm;
 			top = -(heightOf(el) / 2) - borderWidth.top + 'px';
 			left = -(widthOf(el) / 2) + 'px';
 			L.extend(el.style, {
@@ -241,7 +245,7 @@
 				'margin-left': left,
 				top: top
 			});
-			el = this._elements.tl;
+			el = this._handles.tl;
 			top = -(heightOf(el) / 2) - borderWidth.top + 'px';
 			left = -(widthOf(el) / 2) - borderWidth.left + 'px';
 			L.extend(el.style, {
