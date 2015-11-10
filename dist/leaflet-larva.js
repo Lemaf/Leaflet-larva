@@ -33,6 +33,33 @@
 	 * @requires Polyline.js
 	 */
 	L.larva.handler.Polygon = L.larva.handler.Polyline.extend({});
+	if (!L.Polyline.prototype.forEachLatLng) {
+		L.Polyline.include({
+			forEachLatLng: function (fn, context) {
+				var latlngs = this.getLatLngs();
+				if (!latlngs.length) {
+					return;
+				}
+				if (Array.isArray(latlngs[0])) {
+					// nested array
+					latlngs = latlngs.reduce(function (array, latlngs) {
+						return array.concat(latlngs);
+					}, []);
+				}
+				latlngs.forEach(fn, context);
+			}
+		});
+	}
+	if (!L.Polyline.prototype.updateBounds) {
+		L.Polyline.include({
+			updateBounds: function () {
+				var bounds = this._bounds = new L.LatLngBounds();
+				this.forEachLatLng(function (latlng) {
+					bounds.extend(latlng);
+				});
+			}
+		});
+	}
 	L.larva.frame = {};
 	/**
 	 * @requires package.js
@@ -71,8 +98,15 @@
 		getFrameClientRect: function () {
 			return this._el.getBoundingClientRect();
 		},
-		getPosition: function () {
-			return L.DomUtil.getPosition(this._el);
+		getHandle: function (id) {
+			return this._handles[id];
+		},
+		getPosition: function (id) {
+			if (id) {
+				return L.DomUtil.getPosition(this._handles[id]);
+			} else {
+				return L.DomUtil.getPosition(this._el);
+			}
 		},
 		hideHandle: function () {
 			for (var i = 0; i < arguments.length; i++) {
@@ -142,7 +176,6 @@
 						this._draggables[id] = new L.Draggable(el);
 						this._draggables[id].enable();
 						L.DomEvent.off(el, 'mousedown click', L.DomEvent.stop);
-						this._updateDraggable(id);
 					}
 				}
 			}
@@ -152,6 +185,9 @@
 			L.DomUtil.addClass(this._el, style.className);
 			this._style = style;
 			this._updateHandles();
+			for (id in this._draggables) {
+				this._updateDraggable(id);
+			}
 		},
 		updateBounds: function () {
 			this._updateFrame();
@@ -290,33 +326,6 @@
 	L.larva.frame.path = function pathframe(path) {
 		return new L.larva.frame.Path(path);
 	};
-	if (!L.Polyline.prototype.forEachLatLng) {
-		L.Polyline.include({
-			forEachLatLng: function (fn, context) {
-				var latlngs = this.getLatLngs();
-				if (!latlngs.length) {
-					return;
-				}
-				if (Array.isArray(latlngs[0])) {
-					// nested array
-					latlngs = latlngs.reduce(function (array, latlngs) {
-						return array.concat(latlngs);
-					}, []);
-				}
-				latlngs.forEach(fn, context);
-			}
-		});
-	}
-	if (!L.Polyline.prototype.updateBounds) {
-		L.Polyline.include({
-			updateBounds: function () {
-				var bounds = this._bounds = new L.LatLngBounds();
-				this.forEachLatLng(function (latlng) {
-					bounds.extend(latlng);
-				});
-			}
-		});
-	}
 	/**
 	 * @requires package.js
 	 */
@@ -335,8 +344,149 @@
 	};
 	L.larva.frame.Style.Rotate = {
 		className: 'llarva-pathframe-rotate',
+		tm: { hide: true },
+		ml: { hide: true },
+		mr: { hide: true },
+		bm: { hide: true },
 		mm: { draggable: true }
 	};
+	/**
+	 * @requires Polygon.js
+	 * @requires ../ext/L.Polyline.js
+	 * @requires ../frame/Path.js
+	 * @requires ../frame/Style.js
+	 */
+	L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
+		addHooks: function () {
+			this._frame = new L.larva.frame.Path(this._path);
+			this._frame.addTo(this._path._map);
+			this._frame.setStyle(this._frameStyle);
+			this._frame.on('drag:start', this._onStart, this);
+		},
+		_onEnd: function () {
+			this._frame.off('drag:move', this._onMove, this).off('drag:end', this._onEnd, this);
+		},
+		_onMove: function (evt) {
+			var position = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
+			var centerBounding = this._centerElement.getBoundingClientRect();
+			var cx = centerBounding.left + centerBounding.width / 2, cy = centerBounding.top + centerBounding.height / 2;
+			var i = position.clientX - cx, j = position.clientY - cy;
+			var crossProduct = this._vector.i * j + this._vector.j * i;
+			var sin = crossProduct / Math.sqrt(i * i + j * j);
+			var cos = Math.sqrt(1 - sin * sin);
+			var deg = Math.acos(cos) * 180 / Math.PI;
+			console.log(deg);
+			var frameBounding = this._frame.getFrameClientRect(), framePosition = this._frame.getPosition();
+			cx = cx - frameBounding.left + framePosition.x;
+			cy = cy - frameBounding.top + framePosition.y;
+			var dx = cx * (1 - cos) + cy * sin, dy = cy * (1 - cos) - cx * sin;
+			var projected, newLatLng;
+			this._path.forEachLatLng(function (latlng) {
+				projected = this._path._map.latLngToLayerPoint(latlng._original);
+				projected.x = projected.x * cos - projected.y * sin + dx;
+				projected.y = projected.x * sin + projected.y * cos + dy;
+				newLatLng = this._path._map.layerPointToLatLng(projected);
+				latlng.lat = newLatLng.lat;
+				latlng.lng = newLatLng.lng;
+			}, this);
+			this._path.updateBounds();
+			//this._frame.updateBounds();
+			this._path.redraw();
+		},
+		_onStart: function (evt) {
+			if (!evt.id || evt.id === L.larva.frame.Path.MIDDLE_MIDDLE) {
+				return;
+			}
+			var centerElement = this._centerElement = this._frame.getHandle(L.larva.frame.Path.MIDDLE_MIDDLE);
+			var centerBounding = centerElement.getBoundingClientRect(), targetBounding = evt.sourceEvent.target.getBoundingClientRect();
+			var vector = this._vector = {
+				i: targetBounding.left + targetBounding.width / 2 - (centerBounding.left - centerBounding.width / 2),
+				j: targetBounding.top + targetBounding.height / 2 - (centerBounding.top - centerBounding.height / 2)
+			};
+			vector.length = Math.sqrt(vector.i * vector.i + vector.j * vector.j);
+			vector.i = vector.i / vector.length;
+			vector.j = vector.j / vector.length;
+			this._path.forEachLatLng(function (latlng) {
+				latlng._original = latlng.clone();
+			});
+			this._frame.on('drag:move', this._onMove, this).on('drag:end', this._onEnd, this);
+		}
+	});
+	L.Polyline.addInitHook(function () {
+		this.larva.rotate = new L.larva.handler.Polyline.Rotate(this, L.larva.frame.Style.Rotate);
+	});
+	/**
+	 * @requires Polyline.js
+	 * @requires ../frame/Path.js
+	 * @requires ../ext/L.Polyline.js
+	 * @requires ../frame/Style.js
+	 * 
+	 * @type {[type]}
+	 */
+	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
+		addHooks: function () {
+			this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
+			this._frame.setStyle(this._frameStyle);
+			this._frame.on('drag:start', this._onDragStart, this);
+			this._frame.on('drag:move', this._onDragMove, this);
+			this._frame.on('drag:end', this._onDragEnd, this);
+		},
+		_onDragEnd: function () {
+		},
+		_onDragMove: function (evt) {
+			var mouseEvt = evt.sourceEvent;
+			var pos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
+			var dx = 0, dy = 0;
+			if (this._axis === undefined) {
+				dx = pos.clientX - this._startPoint.x;
+				dy = pos.clientY - this._startPoint.y;
+			} else {
+				if (this._axis === 'x') {
+					dx = pos.clientX - this._startPoint.x;
+				} else if (this._axis === 'y') {
+					dy = pos.clientY - this._startPoint.y;
+				}
+			}
+			if (dx === 0 && dy === 0) {
+				return;
+			}
+			var vector = L.point(dx, dy), projected, newLatLng;
+			this._path.forEachLatLng(function (latlng) {
+				projected = this._path._map.latLngToLayerPoint(latlng._original);
+				projected = projected.add(vector);
+				newLatLng = this._path._map.layerPointToLatLng(projected);
+				latlng.lat = newLatLng.lat;
+				latlng.lng = newLatLng.lng;
+			}, this);
+			this._path.updateBounds();
+			this._frame.updateBounds();
+			this._path.redraw();
+		},
+		_onDragStart: function (evt) {
+			this._startNorthWest = this._path.getBounds().getNorthWest();
+			var mouseEvt = evt.sourceEvent;
+			var startPos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
+			this._startPoint = L.point(startPos.clientX, startPos.clientY);
+			this._path.forEachLatLng(function (latlng) {
+				latlng._original = latlng.clone();
+			});
+			switch (evt.id) {
+			case L.larva.frame.Path.TOP_MIDDLE:
+			case L.larva.frame.Path.BOTTOM_MIDDLE:
+				this._axis = 'y';
+				break;
+			case L.larva.frame.Path.MIDDLE_LEFT:
+			case L.larva.frame.Path.MIDDLE_RIGHT:
+				this._axis = 'x';
+				break;
+			default:
+				delete this._axis;
+			}
+		}
+	});
+	L.Polyline.addInitHook(function () {
+		this.larva.move = new L.larva.handler.Polyline.Move(this, L.larva.frame.Style.Move);
+	});
 	/**
 	 * @requires Polygon.js
 	 * @requires ../frame/Path.js
@@ -465,78 +615,6 @@
 	});
 	L.Polyline.addInitHook(function () {
 		this.larva.resize = new L.larva.handler.Polyline.Resize(this, L.larva.frame.Style.Resize);
-	});
-	/**
-	 * @requires Polyline.js
-	 * @requires ../frame/Path.js
-	 * @requires ../ext/L.Polyline.js
-	 * @requires ../frame/Style.js
-	 * 
-	 * @type {[type]}
-	 */
-	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
-		addHooks: function () {
-			this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
-			this._frame.setStyle(this._frameStyle);
-			this._frame.on('drag:start', this._onDragStart, this);
-			this._frame.on('drag:move', this._onDragMove, this);
-			this._frame.on('drag:end', this._onDragEnd, this);
-		},
-		_onDragEnd: function () {
-		},
-		_onDragMove: function (evt) {
-			var mouseEvt = evt.sourceEvent;
-			var pos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
-			var dx = 0, dy = 0;
-			if (this._axis === undefined) {
-				dx = pos.clientX - this._startPoint.x;
-				dy = pos.clientY - this._startPoint.y;
-			} else {
-				if (this._axis === 'x') {
-					dx = pos.clientX - this._startPoint.x;
-				} else if (this._axis === 'y') {
-					dy = pos.clientY - this._startPoint.y;
-				}
-			}
-			if (dx === 0 && dy === 0) {
-				return;
-			}
-			var vector = L.point(dx, dy), projected, newLatLng;
-			this._path.forEachLatLng(function (latlng) {
-				projected = this._path._map.latLngToLayerPoint(latlng._original);
-				projected = projected.add(vector);
-				newLatLng = this._path._map.layerPointToLatLng(projected);
-				latlng.lat = newLatLng.lat;
-				latlng.lng = newLatLng.lng;
-			}, this);
-			this._path.updateBounds();
-			this._frame.updateBounds();
-			this._path.redraw();
-		},
-		_onDragStart: function (evt) {
-			this._startNorthWest = this._path.getBounds().getNorthWest();
-			var mouseEvt = evt.sourceEvent;
-			var startPos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
-			this._startPoint = L.point(startPos.clientX, startPos.clientY);
-			this._path.forEachLatLng(function (latlng) {
-				latlng._original = latlng.clone();
-			});
-			switch (evt.id) {
-			case L.larva.frame.Path.TOP_MIDDLE:
-			case L.larva.frame.Path.BOTTOM_MIDDLE:
-				this._axis = 'y';
-				break;
-			case L.larva.frame.Path.MIDDLE_LEFT:
-			case L.larva.frame.Path.MIDDLE_RIGHT:
-				this._axis = 'x';
-				break;
-			default:
-				delete this._axis;
-			}
-		}
-	});
-	L.Polyline.addInitHook(function () {
-		this.larva.move = new L.larva.handler.Polyline.Move(this, L.larva.frame.Style.Move);
 	});
 }());
 //# sourceMappingURL=leaflet-larva.js.map

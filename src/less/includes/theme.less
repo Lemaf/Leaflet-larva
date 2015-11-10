@@ -2,7 +2,7 @@
 // Path-frame handler
 
 @pathframe-background: rgba(255, 255, 255, 0.5);
-@pathframe-border: 1px solid #000;
+@pathframe-border: 2px solid #000;
 @pathframe-handle-border: none;
 @pathframe-handle-border-radius: 10px;
 @pathframe-handle-height: 12px;
@@ -92,5 +92,31 @@
 
 	.llarva-br {
 		background-position: -144px 0px;
+	}
+}
+
+.llarva-pathframe-rotate {
+
+	.llarva-tl,
+	.llarva-tm,
+	.llarva-tr,
+	.llarva-ml,
+	.llarva-mr,
+	.llarva-bl,
+	.llarva-bm,
+	.llarva-br {
+		background: #fff;
+		border: 2px solid #000;
+		.border-radius(12px);
+		height: 12px;
+		width: 12px;
+	}
+
+	.llarva-mm {
+		background: #000;
+		border: 2px solid #fff;
+		.border-radius(12px);
+		height: 12px;
+		width: 12px;
 	}
 }

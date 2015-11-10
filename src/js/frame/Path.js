@@ -48,8 +48,16 @@ L.larva.frame.Path = L.Layer.extend({
 		return this._el.getBoundingClientRect();
 	},
 
-	getPosition: function() {
-		return L.DomUtil.getPosition(this._el);
+	getHandle: function (id) {
+		return this._handles[id];
+	},
+
+	getPosition: function(id) {
+		if (id) {
+			return L.DomUtil.getPosition(this._handles[id]);
+		} else {
+			return L.DomUtil.getPosition(this._el);
+		}
 	},
 
 	hideHandle: function() {
@@ -130,8 +138,6 @@ L.larva.frame.Path = L.Layer.extend({
 					this._draggables[id] = new L.Draggable(el);
 					this._draggables[id].enable();
 					L.DomEvent.off(el, 'mousedown click', L.DomEvent.stop);
-
-					this._updateDraggable(id);
 				}
 			}
 		}
@@ -145,6 +151,10 @@ L.larva.frame.Path = L.Layer.extend({
 		this._style = style;
 
 		this._updateHandles();
+
+		for (id in this._draggables) {
+			this._updateDraggable(id);
+		}
 	},
 
 	updateBounds: function () {

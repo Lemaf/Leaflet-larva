@@ -60,9 +60,34 @@
 .llarva-pathframe-resize .llarva-br {
   background-position: -144px 0px;
 }
+.llarva-pathframe-rotate .llarva-tl,
+.llarva-pathframe-rotate .llarva-tm,
+.llarva-pathframe-rotate .llarva-tr,
+.llarva-pathframe-rotate .llarva-ml,
+.llarva-pathframe-rotate .llarva-mr,
+.llarva-pathframe-rotate .llarva-bl,
+.llarva-pathframe-rotate .llarva-bm,
+.llarva-pathframe-rotate .llarva-br {
+  background: #fff;
+  border: 2px solid #000;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius: 12px;
+  height: 12px;
+  width: 12px;
+}
+.llarva-pathframe-rotate .llarva-mm {
+  background: #000;
+  border: 2px solid #fff;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius: 12px;
+  height: 12px;
+  width: 12px;
+}
 .llarva-pathframe {
   background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #000;
+  border: 2px solid #000;
   position: absolute;
 }
 .llarva-pathframe .llarva-tl,
