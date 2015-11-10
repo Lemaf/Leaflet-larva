@@ -155,7 +155,7 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomEvent.stop(evt);
 
 		this.fire('drag:start', {
-			mouseEvent: evt,
+			sourceEvent: evt,
 			id: evt.target._id
 		});
 
@@ -170,7 +170,7 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomEvent.stop(evt);
 
 		this.fire('drag:move', {
-			mouseEvent: evt
+			sourceEvent: evt
 		});
 	},
 
@@ -186,7 +186,7 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomUtil.removeClass(document.body, 'leaflet-dragging');
 
 		this.fire('drag:end', {
-			mouseEvent: evt
+			sourceEvent: evt
 		});
 	},
 

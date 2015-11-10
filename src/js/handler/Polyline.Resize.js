@@ -21,7 +21,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 	},
 
 	_onDragMove: function (evt) {
-		var position = evt.mouseEvent.touches ? evt.mouseEvent.touches[0] : evt.mouseEvent;
+		var position = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
 
 
 		var xscale = null, yscale = null;
@@ -39,7 +39,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 		}
 
 		if (xscale !== null && yscale !== null) {
-			if (evt.mouseEvent.ctrlKey) {
+			if (evt.sourceEvent.ctrlKey) {
 				yscale = xscale = Math.max(Math.abs(xscale), Math.abs(yscale));
 
 				if (this._origin.invertX) {

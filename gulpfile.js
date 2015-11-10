@@ -3,8 +3,8 @@ var gulp = require('gulp');
 var SOURCES = {
 	JS: [
 		'L.larva.js',
-		'handler/Polyline.Move.js',
-		'handler/Polyline.Resize.js'
+		'handler/Polyline.Resize.js',
+		'handler/Polyline.Move.js'
 	]
 };
 

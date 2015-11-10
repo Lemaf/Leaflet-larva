@@ -22,7 +22,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 	},
 
 	_onDragMove: function (evt) {
-		var mouseEvt = evt.mouseEvent;
+		var mouseEvt = evt.sourceEvent;
 		var pos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
 
 		var dx = 0, dy = 0;
@@ -60,7 +60,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	_onDragStart: function (evt) {
 		this._startNorthWest = this._path.getBounds().getNorthWest();
-		var mouseEvt = evt.mouseEvent;
+		var mouseEvt = evt.sourceEvent;
 		var startPos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0]: mouseEvt;
 		this._startPoint = L.point(startPos.clientX, startPos.clientY);
 
