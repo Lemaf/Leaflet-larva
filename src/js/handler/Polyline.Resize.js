@@ -18,6 +18,8 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 		this._frame
 			.off('drag:move', this._onMove, this)
 			.off('drag:end', this._onEnd, this);
+
+		delete this._origin;
 	},
 
 	_onMove: function (evt) {
@@ -109,7 +111,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 
 		var position = this._frame.getPosition();
 
-		switch (evt.id) {
+		switch (evt.handle) {
 			case L.larva.frame.Path.TOP_LEFT:
 				origin.x = position.x + bounding.width;
 				origin.y = position.y + bounding.height;

@@ -69,7 +69,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 	},
 
 	_onStart: function (evt) {
-		if (!evt.id || evt.id === L.larva.frame.Path.MIDDLE_MIDDLE) {
+		if (!evt.handle || evt.handle === L.larva.frame.Path.MIDDLE_MIDDLE) {
 			return;
 		}
 

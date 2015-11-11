@@ -77,7 +77,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 			latlng._original = latlng.clone();
 		});
 
-		switch (evt.id) {
+		switch (evt.handle) {
 			case L.larva.frame.Path.TOP_MIDDLE:
 			case L.larva.frame.Path.BOTTOM_MIDDLE:
 				this._axis = 'y';

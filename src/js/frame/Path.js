@@ -166,7 +166,7 @@ L.larva.frame.Path = L.Layer.extend({
 
 		this.fire('drag:start', {
 			sourceEvent: evt,
-			id: evt.target._id
+			handle: evt.target._id
 		});
 
 		L.DomEvent
