@@ -11,16 +11,16 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 
 		this._frame.setStyle(this._frameStyle);
 
-		this._frame.on('drag:start', this._onDragStart, this);
-		this._frame.on('drag:move', this._onDragMove, this);
-		this._frame.on('drag:end', this._onDragEnd, this);
+		this._frame.on('drag:start', this._onStart, this);
 	},
 
-	_onDragEnd: function () {
-
+	_onEnd: function () {
+		this._frame
+			.off('drag:move', this._onMove, this)
+			.off('drag:end', this._onEnd, this);
 	},
 
-	_onDragMove: function (evt) {
+	_onMove: function (evt) {
 		var position = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
 
 
@@ -40,7 +40,10 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 
 		if (xscale !== null && yscale !== null) {
 			if (evt.sourceEvent.ctrlKey) {
-				yscale = xscale = Math.max(Math.abs(xscale), Math.abs(yscale));
+				var xyscale = Math.max(Math.abs(xscale), Math.abs(yscale));
+
+				xscale = xscale >= 0 ? xyscale : -xyscale;
+				yscale = yscale >= 0 ? xyscale : -xyscale;
 
 				if (this._origin.invertX) {
 					xscale = -xscale;
@@ -90,7 +93,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 
 	},
 
-	_onDragStart: function (evt) {
+	_onStart: function (evt) {
 
 		this._path.forEachLatLng(function (latlng) {
 			latlng._original = latlng.clone();
@@ -161,6 +164,10 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 				origin.screenX = bounding.left;
 				break;
 		}
+
+		this._frame
+			.on('drag:move', this._onMove, this)
+			.on('drag:end', this._onEnd, this);
 	}
 
 });
