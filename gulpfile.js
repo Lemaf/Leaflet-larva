@@ -1,4 +1,5 @@
-var gulp = require('gulp');
+var gulp = require('gulp'),
+    notify = require('gulp-notify');
 
 var SOURCES = {
 	JS: [
@@ -17,8 +18,14 @@ gulp.task('lint:javascript', function () {
 	return gulp.src('src/js/**/*.js')
 		.pipe(jshint())
 		.pipe(jshint.reporter('default', {verbose: true}))
-		.pipe(jshint.reporter('fail'));
-
+		.pipe(jshint.reporter('fail'))
+		.on("error", notify.onError(function (error) {
+			console.log(error);
+			return {
+				wait: false,
+				message: error.message
+			}
+		}));
 });
 
 gulp.task('clean:javascript', function () {

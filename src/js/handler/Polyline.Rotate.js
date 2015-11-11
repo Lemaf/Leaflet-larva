@@ -34,40 +34,38 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		var i = position.clientX - cx,
 		    j = position.clientY - cy;
 
-		var crossProduct = this._vector.i * j + this._vector.j * i;
-
-		var sin = crossProduct / Math.sqrt(i * i + j * j);
+		var crossProduct = this._vector.i * j - this._vector.j * i;
+		var sin = crossProduct / 	Math.sqrt(i * i + j * j);
 		var cos = Math.sqrt(1 - (sin * sin));
 
-		var deg = Math.acos(cos) * 180 / Math.PI;
-
-		console.log(deg);
+		if (crossProduct < 0) {
+			sin = -sin;
+		}
 
 		var frameBounding = this._frame.getFrameClientRect(),
 		    framePosition = this._frame.getPosition();
 
-		cx =  (cx - frameBounding.left) + framePosition.x;
+		cx = (cx - frameBounding.left) + framePosition.x;
 		cy = (cy - frameBounding.top) + framePosition.y;
 
+		var dx = cx * (1 - cos) + cy * sin;
+		var dy = cy * (1 - cos) - cx * sin;
 
-		var dx = cx * (1 - cos) + cy * sin,
-		    dy = cy * (1 - cos) - cx * sin;
-
-		var projected, newLatLng;
+		var projected, newLatLng, rotated = L.point(0, 0);
 
 		this._path.forEachLatLng(function (latlng) {
 			projected = this._path._map.latLngToLayerPoint(latlng._original);
 
-			projected.x = projected.x * cos - projected.y * sin + dx;
-			projected.y = projected.x * sin + projected.y * cos + dy;
+			rotated.x = projected.x * cos - projected.y * sin + dx;
+			rotated.y = projected.x * sin + projected.y * cos + dy;
 
-			newLatLng = this._path._map.layerPointToLatLng(projected);
+			newLatLng = this._path._map.layerPointToLatLng(rotated);
 			latlng.lat = newLatLng.lat;
 			latlng.lng = newLatLng.lng;
 		}, this);
 
 		this._path.updateBounds();
-		//this._frame.updateBounds();
+		// this._frame.updateBounds();
 		this._path.redraw();
 	},
 
