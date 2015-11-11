@@ -20,11 +20,6 @@ L.larva.frame.Path = L.Layer.extend({
 	},
 
 	initialize: function (path) {
-		if (path._pathFrame && path._pathFrame instanceof L.larva.frame.Path) {
-			return path._pathFrame;
-		}
-
-		path._pathFrame = this;
 		this._path = path;
 	},
 
@@ -385,5 +380,9 @@ L.larva.frame.Path = L.Layer.extend({
 });
 
 L.larva.frame.path = function pathframe (path) {
-	return new L.larva.frame.Path(path);
+	if (path && path._pathFrame) {
+		return path._pathFrame;
+	}
+
+	return (path._pathFrame = new L.larva.frame.Path(path));
 };

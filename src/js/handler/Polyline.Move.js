@@ -1,8 +1,8 @@
 /**
  * @requires Polyline.js
  * @requires ../frame/Path.js
- * @requires ../ext/L.Polyline.js
  * @requires ../frame/Style.js
+ * @requires ../ext/L.Polyline.js
  * 
  * @type {[type]}
  */
@@ -11,7 +11,21 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 	addHooks: function() {
 		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
 
-		this._frame.setStyle(this._frameStyle);
+		this._captureHandles = true;
+		var larva = this._path.larva;
+
+		if (larva) {
+			if (larva.resize && larva.resize.enabled()) {
+				this._captureHandles = false;
+			} else if (larva.rotate && larva.rotate.enabled()) {
+				this._captureHandles = false;
+			}
+
+		}
+
+		if (this._captureHandles) {
+			this._frame.setStyle(this._frameStyle);
+		}
 
 		this._frame.on('drag:start', this._onStart, this);
 	},
@@ -77,24 +91,28 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 			latlng._original = latlng.clone();
 		});
 
-		switch (evt.handle) {
-			case L.larva.frame.Path.TOP_MIDDLE:
-			case L.larva.frame.Path.BOTTOM_MIDDLE:
-				this._axis = 'y';
-				break;
+		if (this._captureHandles) {
+			switch (evt.handle) {
+				case L.larva.frame.Path.TOP_MIDDLE:
+				case L.larva.frame.Path.BOTTOM_MIDDLE:
+					this._axis = 'y';
+					break;
 
-			case L.larva.frame.Path.MIDDLE_LEFT:
-			case L.larva.frame.Path.MIDDLE_RIGHT:
-				this._axis = 'x';
-				break;
+				case L.larva.frame.Path.MIDDLE_LEFT:
+				case L.larva.frame.Path.MIDDLE_RIGHT:
+					this._axis = 'x';
+					break;
 
-			default:
-				delete this._axis;
+				default:
+					delete this._axis;
+			}
 		}
 
-		this._frame
-			.on('drag:move', this._onMove, this)
-			.on('drag:end', this._onEnd, this);
+		if (this._captureHandles || !evt.handle) {
+			this._frame
+				.on('drag:move', this._onMove, this)
+				.on('drag:end', this._onEnd, this);
+		}
 	}
 
 });

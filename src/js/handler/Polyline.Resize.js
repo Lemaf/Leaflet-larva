@@ -1,8 +1,8 @@
 /**
  * @requires Polygon.js
  * @requires ../frame/Path.js
- * @requires ../ext/L.Polyline.js
  * @requires ../frame/Style.js
+ * @requires ../ext/L.Polyline.js
  */
 L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 

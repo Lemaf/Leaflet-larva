@@ -1,14 +1,14 @@
 /**
- * @requires Polygon.js
- * @requires ../ext/L.Polyline.js
+ * @requires Polyline.js
  * @requires ../frame/Path.js
  * @requires ../frame/Style.js
+ * @requires ../ext/L.Polyline.js
  */
 
 L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 
 	addHooks: function () {
-		this._frame = new L.larva.frame.Path(this._path);
+		this._frame = L.larva.frame.path(this._path);
 		this._frame.addTo(this._path._map);
 
 		this._frame.setStyle(this._frameStyle);
