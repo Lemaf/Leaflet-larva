@@ -30,17 +30,16 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		var cx = (centerBounding.left + centerBounding.width / 2),
 		    cy = (centerBounding.top + centerBounding.height / 2);
 
-
 		var i = position.clientX - cx,
 		    j = position.clientY - cy;
 
-		var crossProduct = this._vector.i * j - this._vector.j * i;
-		var sin = crossProduct / 	Math.sqrt(i * i + j * j);
-		var cos = Math.sqrt(1 - (sin * sin));
+		var length = Math.sqrt(i * i + j * j);
 
-		if (crossProduct < 0) {
-			sin = -sin;
-		}
+		// cross product
+		var sin = (this._vector.i * j - this._vector.j * i) / length;
+
+		// scalar product
+		var cos = (this._vector.i * i + this._vector.j * j) / length;
 
 		var frameBounding = this._frame.getFrameClientRect(),
 		    framePosition = this._frame.getPosition();
@@ -65,7 +64,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		}, this);
 
 		this._path.updateBounds();
-		// this._frame.updateBounds();
+		this._frame.updateBounds(L.larva.frame.Path.MIDDLE_MIDDLE);
 		this._path.redraw();
 	},
 

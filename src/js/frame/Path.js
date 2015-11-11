@@ -16,7 +16,7 @@ L.larva.frame.Path = L.Layer.extend({
 	},
 
 	options: {
-		pane: 'llarvaPathframe'
+		pane: 'llarva-path-frame'
 	},
 
 	initialize: function (path) {
@@ -36,7 +36,7 @@ L.larva.frame.Path = L.Layer.extend({
 
 	getEvents: function () {
 		return {
-			zoom: this._updateFrame
+			zoom: this._onMapZoom
 		};
 	},
 
@@ -84,7 +84,7 @@ L.larva.frame.Path = L.Layer.extend({
 
 		this._draggable = new L.Draggable(el);
 		this._draggables = {};
-		this._updateFrame();
+		this._updateFrame(false);
 		this._updateHandles();
 	},
 
@@ -158,7 +158,7 @@ L.larva.frame.Path = L.Layer.extend({
 	},
 
 	updateBounds: function () {
-		this._updateFrame();
+		this._updateFrame(false, Array.prototype.slice.call(arguments, 0));
 	},
 
 	_onStart: function (evt) {
@@ -174,6 +174,10 @@ L.larva.frame.Path = L.Layer.extend({
 			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
 
 		L.DomUtil.addClass(document.body, 'leaflet-dragging');
+	},
+
+	_onMapZoom: function () {
+		this._updateFrame(true);
 	},
 
 	_onMove: function (evt) {
@@ -220,7 +224,12 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomUtil.setPosition(el, L.point(left, top));
 	},
 
-	_updateFrame: function () {
+	_updateFrame: function (zoomChanged, maintainHandles) {
+		var id,
+		    currentPosition = L.DomUtil.getPosition(this._el),
+		    handle,
+		    handlePosition;
+
 		var bounds = this._path.getBounds();
 
 		var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()),
@@ -228,14 +237,48 @@ L.larva.frame.Path = L.Layer.extend({
 
 		var computedStyle = getComputedStyle(this._el);
 
-		L.DomUtil.setPosition(this._el, northWestPoint);
+		if (maintainHandles && maintainHandles.length) {
 
+			if (currentPosition) {
+				for (var i=0; i<maintainHandles.length; i++) {
+					
+					handle = this._handles[maintainHandles[i]];
+					if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
+						handlePosition = handlePosition.add(currentPosition);
+						L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
+					}
+				}
+			}
+		}
+
+		L.DomUtil.setPosition(this._el, northWestPoint);
 
 		var x = parseInt(computedStyle.borderLeftWidth) + parseInt(computedStyle.borderRightWidth),
 		y = parseInt(computedStyle.borderTopWidth) + parseInt(computedStyle.borderBottomWidth);
 
+		var oldWidth, oldHeight;
+		if (zoomChanged) {
+			oldWidth = this._el.offsetWidth;
+			oldHeight = this._el.offsetHeight;
+		}
+
 		this._el.style.width = (southEastPoint.x - northWestPoint.x - x) + 'px';
 		this._el.style.height = (southEastPoint.y - northWestPoint.y - y) + 'px';
+
+		if (zoomChanged) {
+
+			for (id in this._handles) {
+				handle = this._handles[id];
+				handlePosition = L.DomUtil.getPosition(handle);
+
+				if (handlePosition) {
+					L.DomUtil.setPosition(handle, handlePosition.scaleBy(L.point(
+						this._el.offsetWidth / oldWidth, 
+						this._el.offsetHeight / oldHeight
+					)));
+				}
+			}
+		}
 
 		this.southEastPoint = southEastPoint;
 		this.northWestPoint = northWestPoint;

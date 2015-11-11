@@ -76,7 +76,7 @@
 			BOTTOM_MIDDLE: 'bm',
 			BOTTOM_RIGHT: 'br'
 		},
-		options: { pane: 'llarvaPathframe' },
+		options: { pane: 'llarva-path-frame' },
 		initialize: function (path) {
 			if (path._pathFrame && path._pathFrame instanceof L.larva.frame.Path) {
 				return path._pathFrame;
@@ -90,7 +90,7 @@
 			}
 		},
 		getEvents: function () {
-			return { zoom: this._updateFrame };
+			return { zoom: this._onMapZoom };
 		},
 		getDraggable: function () {
 			return this._draggable;
@@ -136,7 +136,7 @@
 			}, this);
 			this._draggable = new L.Draggable(el);
 			this._draggables = {};
-			this._updateFrame();
+			this._updateFrame(false);
 			this._updateHandles();
 		},
 		onRemove: function () {
@@ -190,7 +190,7 @@
 			}
 		},
 		updateBounds: function () {
-			this._updateFrame();
+			this._updateFrame(false, Array.prototype.slice.call(arguments, 0));
 		},
 		_onStart: function (evt) {
 			L.DomEvent.stop(evt);
@@ -200,6 +200,9 @@
 			});
 			L.DomEvent.on(document, L.Draggable.MOVE[evt.type], this._onMove, this).on(document, L.Draggable.END[evt.type], this._onEnd, this);
 			L.DomUtil.addClass(document.body, 'leaflet-dragging');
+		},
+		_onMapZoom: function () {
+			this._updateFrame(true);
 		},
 		_onMove: function (evt) {
 			L.DomEvent.stop(evt);
@@ -228,14 +231,40 @@
 			});
 			L.DomUtil.setPosition(el, L.point(left, top));
 		},
-		_updateFrame: function () {
+		_updateFrame: function (zoomChanged, maintainHandles) {
+			var id, currentPosition = L.DomUtil.getPosition(this._el), handle, handlePosition;
 			var bounds = this._path.getBounds();
 			var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()), northWestPoint = this._map.latLngToLayerPoint(bounds.getNorthWest());
 			var computedStyle = getComputedStyle(this._el);
+			if (maintainHandles && maintainHandles.length) {
+				if (currentPosition) {
+					for (var i = 0; i < maintainHandles.length; i++) {
+						handle = this._handles[maintainHandles[i]];
+						if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
+							handlePosition = handlePosition.add(currentPosition);
+							L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
+						}
+					}
+				}
+			}
 			L.DomUtil.setPosition(this._el, northWestPoint);
 			var x = parseInt(computedStyle.borderLeftWidth) + parseInt(computedStyle.borderRightWidth), y = parseInt(computedStyle.borderTopWidth) + parseInt(computedStyle.borderBottomWidth);
+			var oldWidth, oldHeight;
+			if (zoomChanged) {
+				oldWidth = this._el.offsetWidth;
+				oldHeight = this._el.offsetHeight;
+			}
 			this._el.style.width = southEastPoint.x - northWestPoint.x - x + 'px';
 			this._el.style.height = southEastPoint.y - northWestPoint.y - y + 'px';
+			if (zoomChanged) {
+				for (id in this._handles) {
+					handle = this._handles[id];
+					handlePosition = L.DomUtil.getPosition(handle);
+					if (handlePosition) {
+						L.DomUtil.setPosition(handle, handlePosition.scaleBy(L.point(this._el.offsetWidth / oldWidth, this._el.offsetHeight / oldHeight)));
+					}
+				}
+			}
 			this.southEastPoint = southEastPoint;
 			this.northWestPoint = northWestPoint;
 		},
@@ -371,26 +400,27 @@
 			var centerBounding = this._centerElement.getBoundingClientRect();
 			var cx = centerBounding.left + centerBounding.width / 2, cy = centerBounding.top + centerBounding.height / 2;
 			var i = position.clientX - cx, j = position.clientY - cy;
-			var crossProduct = this._vector.i * j + this._vector.j * i;
-			var sin = crossProduct / Math.sqrt(i * i + j * j);
-			var cos = Math.sqrt(1 - sin * sin);
-			var deg = Math.acos(cos) * 180 / Math.PI;
-			console.log(deg);
+			var length = Math.sqrt(i * i + j * j);
+			// cross product
+			var sin = (this._vector.i * j - this._vector.j * i) / length;
+			// scalar product
+			var cos = (this._vector.i * i + this._vector.j * j) / length;
 			var frameBounding = this._frame.getFrameClientRect(), framePosition = this._frame.getPosition();
 			cx = cx - frameBounding.left + framePosition.x;
 			cy = cy - frameBounding.top + framePosition.y;
-			var dx = cx * (1 - cos) + cy * sin, dy = cy * (1 - cos) - cx * sin;
-			var projected, newLatLng;
+			var dx = cx * (1 - cos) + cy * sin;
+			var dy = cy * (1 - cos) - cx * sin;
+			var projected, newLatLng, rotated = L.point(0, 0);
 			this._path.forEachLatLng(function (latlng) {
 				projected = this._path._map.latLngToLayerPoint(latlng._original);
-				projected.x = projected.x * cos - projected.y * sin + dx;
-				projected.y = projected.x * sin + projected.y * cos + dy;
-				newLatLng = this._path._map.layerPointToLatLng(projected);
+				rotated.x = projected.x * cos - projected.y * sin + dx;
+				rotated.y = projected.x * sin + projected.y * cos + dy;
+				newLatLng = this._path._map.layerPointToLatLng(rotated);
 				latlng.lat = newLatLng.lat;
 				latlng.lng = newLatLng.lng;
 			}, this);
 			this._path.updateBounds();
-			//this._frame.updateBounds();
+			this._frame.updateBounds(L.larva.frame.Path.MIDDLE_MIDDLE);
 			this._path.redraw();
 		},
 		_onStart: function (evt) {
