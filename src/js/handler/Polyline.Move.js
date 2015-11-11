@@ -13,23 +13,31 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 		this._frame.setStyle(this._frameStyle);
 
-		this._frame.on('drag:start', this._onDragStart, this);
-		this._frame.on('drag:move', this._onDragMove, this);
-		this._frame.on('drag:end', this._onDragEnd, this);
+		this._frame.on('drag:start', this._onStart, this);
 	},
 
-	_onDragEnd: function () {
+	_onEnd: function () {
+		this._frame
+			.off('drag:move', this._onMove, this)
+			.off('drag:end', this._onEnd);
 	},
 
-	_onDragMove: function (evt) {
-		var mouseEvt = evt.sourceEvent;
-		var pos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0] : mouseEvt;
+	_onMove: function (evt) {
+		var sourceEvent = evt.sourceEvent;
+		var pos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0] : sourceEvent;
 
 		var dx = 0, dy = 0;
 
 		if (this._axis === undefined) {
 			dx = pos.clientX - this._startPoint.x;
 			dy = pos.clientY - this._startPoint.y;
+
+			if (sourceEvent.ctrlKey) {
+				var dxy = Math.min(Math.abs(dx), Math.abs(dy));
+
+				dx = dx >= 0 ? dxy : -dxy;
+				dy = dy >= 0 ? dxy : -dxy;
+			}
 		} else {
 			if (this._axis === 'x') {
 				dx = pos.clientX - this._startPoint.x;
@@ -58,10 +66,11 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	},
 
-	_onDragStart: function (evt) {
+	_onStart: function (evt) {
 		this._startNorthWest = this._path.getBounds().getNorthWest();
-		var mouseEvt = evt.sourceEvent;
-		var startPos = mouseEvt.touches && mouseEvt.touches[0] ? mouseEvt.touches[0]: mouseEvt;
+		var sourceEvent = evt.sourceEvent;
+		var startPos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0]: sourceEvent;
+		
 		this._startPoint = L.point(startPos.clientX, startPos.clientY);
 
 		this._path.forEachLatLng(function (latlng) {
@@ -82,6 +91,10 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 			default:
 				delete this._axis;
 		}
+
+		this._frame
+			.on('drag:move', this._onMove, this)
+			.on('drag:end', this._onEnd, this);
 	}
 
 });
