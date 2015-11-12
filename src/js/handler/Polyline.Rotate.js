@@ -1,6 +1,6 @@
 /**
- * @requires ../frame/Path.js
- * @requires ../frame/Style.js
+ * @requires ../frame/Rect.js
+ * @requires ../frame/RECT_STYLE.js
  * @requires ../ext/L.Polyline.js
  * 
  * @requires Polyline.Transform.js
@@ -9,11 +9,11 @@
 L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 
 	options: {
-		noUpdate: [L.larva.frame.Path.MIDDLE_MIDDLE]
+		noUpdate: [L.larva.frame.Rect.MIDDLE_MIDDLE]
 	},
 
 	addHooks: function () {
-		this._frame = L.larva.frame.path(this._path);
+		this._frame = L.larva.frame.rect(this._path);
 		this._frame.addTo(this._path._map);
 
 		this._frame.setStyle(this._frameStyle);
@@ -64,11 +64,11 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 	},
 
 	_onStart: function (evt) {
-		if (!evt.handle || evt.handle === L.larva.frame.Path.MIDDLE_MIDDLE) {
+		if (!evt.handle || evt.handle === L.larva.frame.Rect.MIDDLE_MIDDLE) {
 			return;
 		}
 
-		var centerElement = this._centerElement = this._frame.getHandle(L.larva.frame.Path.MIDDLE_MIDDLE);
+		var centerElement = this._centerElement = this._frame.getHandle(L.larva.frame.Rect.MIDDLE_MIDDLE);
 
 		var centerBounding = centerElement.getBoundingClientRect(),
 		    targetBounding = evt.sourceEvent.target.getBoundingClientRect();
@@ -93,5 +93,5 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 });
 
 L.Polyline.addInitHook(function () {
-	this.larva.rotate = new L.larva.handler.Polyline.Rotate(this, L.larva.frame.Style.Rotate);
+	this.larva.rotate = new L.larva.handler.Polyline.Rotate(this, L.larva.frame.RECT_STYLE.ROTATE);
 });

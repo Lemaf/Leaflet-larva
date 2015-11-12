@@ -2,18 +2,18 @@
  * @requires package.js
  */
 
-L.larva.frame.Style = {
+L.larva.frame.RECT_STYLE = {
 	
 };
 
-L.larva.frame.Style.Resize = {
+L.larva.frame.RECT_STYLE.RESIZE = {
 	className: 'llarva-pathframe-resize',
 	mm: {
 		hide: true
 	}
 };
 
-L.larva.frame.Style.Rotate = {
+L.larva.frame.RECT_STYLE.ROTATE = {
 	className: 'llarva-pathframe-rotate',
 	tm: {
 		hide: true

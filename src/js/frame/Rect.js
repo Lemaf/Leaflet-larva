@@ -1,7 +1,7 @@
 /**
  * @requires package.js
  */
-L.larva.frame.Path = L.Layer.extend({
+L.larva.frame.Rect = L.Layer.extend({
 
 	statics: {
 		TOP_LEFT: 'tl',
@@ -401,10 +401,10 @@ L.larva.frame.Path = L.Layer.extend({
 	}
 });
 
-L.larva.frame.path = function pathframe (path) {
-	if (path && path._pathFrame) {
-		return path._pathFrame;
+L.larva.frame.rect = function (path) {
+	if (path && path._rectFrame) {
+		return path._rectFrame;
 	}
 
-	return (path._pathFrame = new L.larva.frame.Path(path));
+	return (path._rectFrame = new L.larva.frame.Rect(path));
 };

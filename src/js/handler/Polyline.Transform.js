@@ -8,6 +8,12 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 		noUpdate: []
 	},
 
+	initialize: function (path, frameStyle, options) {
+		L.larva.handler.Polyline.prototype.initialize.call(this, path, options);
+
+		this._frameStyle = frameStyle;
+	},
+
 	transform: function () {
 
 		var transformed = L.point(0, 0),

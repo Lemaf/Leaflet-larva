@@ -1,6 +1,6 @@
 /**
- * @requires ../frame/Path.js
- * @requires ../frame/Style.js
+ * @requires ../frame/Rect.js
+ * @requires ../frame/RECT_STYLE.js
  * @requires ../ext/L.Polyline.js
  * 
  * @requires Polyline.Transform.js
@@ -8,7 +8,7 @@
 L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 
 	addHooks: function () {
-		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
+		this._frame = L.larva.frame.rect(this._path).addTo(this._path._map);
 
 		this._frame.setStyle(this._frameStyle);
 
@@ -75,7 +75,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 		};
 
 		switch (evt.handle) {
-			case L.larva.frame.Path.TOP_LEFT:
+			case L.larva.frame.Rect.TOP_LEFT:
 				origin.x = bounding.right;
 				origin.y = bounding.bottom;
 				origin.invertX = origin.invertY = true;
@@ -84,14 +84,14 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 				origin.layerY = position.y + bounding.height;
 				break;
 
-			case L.larva.frame.Path.TOP_MIDDLE:
+			case L.larva.frame.Rect.TOP_MIDDLE:
 				origin.y = bounding.bottom;
 				origin.invertY = true;
 
 				origin.layerY = position.y + bounding.height;
 				break;
 
-			case L.larva.frame.Path.TOP_RIGHT:
+			case L.larva.frame.Rect.TOP_RIGHT:
 				origin.x = bounding.left;
 				origin.y = bounding.bottom;
 				origin.invertY = true;
@@ -100,20 +100,20 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 				origin.layerY = position.y + bounding.height;
 				break;
 
-			case L.larva.frame.Path.MIDDLE_LEFT:
+			case L.larva.frame.Rect.MIDDLE_LEFT:
 				origin.x = bounding.right;
 				origin.invertX = true;
 
 				origin.layerX = position.x + bounding.width;
 				break;
 
-			case L.larva.frame.Path.MIDDLE_RIGHT:
+			case L.larva.frame.Rect.MIDDLE_RIGHT:
 				origin.x = bounding.left;
 
 				origin.layerX = position.x;
 				break;
 
-			case L.larva.frame.Path.BOTTOM_LEFT:
+			case L.larva.frame.Rect.BOTTOM_LEFT:
 				origin.x = bounding.right;
 				origin.y = bounding.top;
 				origin.invertX = true;
@@ -122,13 +122,13 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 				origin.layerY = position.y;
 				break;
 
-			case L.larva.frame.Path.BOTTOM_MIDDLE:
+			case L.larva.frame.Rect.BOTTOM_MIDDLE:
 				origin.y = bounding.top;
 
 				origin.layerY = position.y;
 				break;
 
-			case L.larva.frame.Path.BOTTOM_RIGHT:
+			case L.larva.frame.Rect.BOTTOM_RIGHT:
 				origin.x = bounding.left;
 				origin.y = bounding.top;
 
@@ -150,5 +150,5 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 });
 
 L.Polyline.addInitHook(function () {
-	this.larva.resize = new L.larva.handler.Polyline.Resize(this, L.larva.frame.Style.Resize);
+	this.larva.resize = new L.larva.handler.Polyline.Resize(this, L.larva.frame.RECT_STYLE.RESIZE);
 });
