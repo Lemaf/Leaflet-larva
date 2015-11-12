@@ -3,6 +3,11 @@
  */
 L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 
+
+	options: {
+		noUpdate: []
+	},
+
 	transform: function () {
 
 		var transformed = L.point(0, 0),
