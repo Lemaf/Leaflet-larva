@@ -33,7 +33,7 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend({
 		this._path.updateBounds();
 
 		this._frame.updateBounds.apply(this._frame, this.options.noUpdate);
-		//this._path.redraw();
+		this._path.redraw();
 	},
 
 	transformPoint: function () {

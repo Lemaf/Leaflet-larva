@@ -18,6 +18,16 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		});
 	},
 
+	transformPoint: function (original, transformed, dx, dy) {
+		if (dx) {
+			transformed.x = original.x + dx;
+		}
+
+		if (dy) {
+			transformed.y = original.y + dy;
+		}
+	},
+
 	_onEnd: function () {
 
 		this._frame
@@ -41,27 +51,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 			dx = null;
 		}
 
-		var projected, newLatLng;
-
-		this._path.forEachLatLng(function (latlng) {
-			projected = this._path._map.latLngToLayerPoint(latlng._original);
-
-			if (dx) {
-				projected.x += dx;
-			}
-
-			if (dy) {
-				projected.y += dy;
-			}
-
-			newLatLng = this._path._map.layerPointToLatLng(projected);
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
-		}, this);
-
-		this._path.updateBounds();
-		this._frame.updateBounds();
-		this._path.redraw();
+		this.transform(dx, dy);
 	},
 
 	_onStart: function (evt) {
