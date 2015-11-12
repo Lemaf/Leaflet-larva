@@ -7,6 +7,12 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend({
 		noUpdate: []
 	},
 
+	backupLatLngs: function () {
+		this._path.forEachLatLng(function (latlng) {
+			latlng._original = latlng.clone();
+		});
+	},
+
 	transform: function () {
 
 		var transformed = L.point(0, 0),

@@ -82,9 +82,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		vector.i = vector.i / vector.length;
 		vector.j = vector.j / vector.length;
 
-		this._path.forEachLatLng(function (latlng) {
-			latlng._original = latlng.clone();
-		});
+		this.backupLatLngs();
 
 		this._frame
 			.on('drag:move', this._onMove, this)

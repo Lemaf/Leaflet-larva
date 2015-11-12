@@ -56,10 +56,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	_onStart: function (evt) {
 		if (!evt.handle) {
-			this._path.forEachLatLng(function (latlng) {
-				latlng._original = latlng.clone();
-			});
-
+			this.backupLatLngs();
 			var event = evt.sourceEvent.touches ? 
 			                    evt.sourceEvent.touches[0] : evt.sourceEvent;
 
