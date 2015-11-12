@@ -2,7 +2,7 @@
 // Path-frame handler
 
 @pathframe-background: rgba(255, 255, 255, 0.5);
-@pathframe-border: 2px solid #000;
+@pathframe-border: 1px solid #000;
 @pathframe-handle-border: none;
 @pathframe-handle-border-radius: 10px;
 @pathframe-handle-height: 12px;
@@ -11,112 +11,7 @@
 // Important to calc correct size
 @pathframe-handle-border-width: 2px;
 
-.llarva-pathframe-move {
-	cursor: grab;
-}
+@resize-cursor: move;
 
-.llarva-pathframe div {
-	background: url(leaflet-larva.png);
-	cursor: move;
-}
-
-.llarva-pathframe-move {
-
-	.llarva-mr,
-	.llarva-tm,
-	.llarva-ml,
-	.llarva-bm {
-		height: 12px;
-		width: 12px;
-	}
-
-	.llarva-mr {
-		background-position: -6px -6px;
-	}
-
-	.llarva-tm {
-		background-position: -30px -6px;
-	}
-
-	.llarva-ml {
-		background-position: -54px -6px;
-	}
-
-	.llarva-bm {
-		background-position: -78px -6px;
-	}
-}
-
-.llarva-pathframe-resize {
-
-	.llarva-tl,
-	.llarva-tm,
-	.llarva-tr,
-	.llarva-ml,
-	.llarva-mm,
-	.llarva-mr,
-	.llarva-bl,
-	.llarva-bm,
-	.llarva-br {
-		width: 24px;
-		height: 24px
-	}
-
-	.llarva-tl {
-		background-position: -144px 0px;
-	}
-
-	.llarva-tm {
-		background-position: -96px 0px;
-	}
-
-	.llarva-tr {
-		background-position: -168px 0px;
-	}
-
-	.llarva-ml {
-		background-position: -120px 0px;
-	}
-
-	.llarva-mr {
-		background-position: -120px 0px;
-	}
-
-	.llarva-bl {
-		background-position: -168px 0px;
-	}
-
-	.llarva-bm {
-		background-position: -96px 0px;
-	}
-
-	.llarva-br {
-		background-position: -144px 0px;
-	}
-}
-
-.llarva-pathframe-rotate {
-
-	.llarva-tl,
-	.llarva-tm,
-	.llarva-tr,
-	.llarva-ml,
-	.llarva-mr,
-	.llarva-bl,
-	.llarva-bm,
-	.llarva-br {
-		background: #fff;
-		border: 2px solid #000;
-		.border-radius(12px);
-		height: 12px;
-		width: 12px;
-	}
-
-	.llarva-mm {
-		background: #000;
-		border: 2px solid #fff;
-		.border-radius(12px);
-		height: 12px;
-		width: 12px;
-	}
-}
+@handle-height: 18px;
+@handle-width: 18px;

@@ -29,6 +29,16 @@ L.larva.frame.Path = L.Layer.extend({
 		}
 	},
 
+	getComputedStyle: function(id) {
+		if (id) {
+			if (this._handles[id]) {
+				return getComputedStyle(this._handles[id]);
+			}
+		} else {
+			return getComputedStyle(this._el);
+		}
+	},
+
 	getEvents: function () {
 		return {
 			zoom: this._onMapZoom
@@ -104,6 +114,18 @@ L.larva.frame.Path = L.Layer.extend({
 		L.DomUtil.empty(this._el);
 
 		delete this._el;
+	},
+
+	setElementStyle: function (styles, element) {
+		if (!element) {
+			L.extend(this._el.style, styles);
+		} else {
+			element = this._handles[element];
+
+			if (element) {
+				L.extend(element.style, styles);
+			}
+		}
 	},
 
 	setStyle: function (style) {

@@ -54,6 +54,15 @@
 				map.createPane(this.options.pane);
 			}
 		},
+		getComputedStyle: function (id) {
+			if (id) {
+				if (this._handles[id]) {
+					return getComputedStyle(this._handles[id]);
+				}
+			} else {
+				return getComputedStyle(this._el);
+			}
+		},
 		getEvents: function () {
 			return { zoom: this._onMapZoom };
 		},
@@ -119,6 +128,16 @@
 			L.DomUtil.remove(this._el);
 			L.DomUtil.empty(this._el);
 			delete this._el;
+		},
+		setElementStyle: function (styles, element) {
+			if (!element) {
+				L.extend(this._el.style, styles);
+			} else {
+				element = this._handles[element];
+				if (element) {
+					L.extend(element.style, styles);
+				}
+			}
 		},
 		setStyle: function (style) {
 			var id, el, oldStyle = this._style;
@@ -327,14 +346,6 @@
 	 * @requires package.js
 	 */
 	L.larva.frame.Style = {};
-	L.larva.frame.Style.Move = {
-		className: 'llarva-pathframe-move',
-		tl: { hide: true },
-		tr: { hide: true },
-		mm: { hide: true },
-		bl: { hide: true },
-		br: { hide: true }
-	};
 	L.larva.frame.Style.Resize = {
 		className: 'llarva-pathframe-resize',
 		mm: { hide: true }
@@ -451,49 +462,34 @@
 	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		addHooks: function () {
 			this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
-			this._captureHandles = true;
-			var larva = this._path.larva;
-			if (larva) {
-				if (larva.resize && larva.resize.enabled()) {
-					this._captureHandles = false;
-				} else if (larva.rotate && larva.rotate.enabled()) {
-					this._captureHandles = false;
-				}
-			}
-			if (this._captureHandles) {
-				this._frame.setStyle(this._frameStyle);
-			}
 			this._frame.on('drag:start', this._onStart, this);
+			this._previousCursor = this._frame.getComputedStyle().cursor;
+			this._frame.setElementStyle({ cursor: 'move' });
 		},
 		_onEnd: function () {
 			this._frame.off('drag:move', this._onMove, this).off('drag:end', this._onEnd);
 		},
 		_onMove: function (evt) {
-			var sourceEvent = evt.sourceEvent;
-			var pos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0] : sourceEvent;
-			var dx = 0, dy = 0;
-			if (this._axis === undefined) {
-				dx = pos.clientX - this._startPoint.x;
-				dy = pos.clientY - this._startPoint.y;
-				if (sourceEvent.ctrlKey) {
-					var dxy = Math.min(Math.abs(dx), Math.abs(dy));
-					dx = dx >= 0 ? dxy : -dxy;
-					dy = dy >= 0 ? dxy : -dxy;
-				}
-			} else {
-				if (this._axis === 'x') {
-					dx = pos.clientX - this._startPoint.x;
-				} else if (this._axis === 'y') {
-					dy = pos.clientY - this._startPoint.y;
-				}
+			var event = evt.sourceEvent.touches ? evt.sourceEvent.touches : evt.sourceEvent;
+			var dx = event.clientX - this._startPosition.x, dy = event.clientY - this._startPosition.y;
+			if (event.ctrlKey && event.altKey) {
+				var dxy = Math.min(Math.abs(dx), Math.abs(dy));
+				dx = dx >= 0 ? dxy : -dxy;
+				dy = dy >= 0 ? dxy : -dxy;
+			} else if (event.ctrlKey) {
+				dy = null;
+			} else if (event.altKey) {
+				dx = null;
 			}
-			if (dx === 0 && dy === 0) {
-				return;
-			}
-			var vector = L.point(dx, dy), projected, newLatLng;
+			var projected, newLatLng;
 			this._path.forEachLatLng(function (latlng) {
 				projected = this._path._map.latLngToLayerPoint(latlng._original);
-				projected = projected.add(vector);
+				if (dx) {
+					projected.x += dx;
+				}
+				if (dy) {
+					projected.y += dy;
+				}
 				newLatLng = this._path._map.layerPointToLatLng(projected);
 				latlng.lat = newLatLng.lat;
 				latlng.lng = newLatLng.lng;
@@ -503,28 +499,15 @@
 			this._path.redraw();
 		},
 		_onStart: function (evt) {
-			this._startNorthWest = this._path.getBounds().getNorthWest();
-			var sourceEvent = evt.sourceEvent;
-			var startPos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0] : sourceEvent;
-			this._startPoint = L.point(startPos.clientX, startPos.clientY);
-			this._path.forEachLatLng(function (latlng) {
-				latlng._original = latlng.clone();
-			});
-			if (this._captureHandles) {
-				switch (evt.handle) {
-				case L.larva.frame.Path.TOP_MIDDLE:
-				case L.larva.frame.Path.BOTTOM_MIDDLE:
-					this._axis = 'y';
-					break;
-				case L.larva.frame.Path.MIDDLE_LEFT:
-				case L.larva.frame.Path.MIDDLE_RIGHT:
-					this._axis = 'x';
-					break;
-				default:
-					delete this._axis;
-				}
-			}
-			if (this._captureHandles || !evt.handle) {
+			if (!evt.handle) {
+				this._path.forEachLatLng(function (latlng) {
+					latlng._original = latlng.clone();
+				});
+				var event = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
+				this._startPosition = {
+					x: event.clientX,
+					y: event.clientY
+				};
 				this._frame.on('drag:move', this._onMove, this).on('drag:end', this._onEnd, this);
 			}
 		}

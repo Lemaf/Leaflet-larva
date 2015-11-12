@@ -16,11 +16,38 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="llarva-sprites.svg"
-   inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva-2x.png"
-   inkscape:export-xdpi="216"
-   inkscape:export-ydpi="216">
+   inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
-     id="defs4" />
+     id="defs4">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4922"
+       x="-0.11999995"
+       width="1.2399999"
+       y="-0.12000005"
+       height="1.2400001">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.59999976"
+         id="feGaussianBlur4924" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4980"
+       x="-0.11999995"
+       width="1.2399999"
+       y="-0.12000005"
+       height="1.2400001">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.59999976"
+         id="feGaussianBlur4982" />
+    </filter>
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -28,9 +55,9 @@
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4"
-     inkscape:cx="71.311732"
-     inkscape:cy="690.08854"
+     inkscape:zoom="11.313708"
+     inkscape:cx="43.503938"
+     inkscape:cy="703.8576"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="true"
@@ -80,7 +107,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -91,187 +118,105 @@
     <rect
        style="opacity:1;fill:#000000;fill-opacity:0;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4246"
-       width="192"
+       width="72"
        height="24"
        x="-8.8817842e-16"
        y="9.3791645e-15"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva-2x.png"
+       inkscape:export-xdpi="180"
+       inkscape:export-ydpi="180" />
   </g>
   <g
      inkscape:label="Handles"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-332.36216)">
+     transform="translate(0,-332.36216)"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <ellipse
+       ry="5.9999952"
+       rx="6"
+       cy="12.560005"
+       cx="36.560001"
+       id="ellipse4930"
+       style="opacity:1;fill:#000000;fill-opacity:0.50588223;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter4980)"
+       transform="translate(0,332.36216)" />
     <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       id="g4214"
-       transform="matrix(0.8571317,0,0,0.8571317,1.7143416,49.19847)">
-      <path
+       id="g5013">
+      <rect
          transform="translate(0,332.36216)"
-         id="path4188"
-         d="M 11.984375,5 A 1.0001305,1.0001305 0 0 0 11,6 l 0,3 -5,0 a 1.0001305,1.0001305 0 0 0 -1,1 l 0,4 a 1.0001305,1.0001305 0 0 0 1,1 l 5,0 0,3 a 1.0001305,1.0001305 0 0 0 1.707031,0.707031 l 6,-6 a 1.0001305,1.0001305 0 0 0 0,-1.414062 l -6,-6.0000002 A 1.0001305,1.0001305 0 0 0 11.984375,5 Z"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         inkscape:connector-curvature="0" />
-      <path
-         transform="translate(9.1001185e-5,332.36212)"
-         d="m 12,6 0,4 -6,0 0,4 6,0 0,4 6,-6 -6,-6 z"
-         id="path4180"
-         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         inkscape:original="M 12 6 L 12 10 L 6 10 L 6 14 L 12 14 L 12 18 L 18 12 L 12 6 z "
-         inkscape:radius="0"
-         sodipodi:type="inkscape:offset" />
-    </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       transform="matrix(0,-0.8571317,0.8571317,0,-259.16353,354.64749)"
-       id="g4218">
-      <path
-         inkscape:connector-curvature="0"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="M 11.984375,5 A 1.0001305,1.0001305 0 0 0 11,6 l 0,3 -5,0 a 1.0001305,1.0001305 0 0 0 -1,1 l 0,4 a 1.0001305,1.0001305 0 0 0 1,1 l 5,0 0,3 a 1.0001305,1.0001305 0 0 0 1.707031,0.707031 l 6,-6 a 1.0001305,1.0001305 0 0 0 0,-1.414062 l -6,-6.0000002 A 1.0001305,1.0001305 0 0 0 11.984375,5 Z"
-         id="path4220"
-         transform="translate(0,332.36216)" />
-      <path
-         sodipodi:type="inkscape:offset"
-         inkscape:radius="0"
-         inkscape:original="M 12 6 L 12 10 L 6 10 L 6 14 L 12 14 L 12 18 L 18 12 L 12 6 z "
-         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="path4222"
-         d="m 12,6 0,4 -6,0 0,4 6,0 0,4 6,-6 -6,-6 z"
-         transform="translate(9.1001185e-5,332.36212)" />
-    </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       id="g4224"
-       transform="matrix(-0.8571317,0,0,-0.8571317,70.285496,639.52569)">
-      <path
+         style="display:inline;opacity:1;fill:#000000;fill-opacity:0.50588223;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter4922)"
+         id="rect4176"
+         width="12"
+         height="11.99999"
+         x="7"
+         y="7.0000095"
+         rx="2.99999"
+         ry="2.99999" />
+      <rect
          transform="translate(0,332.36216)"
-         id="path4226"
-         d="M 11.984375,5 A 1.0001305,1.0001305 0 0 0 11,6 l 0,3 -5,0 a 1.0001305,1.0001305 0 0 0 -1,1 l 0,4 a 1.0001305,1.0001305 0 0 0 1,1 l 5,0 0,3 a 1.0001305,1.0001305 0 0 0 1.707031,0.707031 l 6,-6 a 1.0001305,1.0001305 0 0 0 0,-1.414062 l -6,-6.0000002 A 1.0001305,1.0001305 0 0 0 11.984375,5 Z"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         inkscape:connector-curvature="0" />
-      <path
-         transform="translate(9.1001185e-5,332.36212)"
-         d="m 12,6 0,4 -6,0 0,4 6,0 0,4 6,-6 -6,-6 z"
-         id="path4228"
-         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         inkscape:original="M 12 6 L 12 10 L 6 10 L 6 14 L 12 14 L 12 18 L 18 12 L 12 6 z "
-         inkscape:radius="0"
-         sodipodi:type="inkscape:offset" />
+         ry="2.99999"
+         rx="2.99999"
+         y="6.00001"
+         x="6"
+         height="11.99999"
+         width="12"
+         id="rect4172"
+         style="display:inline;opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <rect
+         transform="translate(0,332.36216)"
+         style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect4174"
+         width="10.000009"
+         height="10"
+         x="7.000001"
+         y="7"
+         rx="2"
+         ry="2" />
     </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       transform="matrix(0,0.8571317,-0.8571317,0,379.16353,334.07667)"
-       id="g4230">
-      <path
-         inkscape:connector-curvature="0"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="M 11.984375,5 A 1.0001305,1.0001305 0 0 0 11,6 l 0,3 -5,0 a 1.0001305,1.0001305 0 0 0 -1,1 l 0,4 a 1.0001305,1.0001305 0 0 0 1,1 l 5,0 0,3 a 1.0001305,1.0001305 0 0 0 1.707031,0.707031 l 6,-6 a 1.0001305,1.0001305 0 0 0 0,-1.414062 l -6,-6.0000002 A 1.0001305,1.0001305 0 0 0 11.984375,5 Z"
-         id="path4232"
-         transform="translate(0,332.36216)" />
-      <path
-         sodipodi:type="inkscape:offset"
-         inkscape:radius="0"
-         inkscape:original="M 12 6 L 12 10 L 6 10 L 6 14 L 12 14 L 12 18 L 18 12 L 12 6 z "
-         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="path4234"
-         d="m 12,6 0,4 -6,0 0,4 6,0 0,4 6,-6 -6,-6 z"
-         transform="translate(9.1001185e-5,332.36212)" />
-    </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       transform="matrix(0.73414698,0,0,0.77888589,16.964343,76.143293)"
-       id="g4192">
-      <path
-         inkscape:connector-curvature="0"
-         style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 123.98828,331.52344 a 1.1713588,1.1713588 0 0 0 -0.63672,0.19726 l -7,4.66602 a 1.1713588,1.1713588 0 0 0 0.65039,2.14648 l 3.49414,0 0,11.65625 -3.49414,0 a 1.1713588,1.1713588 0 0 0 -0.65039,2.14649 l 7,4.66797 a 1.1713588,1.1713588 0 0 0 1.30078,0 l 7,-4.66797 a 1.1713588,1.1713588 0 0 0 -0.65039,-2.14649 l -3.49609,0 0,-11.65625 3.49609,0 a 1.1713588,1.1713588 0 0 0 0.65039,-2.14648 l -7,-4.66602 a 1.1713588,1.1713588 0 0 0 -0.66406,-0.19726 z"
-         id="path4189" />
-      <path
-         style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 117.00146,351.36223 7.00009,4.66671 7.0001,-4.66673 -4.66673,0 0,-14.00017 4.66673,0 -7.0001,-4.66674 -7.00009,4.66674 4.66673,0 0,14.00017 z"
-         id="path4184"
-         inkscape:connector-curvature="0" />
-    </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       id="g4196"
-       transform="matrix(0,-0.73414698,0.77888589,0,-136.21887,435.39782)">
-      <path
-         id="path4198"
-         d="m 123.98828,331.52344 a 1.1713588,1.1713588 0 0 0 -0.63672,0.19726 l -7,4.66602 a 1.1713588,1.1713588 0 0 0 0.65039,2.14648 l 3.49414,0 0,11.65625 -3.49414,0 a 1.1713588,1.1713588 0 0 0 -0.65039,2.14649 l 7,4.66797 a 1.1713588,1.1713588 0 0 0 1.30078,0 l 7,-4.66797 a 1.1713588,1.1713588 0 0 0 -0.65039,-2.14649 l -3.49609,0 0,-11.65625 3.49609,0 a 1.1713588,1.1713588 0 0 0 0.65039,-2.14648 l -7,-4.66602 a 1.1713588,1.1713588 0 0 0 -0.66406,-0.19726 z"
-         style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         inkscape:connector-curvature="0" />
-      <path
-         inkscape:connector-curvature="0"
-         id="path4200"
-         d="m 117.00146,351.36223 7.00009,4.66671 7.0001,-4.66673 -4.66673,0 0,-14.00017 4.66673,0 -7.0001,-4.66674 -7.00009,4.66674 4.66673,0 0,14.00017 z"
-         style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    </g>
-    <g
-       transform="matrix(0.51912031,-0.51912031,0.55075549,0.55075549,-98.031312,219.07471)"
-       id="g4248"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90">
-      <path
-         inkscape:connector-curvature="0"
-         style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 123.98828,331.52344 a 1.1713588,1.1713588 0 0 0 -0.63672,0.19726 l -7,4.66602 a 1.1713588,1.1713588 0 0 0 0.65039,2.14648 l 3.49414,0 0,11.65625 -3.49414,0 a 1.1713588,1.1713588 0 0 0 -0.65039,2.14649 l 7,4.66797 a 1.1713588,1.1713588 0 0 0 1.30078,0 l 7,-4.66797 a 1.1713588,1.1713588 0 0 0 -0.65039,-2.14649 l -3.49609,0 0,-11.65625 3.49609,0 a 1.1713588,1.1713588 0 0 0 0.65039,-2.14648 l -7,-4.66602 a 1.1713588,1.1713588 0 0 0 -0.66406,-0.19726 z"
-         id="path4250" />
-      <path
-         style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 117.00146,351.36223 7.00009,4.66671 7.0001,-4.66673 -4.66673,0 0,-14.00017 4.66673,0 -7.0001,-4.66674 -7.00009,4.66674 4.66673,0 0,14.00017 z"
-         id="path4252"
-         inkscape:connector-curvature="0" />
-    </g>
-    <g
-       inkscape:export-ydpi="90"
-       inkscape:export-xdpi="90"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       id="g4254"
-       transform="matrix(0.51912031,-0.51912031,0.55075549,0.55075549,-98.031312,219.07471)">
-      <path
-         id="path4256"
-         d="m 123.98828,331.52344 a 1.1713588,1.1713588 0 0 0 -0.63672,0.19726 l -7,4.66602 a 1.1713588,1.1713588 0 0 0 0.65039,2.14648 l 3.49414,0 0,11.65625 -3.49414,0 a 1.1713588,1.1713588 0 0 0 -0.65039,2.14649 l 7,4.66797 a 1.1713588,1.1713588 0 0 0 1.30078,0 l 7,-4.66797 a 1.1713588,1.1713588 0 0 0 -0.65039,-2.14649 l -3.49609,0 0,-11.65625 3.49609,0 a 1.1713588,1.1713588 0 0 0 0.65039,-2.14648 l -7,-4.66602 a 1.1713588,1.1713588 0 0 0 -0.66406,-0.19726 z"
-         style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         inkscape:connector-curvature="0" />
-      <path
-         inkscape:connector-curvature="0"
-         id="path4258"
-         d="m 117.00146,351.36223 7.00009,4.66671 7.0001,-4.66673 -4.66673,0 0,-14.00017 4.66673,0 -7.0001,-4.66674 -7.00009,4.66674 4.66673,0 0,14.00017 z"
-         style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
-    </g>
-    <g
-       transform="matrix(-0.51912031,-0.51912031,0.55075549,-0.55075549,54.712549,598.39347)"
-       id="g4260"
-       inkscape:export-filename="/home/rthoth/workplace/Leaflet-larva/dist/leaflet-larva.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90">
-      <path
-         inkscape:connector-curvature="0"
-         style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 123.98828,331.52344 a 1.1713588,1.1713588 0 0 0 -0.63672,0.19726 l -7,4.66602 a 1.1713588,1.1713588 0 0 0 0.65039,2.14648 l 3.49414,0 0,11.65625 -3.49414,0 a 1.1713588,1.1713588 0 0 0 -0.65039,2.14649 l 7,4.66797 a 1.1713588,1.1713588 0 0 0 1.30078,0 l 7,-4.66797 a 1.1713588,1.1713588 0 0 0 -0.65039,-2.14649 l -3.49609,0 0,-11.65625 3.49609,0 a 1.1713588,1.1713588 0 0 0 0.65039,-2.14648 l -7,-4.66602 a 1.1713588,1.1713588 0 0 0 -0.66406,-0.19726 z"
-         id="path4262" />
-      <path
-         style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:1.16668189px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         d="m 117.00146,351.36223 7.00009,4.66671 7.0001,-4.66673 -4.66673,0 0,-14.00017 4.66673,0 -7.0001,-4.66674 -7.00009,4.66674 4.66673,0 0,14.00017 z"
-         id="path4264"
-         inkscape:connector-curvature="0" />
-    </g>
+    <ellipse
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path4926"
+       cx="36"
+       cy="12.000005"
+       rx="6"
+       ry="5.9999952"
+       transform="translate(0,332.36216)" />
+    <ellipse
+       ry="5.0000048"
+       rx="5.0000086"
+       cy="12.000005"
+       cx="36"
+       id="ellipse4928"
+       style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="translate(0,332.36216)" />
+    <ellipse
+       style="opacity:1;fill:#000000;fill-opacity:0.50588223;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter4980)"
+       id="ellipse5018"
+       cx="60.560009"
+       cy="344.92218"
+       rx="6"
+       ry="5.9999952" />
+    <ellipse
+       ry="5.9999952"
+       rx="6"
+       cy="344.36215"
+       cx="60.000008"
+       id="ellipse5020"
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <ellipse
+       style="display:inline;opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="ellipse5022"
+       cx="60.000008"
+       cy="344.36215"
+       rx="5.0000086"
+       ry="5.0000048" />
+    <ellipse
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="ellipse5028"
+       cx="60.000008"
+       cy="344.36215"
+       rx="2.9999924"
+       ry="2.99999" />
   </g>
 </svg>

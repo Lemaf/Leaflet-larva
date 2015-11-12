@@ -1,93 +1,6 @@
-.llarva-pathframe-move {
-  cursor: grab;
-}
-.llarva-pathframe div {
-  background: url(leaflet-larva.png);
-  cursor: move;
-}
-.llarva-pathframe-move .llarva-mr,
-.llarva-pathframe-move .llarva-tm,
-.llarva-pathframe-move .llarva-ml,
-.llarva-pathframe-move .llarva-bm {
-  height: 12px;
-  width: 12px;
-}
-.llarva-pathframe-move .llarva-mr {
-  background-position: -6px -6px;
-}
-.llarva-pathframe-move .llarva-tm {
-  background-position: -30px -6px;
-}
-.llarva-pathframe-move .llarva-ml {
-  background-position: -54px -6px;
-}
-.llarva-pathframe-move .llarva-bm {
-  background-position: -78px -6px;
-}
-.llarva-pathframe-resize .llarva-tl,
-.llarva-pathframe-resize .llarva-tm,
-.llarva-pathframe-resize .llarva-tr,
-.llarva-pathframe-resize .llarva-ml,
-.llarva-pathframe-resize .llarva-mm,
-.llarva-pathframe-resize .llarva-mr,
-.llarva-pathframe-resize .llarva-bl,
-.llarva-pathframe-resize .llarva-bm,
-.llarva-pathframe-resize .llarva-br {
-  width: 24px;
-  height: 24px;
-}
-.llarva-pathframe-resize .llarva-tl {
-  background-position: -144px 0px;
-}
-.llarva-pathframe-resize .llarva-tm {
-  background-position: -96px 0px;
-}
-.llarva-pathframe-resize .llarva-tr {
-  background-position: -168px 0px;
-}
-.llarva-pathframe-resize .llarva-ml {
-  background-position: -120px 0px;
-}
-.llarva-pathframe-resize .llarva-mr {
-  background-position: -120px 0px;
-}
-.llarva-pathframe-resize .llarva-bl {
-  background-position: -168px 0px;
-}
-.llarva-pathframe-resize .llarva-bm {
-  background-position: -96px 0px;
-}
-.llarva-pathframe-resize .llarva-br {
-  background-position: -144px 0px;
-}
-.llarva-pathframe-rotate .llarva-tl,
-.llarva-pathframe-rotate .llarva-tm,
-.llarva-pathframe-rotate .llarva-tr,
-.llarva-pathframe-rotate .llarva-ml,
-.llarva-pathframe-rotate .llarva-mr,
-.llarva-pathframe-rotate .llarva-bl,
-.llarva-pathframe-rotate .llarva-bm,
-.llarva-pathframe-rotate .llarva-br {
-  background: #fff;
-  border: 2px solid #000;
-  -webkit-border-radius: 12px;
-  -moz-border-radius: 12px;
-  border-radius: 12px;
-  height: 12px;
-  width: 12px;
-}
-.llarva-pathframe-rotate .llarva-mm {
-  background: #000;
-  border: 2px solid #fff;
-  -webkit-border-radius: 12px;
-  -moz-border-radius: 12px;
-  border-radius: 12px;
-  height: 12px;
-  width: 12px;
-}
 .llarva-pathframe {
   background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #000;
+  border: 1px solid #000;
   position: absolute;
 }
 .llarva-pathframe .llarva-tl,
@@ -100,4 +13,67 @@
 .llarva-pathframe .llarva-bm,
 .llarva-pathframe .llarva-br {
   position: absolute;
+  height: 18px;
+  width: 18px;
+}
+.llarva-pathframe-resize {
+  cursor: default;
+}
+.llarva-pathframe-resize .llarva-tl,
+.llarva-pathframe-resize .llarva-tm,
+.llarva-pathframe-resize .llarva-tr,
+.llarva-pathframe-resize .llarva-ml,
+.llarva-pathframe-resize .llarva-mm,
+.llarva-pathframe-resize .llarva-mr,
+.llarva-pathframe-resize .llarva-bl,
+.llarva-pathframe-resize .llarva-bm,
+.llarva-pathframe-resize .llarva-br {
+  background: url(leaflet-larva.png);
+  background-position: -3px -3px;
+}
+.llarva-pathframe-resize .llarva-tl {
+  cursor: nw-resize;
+}
+.llarva-pathframe-resize .llarva-tm {
+  cursor: n-resize;
+}
+.llarva-pathframe-resize .llarva-tr {
+  cursor: ne-resize;
+}
+.llarva-pathframe-resize .llarva-ml {
+  cursor: w-resize;
+}
+.llarva-pathframe-resize .llarva-mr {
+  cursor: e-resize;
+}
+.llarva-pathframe-resize .llarva-bl {
+  cursor: sw-resize;
+}
+.llarva-pathframe-resize .llarva-bm {
+  cursor: s-resize;
+}
+.llarva-pathframe-resize .llarva-br {
+  cursor: se-resize;
+}
+.llarva-pathframe-rotate {
+  cursor: default;
+}
+.llarva-pathframe-rotate .llarva-tl,
+.llarva-pathframe-rotate .llarva-tm,
+.llarva-pathframe-rotate .llarva-tr,
+.llarva-pathframe-rotate .llarva-ml,
+.llarva-pathframe-rotate .llarva-mr,
+.llarva-pathframe-rotate .llarva-bl,
+.llarva-pathframe-rotate .llarva-bm,
+.llarva-pathframe-rotate .llarva-br {
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
+  background: url(leaflet-larva.png);
+  background-position: -27px -3px;
+}
+.llarva-pathframe-rotate .llarva-mm {
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
+  background: url(leaflet-larva.png);
+  background-position: -50px -3px;
 }

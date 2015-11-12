@@ -11,9 +11,15 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 	addHooks: function() {
 		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
 		this._frame.on('drag:start', this._onStart, this);
+
+		this._previousCursor = this._frame.getComputedStyle().cursor;
+		this._frame.setElementStyle({
+			cursor: 'move'
+		});
 	},
 
 	_onEnd: function () {
+
 		this._frame
 			.off('drag:move', this._onMove, this)
 			.off('drag:end', this._onEnd);
