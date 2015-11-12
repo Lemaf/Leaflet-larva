@@ -6,30 +6,6 @@ L.larva.frame.Style = {
 	
 };
 
-L.larva.frame.Style.Move = {
-	className: 'llarva-pathframe-move',
-	
-	tl: {
-		hide: true
-	},
-
-	tr: {
-		hide: true
-	},
-
-	mm: {
-		hide: true
-	},
-
-	bl: {
-		hide: true
-	},
-
-	br: {
-		hide: true
-	}
-};
-
 L.larva.frame.Style.Resize = {
 	className: 'llarva-pathframe-resize',
 	mm: {

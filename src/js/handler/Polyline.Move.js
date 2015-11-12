@@ -10,23 +10,6 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 
 	addHooks: function() {
 		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);
-
-		this._captureHandles = true;
-		var larva = this._path.larva;
-
-		if (larva) {
-			if (larva.resize && larva.resize.enabled()) {
-				this._captureHandles = false;
-			} else if (larva.rotate && larva.rotate.enabled()) {
-				this._captureHandles = false;
-			}
-
-		}
-
-		if (this._captureHandles) {
-			this._frame.setStyle(this._frameStyle);
-		}
-
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
@@ -37,38 +20,34 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 	},
 
 	_onMove: function (evt) {
-		var sourceEvent = evt.sourceEvent;
-		var pos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0] : sourceEvent;
+		var event = evt.sourceEvent.touches ? evt.sourceEvent.touches : evt.sourceEvent;
+		var dx = event.clientX - this._startPosition.x,
+		    dy = event.clientY - this._startPosition.y;
 
-		var dx = 0, dy = 0;
+		if (event.ctrlKey && event.altKey) {
+			var dxy = Math.min(Math.abs(dx), Math.abs(dy));
 
-		if (this._axis === undefined) {
-			dx = pos.clientX - this._startPoint.x;
-			dy = pos.clientY - this._startPoint.y;
-
-			if (sourceEvent.ctrlKey) {
-				var dxy = Math.min(Math.abs(dx), Math.abs(dy));
-
-				dx = dx >= 0 ? dxy : -dxy;
-				dy = dy >= 0 ? dxy : -dxy;
-			}
-		} else {
-			if (this._axis === 'x') {
-				dx = pos.clientX - this._startPoint.x;
-			} else if (this._axis === 'y') {
-				dy = pos.clientY - this._startPoint.y;
-			}
+			dx = dx >= 0 ? dxy : -dxy;
+			dy = dy >= 0 ? dxy : -dxy;
+		} else if (event.ctrlKey) {
+			dy = null;
+		} else if (event.altKey) {
+			dx = null;
 		}
 
-		if (dx === 0 && dy === 0) {
-			return;
-		}
-
-		var vector = L.point(dx, dy), projected, newLatLng;
+		var projected, newLatLng;
 
 		this._path.forEachLatLng(function (latlng) {
 			projected = this._path._map.latLngToLayerPoint(latlng._original);
-			projected = projected.add(vector);
+
+			if (dx) {
+				projected.x += dx;
+			}
+
+			if (dy) {
+				projected.y += dy;
+			}
+
 			newLatLng = this._path._map.layerPointToLatLng(projected);
 			latlng.lat = newLatLng.lat;
 			latlng.lng = newLatLng.lng;
@@ -77,42 +56,27 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
 		this._path.updateBounds();
 		this._frame.updateBounds();
 		this._path.redraw();
-
 	},
 
 	_onStart: function (evt) {
-		this._startNorthWest = this._path.getBounds().getNorthWest();
-		var sourceEvent = evt.sourceEvent;
-		var startPos = sourceEvent.touches && sourceEvent.touches[0] ? sourceEvent.touches[0]: sourceEvent;
-		
-		this._startPoint = L.point(startPos.clientX, startPos.clientY);
+		if (!evt.handle) {
+			this._path.forEachLatLng(function (latlng) {
+				latlng._original = latlng.clone();
+			});
 
-		this._path.forEachLatLng(function (latlng) {
-			latlng._original = latlng.clone();
-		});
+			var event = evt.sourceEvent.touches ? 
+			                    evt.sourceEvent.touches[0] : evt.sourceEvent;
 
-		if (this._captureHandles) {
-			switch (evt.handle) {
-				case L.larva.frame.Path.TOP_MIDDLE:
-				case L.larva.frame.Path.BOTTOM_MIDDLE:
-					this._axis = 'y';
-					break;
+			this._startPosition = {
+				x: event.clientX,
+				y: event.clientY
+			};
 
-				case L.larva.frame.Path.MIDDLE_LEFT:
-				case L.larva.frame.Path.MIDDLE_RIGHT:
-					this._axis = 'x';
-					break;
-
-				default:
-					delete this._axis;
-			}
-		}
-
-		if (this._captureHandles || !evt.handle) {
 			this._frame
 				.on('drag:move', this._onMove, this)
 				.on('drag:end', this._onEnd, this);
 		}
+
 	}
 
 });
