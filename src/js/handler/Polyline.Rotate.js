@@ -59,24 +59,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		var dx = cx * (1 - cos) + cy * sin;
 		var dy = cy * (1 - cos) - cx * sin;
 
-		// var projected, newLatLng, rotated = L.point(0, 0);
-
 		this.transform(sin, cos, dx, dy);
-
-		// this._path.forEachLatLng(function (latlng) {
-		// 	projected = this._path._map.latLngToLayerPoint(latlng._original);
-
-		// 	rotated.x = projected.x * cos - projected.y * sin + dx;
-		// 	rotated.y = projected.x * sin + projected.y * cos + dy;
-
-		// 	newLatLng = this._path._map.layerPointToLatLng(rotated);
-		// 	latlng.lat = newLatLng.lat;
-		// 	latlng.lng = newLatLng.lng;
-		// }, this);
-
-		// this._path.updateBounds();
-		// this._frame.updateBounds(L.larva.frame.Path.MIDDLE_MIDDLE);
-		// this._path.redraw();
 	},
 
 	_onStart: function (evt) {
