@@ -1,12 +1,11 @@
 /**
- * @requires Polyline.js
  * @requires ../frame/Path.js
  * @requires ../frame/Style.js
  * @requires ../ext/L.Polyline.js
  * 
- * @type {[type]}
+ * @requires Polyline.Transform.js
  */
-L.larva.handler.Polyline.Move = L.larva.handler.Polyline.extend({
+L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 
 	addHooks: function() {
 		this._frame = L.larva.frame.path(this._path).addTo(this._path._map);

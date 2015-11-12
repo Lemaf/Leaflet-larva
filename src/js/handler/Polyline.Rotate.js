@@ -1,11 +1,12 @@
 /**
- * @requires Polyline.js
  * @requires ../frame/Path.js
  * @requires ../frame/Style.js
  * @requires ../ext/L.Polyline.js
+ * 
+ * @requires Polyline.Transform.js
  */
 
-L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
+L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 
 	options: {
 		noUpdate: [L.larva.frame.Path.MIDDLE_MIDDLE]
