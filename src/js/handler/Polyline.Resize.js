@@ -14,6 +14,30 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
+	transformPoint: function (original, transformed, xscale, yscale) {
+		if (xscale !== null) {
+			if (this._origin.invertX) {
+				original.x = this._origin.x - original.x;
+			} else {
+				original.x = original.x - this._origin.x;
+			}
+
+			transformed.x = original.x * xscale + this._origin.x;
+		}
+
+
+		if (yscale !== null) {
+
+			if (this._origin.invertY) {
+				original.y = this._origin.y - original.y;
+			} else {
+				original.y = original.y - this._origin.y;
+			}
+
+			transformed.y = original.y * yscale + this._origin.y;
+		}
+	},
+
 	_onEnd: function () {
 		this._frame
 			.off('drag:move', this._onMove, this)
@@ -57,41 +81,43 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.extend({
 			}
 		}
 
-		var projected, newLatLng;
+		this.transform(xscale, yscale);
 
-		this._path.forEachLatLng(function (latlng) {
-			projected = this._path._map.latLngToLayerPoint(latlng._original);
+		// var projected, newLatLng;
 
-			if (xscale !== null) {
-				if (this._origin.invertX) {
-					projected.x = this._origin.x - projected.x;
-				} else {
-					projected.x = projected.x - this._origin.x;
-				}
+		// this._path.forEachLatLng(function (latlng) {
+		// 	projected = this._path._map.latLngToLayerPoint(latlng._original);
 
-				projected.x = projected.x * xscale + this._origin.x;
-			}
+		// 	if (xscale !== null) {
+		// 		if (this._origin.invertX) {
+		// 			projected.x = this._origin.x - projected.x;
+		// 		} else {
+		// 			projected.x = projected.x - this._origin.x;
+		// 		}
+
+		// 		projected.x = projected.x * xscale + this._origin.x;
+		// 	}
 
 
-			if (yscale !== null) {
+		// 	if (yscale !== null) {
 
-				if (this._origin.invertY) {
-					projected.y = this._origin.y - projected.y;
-				} else {
-					projected.y = projected.y - this._origin.y;
-				}
+		// 		if (this._origin.invertY) {
+		// 			projected.y = this._origin.y - projected.y;
+		// 		} else {
+		// 			projected.y = projected.y - this._origin.y;
+		// 		}
 
-				projected.y = projected.y * yscale + this._origin.y;
-			}
+		// 		projected.y = projected.y * yscale + this._origin.y;
+		// 	}
 
-			newLatLng = this._path._map.layerPointToLatLng(projected);
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
-		}, this);
+		// 	newLatLng = this._path._map.layerPointToLatLng(projected);
+		// 	latlng.lat = newLatLng.lat;
+		// 	latlng.lng = newLatLng.lng;
+		// }, this);
 
-		this._path.updateBounds();
-		this._frame.updateBounds();
-		this._path.redraw();
+		// this._path.updateBounds();
+		// this._frame.updateBounds();
+		// this._path.redraw();
 
 	},
 

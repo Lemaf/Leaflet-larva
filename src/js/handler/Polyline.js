@@ -9,14 +9,18 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend({
 
 	transform: function () {
 
-		var args = [null, null].concat(Array.prototype.slice.call(arguments, 0)),
+		var transformed = L.point(0, 0),
+		    original,
 		    newLatLng;
 
-		var transformed = args[1] = L.point(0, 0);
+		var args = [null, transformed].concat(Array.prototype.slice.call(arguments, 0));
 
 		this._path.forEachLatLng(function (latlng) {
 
-			args[0] = this._path._map.latLngToLayerPoint(latlng._original);
+			original = args[0] = this._path._map.latLngToLayerPoint(latlng._original);
+
+			transformed.x = original.x;
+			transformed.y = original.y;
 
 			this.transformPoint.apply(this, args);
 
@@ -29,7 +33,7 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend({
 		this._path.updateBounds();
 
 		this._frame.updateBounds.apply(this._frame, this.options.noUpdate);
-		this._path.redraw();
+		//this._path.redraw();
 	},
 
 	transformPoint: function () {
