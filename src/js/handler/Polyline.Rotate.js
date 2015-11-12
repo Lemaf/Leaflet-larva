@@ -7,6 +7,10 @@
 
 L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 
+	options: {
+		noUpdate: [L.larva.frame.Path.MIDDLE_MIDDLE]
+	},
+
 	addHooks: function () {
 		this._frame = L.larva.frame.path(this._path);
 		this._frame.addTo(this._path._map);
@@ -14,6 +18,11 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		this._frame.setStyle(this._frameStyle);
 
 		this._frame.on('drag:start', this._onStart, this);
+	},
+
+	transformPoint: function (original, transformed, sin, cos, dx, dy) {
+		transformed.x = original.x * cos - original.y * sin + dx;
+		transformed.y = original.x * sin + original.y * cos + dy;
 	},
 
 	_onEnd: function () {
@@ -50,22 +59,24 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.extend({
 		var dx = cx * (1 - cos) + cy * sin;
 		var dy = cy * (1 - cos) - cx * sin;
 
-		var projected, newLatLng, rotated = L.point(0, 0);
+		// var projected, newLatLng, rotated = L.point(0, 0);
 
-		this._path.forEachLatLng(function (latlng) {
-			projected = this._path._map.latLngToLayerPoint(latlng._original);
+		this.transform(sin, cos, dx, dy);
 
-			rotated.x = projected.x * cos - projected.y * sin + dx;
-			rotated.y = projected.x * sin + projected.y * cos + dy;
+		// this._path.forEachLatLng(function (latlng) {
+		// 	projected = this._path._map.latLngToLayerPoint(latlng._original);
 
-			newLatLng = this._path._map.layerPointToLatLng(rotated);
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
-		}, this);
+		// 	rotated.x = projected.x * cos - projected.y * sin + dx;
+		// 	rotated.y = projected.x * sin + projected.y * cos + dy;
 
-		this._path.updateBounds();
-		this._frame.updateBounds(L.larva.frame.Path.MIDDLE_MIDDLE);
-		this._path.redraw();
+		// 	newLatLng = this._path._map.layerPointToLatLng(rotated);
+		// 	latlng.lat = newLatLng.lat;
+		// 	latlng.lng = newLatLng.lng;
+		// }, this);
+
+		// this._path.updateBounds();
+		// this._frame.updateBounds(L.larva.frame.Path.MIDDLE_MIDDLE);
+		// this._path.redraw();
 	},
 
 	_onStart: function (evt) {
