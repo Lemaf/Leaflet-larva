@@ -275,8 +275,8 @@ L.larva.frame.Rect = L.Layer.extend({
 
 		var oldWidth, oldHeight;
 		if (zoomChanged) {
-			oldWidth = this._el.offsetWidth;
-			oldHeight = this._el.offsetHeight;
+			oldWidth = L.larva.getWidth(this._el);
+			oldHeight = L.larva.getHeight(this._el);
 		}
 
 		this._el.style.width = (southEastPoint.x - northWestPoint.x - x) + 'px';
@@ -290,8 +290,8 @@ L.larva.frame.Rect = L.Layer.extend({
 
 				if (handlePosition) {
 					L.DomUtil.setPosition(handle, handlePosition.scaleBy(L.point(
-						this._el.offsetWidth / oldWidth, 
-						this._el.offsetHeight / oldHeight
+						L.larva.getWidth(this._el) / oldWidth, 
+						L.larva.getHeight(this._el) / oldHeight
 					)));
 				}
 			}
