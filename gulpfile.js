@@ -6,7 +6,8 @@ var SOURCES = {
 		'L.larva.js',
 		'handler/Polyline.Rotate.js',
 		'handler/Polyline.Move.js',
-		'handler/Polyline.Resize.js'
+		'handler/Polyline.Resize.js',
+		'handler/Polyline.Edit.js'
 
 	]
 };
