@@ -75,7 +75,7 @@ L.larva.frame.Rect = L.Layer.extend({
 
 	onAdd: function () {
 		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
-		L.DomEvent.on(el, 'mousedown', this._onStart, this);
+		L.DomEvent.on(el, L.Draggable.START.join(' '), this._onStart, this);
 
 		this._handles = {};
 
@@ -178,33 +178,6 @@ L.larva.frame.Rect = L.Layer.extend({
 		this._updateFrame(false, Array.prototype.slice.call(arguments, 0));
 	},
 
-	_onStart: function (evt) {
-		L.DomEvent.stop(evt);
-
-		this.fire('drag:start', {
-			sourceEvent: evt,
-			handle: evt.target._id
-		});
-
-		L.DomEvent
-			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
-			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
-
-		L.DomUtil.addClass(document.body, 'leaflet-dragging');
-	},
-
-	_onMapZoom: function () {
-		this._updateFrame(true);
-	},
-
-	_onMove: function (evt) {
-		L.DomEvent.stop(evt);
-
-		this.fire('drag:move', {
-			sourceEvent: evt
-		});
-	},
-
 	_onEnd: function (evt) {
 		L.DomEvent.stop(evt);
 
@@ -219,6 +192,33 @@ L.larva.frame.Rect = L.Layer.extend({
 		this.fire('drag:end', {
 			sourceEvent: evt
 		});
+	},
+
+	_onMapZoom: function () {
+		this._updateFrame(true);
+	},
+
+	_onMove: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:move', {
+			sourceEvent: evt
+		});
+	},
+
+	_onStart: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:start', {
+			sourceEvent: evt,
+			handle: evt.target._id
+		});
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
+			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
 	_updateDraggable: function (id) {

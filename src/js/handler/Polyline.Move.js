@@ -35,7 +35,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 	},
 
 	_onMove: function (evt) {
-		var event = evt.sourceEvent.touches ? evt.sourceEvent.touches : evt.sourceEvent;
+		var event = L.larva.getSourceEvent(evt);
 		var dx = event.clientX - this._startPosition.x,
 		    dy = event.clientY - this._startPosition.y;
 
@@ -44,9 +44,9 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 
 			dx = dx >= 0 ? dxy : -dxy;
 			dy = dy >= 0 ? dxy : -dxy;
-		} else if (event.ctrlKey) {
-			dy = null;
 		} else if (event.altKey) {
+			dy = null;
+		} else if (event.ctrlKey) {
 			dx = null;
 		}
 
@@ -56,8 +56,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 	_onStart: function (evt) {
 		if (!evt.handle) {
 			this.backupLatLngs();
-			var event = evt.sourceEvent.touches ? 
-			                    evt.sourceEvent.touches[0] : evt.sourceEvent;
+			var event = L.larva.getSourceEvent(evt);
 
 			this._startPosition = {
 				x: event.clientX,

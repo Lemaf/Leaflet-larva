@@ -33,7 +33,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 	},
 
 	_onMove: function (evt) {
-		var position = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
+		var position = L.larva.getSourceEvent(evt);
 
 		var centerBounding = this._centerElement.getBoundingClientRect();
 

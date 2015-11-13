@@ -36,7 +36,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 
 	_onMove: function (evt) {
 
-		var event = evt.sourceEvent.touches ? evt.sourceEvent.touches[0] : evt.sourceEvent;
+		var event = L.larva.getSourceEvent(evt);
 
 		var xscale = null, yscale = null;
 
