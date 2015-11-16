@@ -36,10 +36,33 @@ L.larva.frame.Vertices = L.Layer.extend({
 		};
 	},
 
+	getLatLng: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			return this._handles[handleId]._latlng;
+		}
+	},
+
+	getPosition: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			return this._handles[handleId]._layerPoint;
+		}
+	},
+
 	onAdd: function () {
 		this._container = this.getPane();
 		this._updateHandles();
 		this._updateView();
+	},
+
+	updateLatLng: function (handleId, newLatLng) {
+		var handle = this._handles[handleId];
+
+		handle._latlng.lat = newLatLng.lat;
+		handle._latlng.lng = newLatLng.lng;
+		delete handle._layerPoint;
+
+
+		this._updatePosition(handle);
 	},
 
 	_createHandles: function (latlngs, isPolygon, isHole) {
@@ -60,6 +83,8 @@ L.larva.frame.Vertices = L.Layer.extend({
 			handle._latlng = latlngs[i];
 			handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
 
+			L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this);
+
 			this._handles[L.stamp(handle)] = handle;
 
 			if (prev) {
@@ -78,6 +103,45 @@ L.larva.frame.Vertices = L.Layer.extend({
 		});
 
 		return handles;
+	},
+
+	_onEnd: function (evt) {
+		L.DomEvent.stop(evt);
+
+		for (var id in L.Draggable.MOVE) {
+			L.DomEvent
+				.off(document, L.Draggable.MOVE[id], this._onMove, this)
+				.off(document, L.Draggable.END[id], this._onEnd, this);
+		}
+
+		L.DomUtil.removeClass(document.body, 'leaflet-dragging');
+
+		this.fire('drag:end', {
+			sourceEvent: evt
+		});
+	},
+
+	_onMove: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:move', {
+			sourceEvent: evt
+		});
+	},
+
+	_onStart: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('drag:start', {
+			id: L.stamp(evt.target),
+			sourceEvent: evt
+		});
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
+			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
 	_onZoomEnd: function () {
@@ -227,7 +291,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 				draggable = point._handle._draggable;
 			}
 
-			draggable.enable();
+			//draggable.enable();
 		}, this);
 	},
 
