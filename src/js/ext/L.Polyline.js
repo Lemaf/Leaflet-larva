@@ -52,12 +52,23 @@ if (!L.Polyline.prototype.getType) {
 
 L.Polyline.include({
 	forEachLine: function (fn, context) {
-		if (!Array.isArray(this._latlngs[0])) {
-			fn.call(context, this._latlngs);
-		} else {
-			for (var i=0; i<this._latlngs.length; i++) {
-				fn.call(context, this._latlngs[i]);
-			}
+
+		switch (this.getType()) {
+			case L.Polyline.POLYLINE:
+			case L.Polyline.MULTIPOLYLINE:
+
+				if (!Array.isArray(this._latlngs[0])) {
+					fn.call(context, this._latlngs);
+				} else {
+					for (var i=0; i<this._latlngs.length; i++) {
+						fn.call(context, this._latlngs[i]);
+					}
+				}
+
+				break;
+
+			default:
+				throw new Error('Invalid geometry type!');
 		}
 	}
 });

@@ -12,5 +12,16 @@ L.larva = {
 
 	getWidth: function (el) {
 		return el.offsetWidth;
+	},
+
+	isFlat: function (latlngs) {
+
+		if (Array.isArray(latlngs)) {
+			if (latlngs[0] instanceof L.LatLng) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 };

@@ -10,12 +10,10 @@ L.extend(L.Polygon, {
 L.Polygon.include({
 
 	getType: function () {
-		var latlngs = this._latlngs[0];
+		var latlngs = this._latlngs;
 
-		if (Array.isArray(latlngs[0])) {
-			latlngs = latlngs[0];
-
-			if (Array.isArray(latlngs[0]) && Array.isArray(latlngs[0][0])) {
+		if (latlngs.length) {
+			if (!L.larva.isFlat(latlngs[0])) {
 				return L.Polygon.MULTIPOLYGON;
 			}
 		}
