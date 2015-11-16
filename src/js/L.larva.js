@@ -5,12 +5,12 @@ L.larva = {
 		return el.offsetHeight;
 	},
 
-	getWidth: function (el) {
-		return el.offsetWidth;
-	},
-
 	getSourceEvent: function (evt) {
 		return !evt.sourceEvent.touches ?
 		        evt.sourceEvent : evt.sourceEvent.touches[0];
+	},
+
+	getWidth: function (el) {
+		return el.offsetWidth;
 	}
 };
