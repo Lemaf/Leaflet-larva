@@ -2,6 +2,7 @@
  * @requires package.js
  *
  * @requires ../ext/L.Polygon.js
+ * @requires ../Style.js
  */
 L.larva.frame.Vertices = L.Layer.extend({
 
@@ -54,20 +55,107 @@ L.larva.frame.Vertices = L.Layer.extend({
 		this._updateView();
 	},
 
+	startAura: function (handleId) {
+		if (!this._aura) {
+			this._aura = {};
+		}
+
+		if (this._aura[handleId] || !this._handles[handleId]) {
+			return;
+		}
+
+		var handle = this._handles[handleId], polyline;
+
+		var latlngs = [],
+		    latlng = handle._latlng.clone(),
+		    style = L.larva.style(this._path).multiple({
+		    	color: [1.25, 1.25, 1.25],
+		    	opacity: 0.5
+		    }),
+		    latlng0;
+
+		if (handle._isPolygon) {
+
+			if (handle._prev) {
+				latlng0 = handle._prev._latlng;
+			} else {
+				latlng0 = handle._last._latlng;
+			}
+
+			latlngs.push(latlng0.clone());
+
+			latlngs.push(latlng);
+
+			if (handle._next) {
+				latlng0 = handle._next._latlng;
+			} else {
+				latlng0 = handle._first._latlng;
+			}
+
+			latlngs.push(latlng0.clone());
+
+		} else {
+
+			if (handle._prev) {
+				latlngs.push(handle._prev._latlng.clone());
+			}
+
+			latlngs.push(latlng);
+
+			if (handle._next) {
+				latlngs.push(handle._next._latlng.clone());
+			}
+
+		}
+
+		polyline = L.polyline(latlngs, style).addTo(this._map);
+
+		this._aura[handleId] = {
+			isPolygon: !!handle._isPolygon,
+			polyline: polyline,
+			latlng: latlng
+		};
+	},
+
+	stopAura: function (handleId, commit) {
+		var aura;
+		if (this._aura && (aura = this._aura[handleId])) {
+			this._map.removeLayer(this._aura[handleId].polyline);
+			delete this._aura[handleId];
+
+			if (commit) {
+				this.updateLatLng(handleId, aura.latlng);
+			}
+		}
+	},
+
 	updateLatLng: function (handleId, newLatLng) {
-		var handle = this._handles[handleId];
 
-		handle._latlng.lat = newLatLng.lat;
-		handle._latlng.lng = newLatLng.lng;
-		delete handle._layerPoint;
+		var aura, handle = this._handles[handleId];
 
+		if (this._aura && (aura = this._aura[handleId])) {
+			aura.latlng.lat = newLatLng.lat;
+			aura.latlng.lng = newLatLng.lng;
 
-		this._updatePosition(handle);
+			aura.polyline.updateBounds();
+			aura.polyline.redraw();
+
+			this._updatePosition(handle, newLatLng);
+		} else {
+
+			handle._latlng.lat = newLatLng.lat;
+			handle._latlng.lng = newLatLng.lng;
+			delete handle._layerPoint;
+
+			this._updatePosition(handle);
+			this._path.updateBounds();
+			this._path.redraw();
+		}
 	},
 
 	_createHandles: function (latlngs, isPolygon, isHole) {
 
-		var i, handle, prev, handles = [];
+		var i, handle, prev, handles = [], first;
 
 		for (i=0; i<latlngs.length; i++) {
 			handle = L.DomUtil.create('div', this.options.handleClassName);
@@ -91,9 +179,21 @@ L.larva.frame.Vertices = L.Layer.extend({
 				prev._next = handle;
 				handle._prev = prev;
 				prev = handle;
+
+				if (isPolygon && first) {
+					handle._first = first;
+				}
+
+			} else {
+				first = handle;
+				prev = handle;
 			}
 
 			handles.push(handle);
+		}
+
+		if (isPolygon) {
+			first._last = handle;
 		}
 
 		this._lines.push({
@@ -203,13 +303,16 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
-	_updatePosition: function (handle) {
+	_updatePosition: function (handle, target) {
 		var point;
 
-		if (handle._layerPoint) {
+		if (target) {
+			point = target instanceof L.Point ? target.clone() : this._map.latLngToLayerPoint(target);
+		} else if (handle._layerPoint) {
 			point = handle._layerPoint.clone();
 		} else {
-			point = handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
+			handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
+			point = handle._layerPoint.clone();
 		}
 
 		if (handle.offsetParent) {

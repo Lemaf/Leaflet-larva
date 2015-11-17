@@ -4,6 +4,10 @@
  */
 L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
+	options: {
+		aura: true
+	},
+
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path).addTo(this._path._map);
 		this._frame.on('drag:start', this._onDragStart, this);
@@ -13,6 +17,11 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		this._frame
 			.off('drag:move', this._onDragMove, this)
 			.off('drag:end', this._onDragEnd, this);
+
+		if (this.options.aura) {
+			this._frame.stopAura(this._handleId, true);
+		}
+
 	},
 
 	_onDragMove: function (evt) {
@@ -26,8 +35,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		}));
 
 		this._frame.updateLatLng(this._handleId, newLatLng);
-		this._path.updateBounds();
-		this._path.redraw();
+		//this._path.updateBounds();
+		//this._path.redraw();
 	},
 
 	_onDragStart: function (evt) {
@@ -39,6 +48,10 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		this._startPos = {
 			x: sourceEvent.clientX, y: sourceEvent.clientY
 		};
+
+		if (this.options.aura) {
+			this._frame.startAura(evt.id);
+		}
 
 		this._frame
 			.on('drag:move', this._onDragMove, this)
