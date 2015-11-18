@@ -2,21 +2,24 @@ if (!L.Polyline.prototype.forEachLatLng) {
 	L.Polyline.include({
 
 		forEachLatLng: function (fn, context) {
-			var latlngs = this.getLatLngs();
+			var toVisit = [this.getLatLngs()],
+			    latlngs, i, l;
 
-			if (!latlngs.length) {
-				return;
+			var call = context ? function(latlng) {
+				fn.call(context, latlng);
+			} : fn;
+
+			while (toVisit.length) {
+				latlngs = toVisit.pop();
+
+				for (i=0, l=latlngs.length; i<l; i++) {
+					if (Array.isArray(latlngs[i])) {
+						toVisit.push(latlngs[i]);
+					} else {
+						call(latlngs[i]);
+					}
+				}
 			}
-
-			if (Array.isArray(latlngs[0])) {
-				// nested array
-
-				latlngs = latlngs.reduce(function (array, latlngs) {
-					return array.concat(latlngs);
-				}, []);
-			}
-
-			latlngs.forEach(fn, context);
 		}
 	});
 }
