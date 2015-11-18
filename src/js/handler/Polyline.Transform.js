@@ -24,14 +24,14 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 
 		this._path.forEachLatLng(function (latlng) {
 
-			original = args[0] = this._path._map.latLngToLayerPoint(latlng._original);
+			original = args[0] = L.larva.project(latlng._original);
 
 			transformed.x = original.x;
 			transformed.y = original.y;
 
 			this.transformPoint.apply(this, args);
 
-			newLatLng = this._path._map.layerPointToLatLng(transformed);
+			newLatLng = L.larva.unproject(transformed);
 			latlng.lat = newLatLng.lat;
 			latlng.lng = newLatLng.lng;
 

@@ -23,5 +23,13 @@ L.larva = {
 		}
 
 		return false;
+	},
+
+	project: function (latlng) {
+		return L.Projection.Mercator.project(latlng);
+	},
+
+	unproject: function (point) {
+		return L.Projection.Mercator.unproject(point);
 	}
 };

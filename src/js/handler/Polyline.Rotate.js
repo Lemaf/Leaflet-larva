@@ -57,8 +57,10 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 		cx = (cx - frameBounding.left) + framePosition.x;
 		cy = (cy - frameBounding.top) + framePosition.y;
 
-		var dx = cx * (1 - cos) + cy * sin;
-		var dy = cy * (1 - cos) - cx * sin;
+		var projectedCenter = L.larva.project(this.unproject(cx, cy));
+
+		var dx = projectedCenter.x * (1 - cos) + projectedCenter.y * sin;
+		var dy = projectedCenter.y * (1 - cos) - projectedCenter.x * sin;
 
 		this.transform(sin, cos, dx, dy);
 	},
