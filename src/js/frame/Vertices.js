@@ -7,14 +7,16 @@
 L.larva.frame.Vertices = L.Layer.extend({
 
 	statics: {
-		POLYLINE: 1,
-		POLYGON: 2,
+		MULTIPOLYGON: 4,
 		MULTIPOLYLINE: 3,
-		MULTIPOLYGON: 4
+		POLYGON: 2,
+		POLYLINE: 1
 	},
 
 	options: {
+		colorFactor: [1.5, 1.5, 0.75],
 		handleClassName: 'llarva-vertex',
+		opacityFactor: 0.5,
 		pane: 'llarva-frame',
 		tolerance: 10,
 		simplifyZoom: -1
@@ -55,66 +57,73 @@ L.larva.frame.Vertices = L.Layer.extend({
 		this._updateView();
 	},
 
-	startAura: function (handleId) {
+	createAura: function (handleId) {
+		var handle = this._handles[handleId];
+
+		if (!handle) {
+			return false;
+		}
+
 		if (!this._aura) {
 			this._aura = {};
 		}
 
-		if (this._aura[handleId] || !this._handles[handleId]) {
-			return;
+		if (!this._aura[handleId]) {
+
+			var polyline;
+
+			var latlngs = [],
+			    latlng = handle._latlng.clone(),
+			    style = L.larva.style(this._path).multiple({
+			    	color: this.options.colorFactor,
+			    	opacity: this.options.opacityFactor
+			    }),
+			    latlng0;
+
+			if (handle._isPolygon) {
+
+				if (handle._prev) {
+					latlng0 = handle._prev._latlng;
+				} else {
+					latlng0 = handle._last._latlng;
+				}
+
+				latlngs.push(latlng0.clone());
+
+				latlngs.push(latlng);
+
+				if (handle._next) {
+					latlng0 = handle._next._latlng;
+				} else {
+					latlng0 = handle._first._latlng;
+				}
+
+				latlngs.push(latlng0.clone());
+
+			} else {
+
+				if (handle._prev) {
+					latlngs.push(handle._prev._latlng.clone());
+				}
+
+				latlngs.push(latlng);
+
+				if (handle._next) {
+					latlngs.push(handle._next._latlng.clone());
+				}
+
+			}
+
+			polyline = L.polyline(latlngs, style).addTo(this._map);
+
+			this._aura[handleId] = {
+				isPolygon: !!handle._isPolygon,
+				polyline: polyline,
+				latlng: latlng
+			};
 		}
 
-		var handle = this._handles[handleId], polyline;
-
-		var latlngs = [],
-		    latlng = handle._latlng.clone(),
-		    style = L.larva.style(this._path).multiple({
-		    	color: [1.25, 1.25, 1.25],
-		    	opacity: 0.5
-		    }),
-		    latlng0;
-
-		if (handle._isPolygon) {
-
-			if (handle._prev) {
-				latlng0 = handle._prev._latlng;
-			} else {
-				latlng0 = handle._last._latlng;
-			}
-
-			latlngs.push(latlng0.clone());
-
-			latlngs.push(latlng);
-
-			if (handle._next) {
-				latlng0 = handle._next._latlng;
-			} else {
-				latlng0 = handle._first._latlng;
-			}
-
-			latlngs.push(latlng0.clone());
-
-		} else {
-
-			if (handle._prev) {
-				latlngs.push(handle._prev._latlng.clone());
-			}
-
-			latlngs.push(latlng);
-
-			if (handle._next) {
-				latlngs.push(handle._next._latlng.clone());
-			}
-
-		}
-
-		polyline = L.polyline(latlngs, style).addTo(this._map);
-
-		this._aura[handleId] = {
-			isPolygon: !!handle._isPolygon,
-			polyline: polyline,
-			latlng: latlng
-		};
+		return true;
 	},
 
 	stopAura: function (handleId, commit) {
@@ -129,27 +138,36 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
-	updateLatLng: function (handleId, newLatLng) {
+	updateAura: function (handleId, newPoint) {
+		var aura = this._aura ? this._aura[handleId] : null;
 
-		var aura, handle = this._handles[handleId];
+		if (aura) {
 
-		if (this._aura && (aura = this._aura[handleId])) {
+			var newLatLng = this._map.layerPointToLatLng(newPoint);
 			aura.latlng.lat = newLatLng.lat;
 			aura.latlng.lng = newLatLng.lng;
 
 			aura.polyline.updateBounds();
 			aura.polyline.redraw();
 
-			this._updatePosition(handle, newLatLng);
-		} else {
+			this._updatePosition(this._handles[handleId], newLatLng);
+		}
+	},
 
+	updateLatLng: function (handleId, newLatLng, updatePath) {
+
+		var handle = this._handles[handleId];
+
+		if (handle) {
 			handle._latlng.lat = newLatLng.lat;
 			handle._latlng.lng = newLatLng.lng;
 			delete handle._layerPoint;
-
 			this._updatePosition(handle);
-			this._path.updateBounds();
-			this._path.redraw();
+			
+			if (updatePath) {
+				this._path.updateBounds();
+				this._path.redraw();
+			}
 		}
 	},
 
@@ -303,12 +321,10 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
-	_updatePosition: function (handle, target) {
+	_updatePosition: function (handle) {
 		var point;
 
-		if (target) {
-			point = target instanceof L.Point ? target.clone() : this._map.latLngToLayerPoint(target);
-		} else if (handle._layerPoint) {
+		if (handle._layerPoint) {
 			point = handle._layerPoint.clone();
 		} else {
 			handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
