@@ -14,7 +14,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 	},
 
 	options: {
-		colorFactor: [1.5, 1.5, 0.75],
+		colorFactor: [2, 0.5, 2],
 		handleClassName: 'llarva-vertex',
 		opacityFactor: 0.5,
 		pane: 'llarva-frame',
@@ -74,7 +74,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 
 			var latlngs = [],
 			    latlng = handle._latlng.clone(),
-			    style = L.larva.style(this._path).multiple({
+			    style = L.larva.style(this._path).multipleBy({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
 			    }),

@@ -29,7 +29,7 @@ L.larva.Style = L.Class.extend({
 		});
 	},
 
-	multiple: function(styles) {
+	multipleBy: function(styles) {
 		return this._transform(styles, function (cV, d) {
 			return cV * d;
 		});
