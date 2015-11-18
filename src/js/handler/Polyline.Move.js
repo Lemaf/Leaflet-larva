@@ -27,6 +27,18 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 		}
 	},
 
+	_getProjectedEventPosition: function(event) {
+		var bounding = this._frame.getFrameClientRect(),
+		    position = this._frame.getPosition();
+
+		return L.larva.project(
+			this.unproject(
+				event.clientX - bounding.left + position.x,
+				event.clientY - bounding.top + position.y
+			)
+		);
+	},
+
 	_onEnd: function () {
 
 		this._frame
@@ -35,9 +47,12 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 	},
 
 	_onMove: function (evt) {
+
 		var event = L.larva.getSourceEvent(evt);
-		var dx = event.clientX - this._startPosition.x,
-		    dy = event.clientY - this._startPosition.y;
+		var position = this._getProjectedEventPosition(event);
+
+		var dx = position.x - this._startPosition.x,
+		    dy = position.y - this._startPosition.y;
 
 		if (event.ctrlKey && event.altKey) {
 			var dxy = Math.min(Math.abs(dx), Math.abs(dy));
@@ -56,12 +71,8 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 	_onStart: function (evt) {
 		if (!evt.handle) {
 			this.backupLatLngs();
-			var event = L.larva.getSourceEvent(evt);
 
-			this._startPosition = {
-				x: event.clientX,
-				y: event.clientY
-			};
+			this._startPosition = this._getProjectedEventPosition(L.larva.getSourceEvent(evt));
 
 			this._frame
 				.on('drag:move', this._onMove, this)

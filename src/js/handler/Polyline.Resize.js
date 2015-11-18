@@ -18,11 +18,11 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 	transformPoint: function (original, transformed, xscale, yscale) {
 
 		if (xscale !== null) {
-			transformed.x = this._origin.layerX + xscale * (original.x - this._origin.layerX);
+			transformed.x = this._reference.point.x + xscale * (original.x - this._reference.point.x);
 		}
 
 		if (yscale !== null) {
-			transformed.y = this._origin.layerY + yscale * (original.y - this._origin.layerY);
+			transformed.y = this._reference.point.y + yscale * (original.y - this._reference.point.y);
 		}
 	},
 
@@ -31,7 +31,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 			.off('drag:move', this._onMove, this)
 			.off('drag:end', this._onEnd, this);
 
-		delete this._origin;
+		delete this._reference;
 	},
 
 	_onMove: function (evt) {
@@ -40,16 +40,16 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 
 		var xscale = null, yscale = null;
 
-		if (this._origin.x !== undefined) {
-			xscale = (event.clientX - this._origin.x) / this._origin.width;
-			if (this._origin.invertX) {
+		if (this._reference.screenX !== undefined) {
+			xscale = (event.clientX - this._reference.screenX) / this._reference.width;
+			if (this._reference.invertX) {
 				xscale = -xscale;
 			}
 		}
 
-		if (this._origin.y !== undefined) {
-			yscale = (event.clientY - this._origin.y) / this._origin.height;
-			if (this._origin.invertY) {
+		if (this._reference.screenY !== undefined) {
+			yscale = (event.clientY - this._reference.screenY) / this._reference.height;
+			if (this._reference.invertY) {
 				yscale = -yscale;
 			}
 		}
@@ -66,79 +66,94 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 
 	_onStart: function (evt) {
 
+		if (!evt.handle || evt.handle === L.larva.frame.Rect.MIDDLE_MIDDLE) {
+			return;
+		}
+
 		var bounding = this._frame.getFrameClientRect(),
 		    position = this._frame.getPosition();
 
-		var origin = this._origin = {
+		var reference = this._reference = {
 			height: bounding.height,
 			width: bounding.width,
 		};
 
+		// x
 		switch (evt.handle) {
 			case L.larva.frame.Rect.TOP_LEFT:
-				origin.x = bounding.right;
-				origin.y = bounding.bottom;
-				origin.invertX = origin.invertY = true;
-
-				origin.layerX = position.x + bounding.width;
-				origin.layerY = position.y + bounding.height;
+			case L.larva.frame.Rect.MIDDLE_LEFT:
+			case L.larva.frame.Rect.BOTTOM_LEFT:
+				reference.screenX = bounding.right;
 				break;
 
 			case L.larva.frame.Rect.TOP_MIDDLE:
-				origin.y = bounding.bottom;
-				origin.invertY = true;
-
-				origin.layerY = position.y + bounding.height;
+			case L.larva.frame.Rect.BOTTOM_MIDDLE:
+				reference.screenX = bounding.left + reference.width / 2;
 				break;
 
 			case L.larva.frame.Rect.TOP_RIGHT:
-				origin.x = bounding.left;
-				origin.y = bounding.bottom;
-				origin.invertY = true;
+			case L.larva.frame.Rect.MIDDLE_RIGHT:
+			case L.larva.frame.Rect.BOTTOM_RIGHT:
+				reference.screenX = bounding.left;
+				break;
+		}
 
-				origin.layerX = position.x;
-				origin.layerY = position.y + bounding.height;
+		// y
+		switch (evt.handle) {
+			case L.larva.frame.Rect.TOP_LEFT:
+			case L.larva.frame.Rect.TOP_MIDDLE:
+			case L.larva.frame.Rect.TOP_RIGHT:
+				reference.screenY = bounding.bottom;
 				break;
 
 			case L.larva.frame.Rect.MIDDLE_LEFT:
-				origin.x = bounding.right;
-				origin.invertX = true;
-
-				origin.layerX = position.x + bounding.width;
-				break;
-
 			case L.larva.frame.Rect.MIDDLE_RIGHT:
-				origin.x = bounding.left;
-
-				origin.layerX = position.x;
+				reference.screenY = bounding.top + reference.height / 2;
 				break;
 
 			case L.larva.frame.Rect.BOTTOM_LEFT:
-				origin.x = bounding.right;
-				origin.y = bounding.top;
-				origin.invertX = true;
-
-				origin.layerX = position.x + bounding.width;
-				origin.layerY = position.y;
-				break;
-
 			case L.larva.frame.Rect.BOTTOM_MIDDLE:
-				origin.y = bounding.top;
-
-				origin.layerY = position.y;
-				break;
-
 			case L.larva.frame.Rect.BOTTOM_RIGHT:
-				origin.x = bounding.left;
-				origin.y = bounding.top;
+				reference.screenY = bounding.top;
+				break;
+		}
 
-				origin.layerX = position.x;
-				origin.layerY = position.y;
+		// invertX
+		switch (evt.handle) {
+			case L.larva.frame.Rect.TOP_LEFT:
+			case L.larva.frame.Rect.MIDDLE_LEFT:
+			case L.larva.frame.Rect.BOTTOM_LEFT:
+				reference.invertX = true;
+		}
+
+		// invertY
+		switch (evt.handle) {
+			case L.larva.frame.Rect.TOP_LEFT:
+			case L.larva.frame.Rect.TOP_MIDDLE:
+			case L.larva.frame.Rect.TOP_RIGHT:
+				reference.invertY = true;
+		}
+
+
+		reference.point = L.larva.project(
+			this.unproject(
+				reference.screenX - bounding.left + position.x,
+				reference.screenY - bounding.top + position.y
+			)
+		);
+
+		switch (evt.handle) {
+			case L.larva.frame.Rect.TOP_MIDDLE:
+			case L.larva.frame.Rect.BOTTOM_MIDDLE:
+				delete reference.screenX;
 				break;
 
-			default:
-				return;
+			case L.larva.frame.Rect.MIDDLE_LEFT:
+			case L.larva.frame.Rect.MIDDLE_RIGHT:
+				delete reference.screenY;
+				break;
 		}
+
 
 		this.backupLatLngs();
 

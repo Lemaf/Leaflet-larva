@@ -26,10 +26,14 @@ L.larva = {
 	},
 
 	project: function (latlng) {
-		return L.Projection.Mercator.project(latlng);
+		var point = L.Projection.Mercator.project(latlng);
+		point.y = 0 - point.y;
+		return point;
 	},
 
 	unproject: function (point) {
+		point = point.clone();
+		point.y = 0 - point.y;
 		return L.Projection.Mercator.unproject(point);
 	}
 };
