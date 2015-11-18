@@ -114,7 +114,9 @@ L.larva.frame.Vertices = L.Layer.extend({
 
 			}
 
-			polyline = L.polyline(latlngs, style).addTo(this._map);
+			polyline = L.polyline(latlngs, L.extend({}, style, {
+				noClip: true
+			})).addTo(this._map);
 
 			this._aura[handleId] = {
 				isPolygon: !!handle._isPolygon,
@@ -150,7 +152,15 @@ L.larva.frame.Vertices = L.Layer.extend({
 			aura.polyline.updateBounds();
 			aura.polyline.redraw();
 
-			this._updatePosition(this._handles[handleId], newLatLng);
+			this._updatePosition(this._handles[handleId], newPoint);
+		}
+	},
+
+	updateHandle: function (handleId) {
+		var handle = this._handles[handleId];
+		if (handle) {
+			delete handle._layerPoint;
+			this._updatePosition(handle);
 		}
 	},
 
@@ -321,10 +331,12 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
-	_updatePosition: function (handle) {
+	_updatePosition: function (handle, target) {
 		var point;
 
-		if (handle._layerPoint) {
+		if (target) {
+			point = target.clone();
+		} else if (handle._layerPoint) {
 			point = handle._layerPoint.clone();
 		} else {
 			handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);

@@ -33,14 +33,19 @@ window.onload = function moveHandler () {
 	]).addTo(map).larva.edit.enable();
 
 
-	L.polygon([
+	var mct = L.polygon([
 		[-15.79884980396577809, -47.87044529741776699],
 		[-15.799073077045243, -47.86972266221447114],
 		[-15.79927721221674908, -47.86970277317217892],
 		[-15.80032340174062178, -47.870060775933446],
 		[-15.80009375084477341, -47.87090937507125687],
 		[-15.79884980396577809, -47.87044529741776699]
-	]).addTo(map).larva.edit.enable();
+	]).addTo(map);
+
+	mct.larva.edit.enable();
+	L.setOptions(mct.larva.edit, {
+		aura: false
+	});
 
 
 	var face = L.polygon([

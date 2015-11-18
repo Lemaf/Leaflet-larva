@@ -20,10 +20,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
 		if (this.options.aura) {
 			this._frame.stopAura(this._handleId, true);
+			this._path.updateBounds();
+			this._path.redraw();
 		}
-
-		this._path.updateBounds();
-		this._path.redraw();
 	},
 
 	_onDragMove: function (evt) {
@@ -37,7 +36,17 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		if (this._aura) {
 			this._frame.updateAura(this._handleId, newPoint);
 		} else {
-			this._frame.updateLatLng(this._handleId, this._path._map.layerPointToLatLng(newPoint), true);
+			//this._frame.updateLatLng(this._handleId, this._path._map.layerPointToLatLng(newPoint), true);
+
+			var latlng = this._frame.getLatLng(this._handleId),
+				 newLatLng = this._path._map.layerPointToLatLng(newPoint);
+
+			latlng.lat = newLatLng.lat;
+			latlng.lng = newLatLng.lng;
+
+			this._path.updateBounds();
+			this._frame.updateHandle(this._handleId);
+			this._path.redraw();
 		}
 
 	},
