@@ -290,9 +290,6 @@ L.larva.frame.Vertices = L.Layer.extend({
 				handle = this._handles[id];
 
 				L.DomUtil.remove(handle);
-				if (handle._draggable) {
-					handle._draggable.disable();
-				}
 			}
 		}
 
@@ -354,7 +351,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 	},
 
 	_showHandles: function (handles, isPolygon) {
-		var pointsToShow, draggable;
+		var pointsToShow;
 
 		var bounds = this._map.getPixelBounds(),
 		    pixelOrigin = this._map.getPixelOrigin();
@@ -414,15 +411,6 @@ L.larva.frame.Vertices = L.Layer.extend({
 			}
 
 			this._updatePosition(point._handle);
-
-			if (!point._handle._draggable) {
-				draggable = new L.Draggable(point._handle);
-				point._handle._draggable = draggable;
-			} else {
-				draggable = point._handle._draggable;
-			}
-
-			//draggable.enable();
 		}, this);
 	},
 
@@ -434,10 +422,6 @@ L.larva.frame.Vertices = L.Layer.extend({
 
 			if (handle.offsetParent) {
 				L.DomUtil.remove(handle);
-			}
-
-			if (handle._draggable) {
-				handle._draggable.disable();
 			}
 		}
 
