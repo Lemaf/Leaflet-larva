@@ -36,7 +36,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		if (this._aura) {
 			this._frame.updateAura(this._handleId, newPoint);
 		} else {
-			//this._frame.updateLatLng(this._handleId, this._path._map.layerPointToLatLng(newPoint), true);
 
 			var latlng = this._frame.getLatLng(this._handleId),
 				 newLatLng = this._path._map.layerPointToLatLng(newPoint);

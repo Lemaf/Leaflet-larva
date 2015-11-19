@@ -135,7 +135,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 			delete this._aura[handleId];
 
 			if (commit) {
-				this.updateLatLng(handleId, aura.latlng);
+				this._setLatLng(handleId, aura.latlng);
 			}
 		}
 	},
@@ -164,7 +164,7 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
-	updateLatLng: function (handleId, newLatLng, updatePath) {
+	_setLatLng: function (handleId, newLatLng) {
 
 		var handle = this._handles[handleId];
 
@@ -172,12 +172,11 @@ L.larva.frame.Vertices = L.Layer.extend({
 			handle._latlng.lat = newLatLng.lat;
 			handle._latlng.lng = newLatLng.lng;
 			delete handle._layerPoint;
+
 			this._updatePosition(handle);
-			
-			if (updatePath) {
-				this._path.updateBounds();
-				this._path.redraw();
-			}
+
+			this._path.updateBounds();
+			this._path.redraw();
 		}
 	},
 
