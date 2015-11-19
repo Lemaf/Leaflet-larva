@@ -19,6 +19,10 @@ L.larva.handler.Path = L.Handler.extend({
 		} else {
 			return this._path._map.layerPointToLatLng(a);
 		}
+	},
+
+	layerPointToWorldPoint: function (a, b) {
+		return L.larva.project(this.unproject(a, b));
 	}
 
 });

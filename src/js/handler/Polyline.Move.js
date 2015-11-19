@@ -27,7 +27,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 		}
 	},
 
-	_getProjectedEventPosition: function(event) {
+	_getEventWorldPoint: function(event) {
 		var bounding = this._frame.getFrameClientRect(),
 		    position = this._frame.getPosition();
 
@@ -49,10 +49,10 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 	_onMove: function (evt) {
 
 		var event = L.larva.getSourceEvent(evt);
-		var position = this._getProjectedEventPosition(event);
+		var worldPoint = this._getEventWorldPoint(event);
 
-		var dx = position.x - this._startPosition.x,
-		    dy = position.y - this._startPosition.y;
+		var dx = worldPoint.x - this._startPosition.x,
+		    dy = worldPoint.y - this._startPosition.y;
 
 		if (event.ctrlKey && event.altKey) {
 			var dxy = Math.min(Math.abs(dx), Math.abs(dy));
@@ -72,7 +72,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 		if (!evt.handle) {
 			this.backupLatLngs();
 
-			this._startPosition = this._getProjectedEventPosition(L.larva.getSourceEvent(evt));
+			this._startPosition = this._getEventWorldPoint(L.larva.getSourceEvent(evt));
 
 			this._frame
 				.on('drag:move', this._onMove, this)

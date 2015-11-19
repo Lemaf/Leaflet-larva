@@ -57,10 +57,10 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 		cx = (cx - frameBounding.left) + framePosition.x;
 		cy = (cy - frameBounding.top) + framePosition.y;
 
-		var projectedCenter = L.larva.project(this.unproject(cx, cy));
+		var worldCenterPoint = this.layerPointToWorldPoint(cx, cy);
 
-		var dx = projectedCenter.x * (1 - cos) + projectedCenter.y * sin;
-		var dy = projectedCenter.y * (1 - cos) - projectedCenter.x * sin;
+		var dx = worldCenterPoint.x * (1 - cos) + worldCenterPoint.y * sin;
+		var dy = worldCenterPoint.y * (1 - cos) - worldCenterPoint.x * sin;
 
 		this.transform(sin, cos, dx, dy);
 	},
@@ -84,6 +84,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 
 		vector.i = vector.i / vector.length;
 		vector.j = vector.j / vector.length;
+		vector.length = 1;
 
 		this.backupLatLngs();
 

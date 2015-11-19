@@ -135,11 +135,9 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 		}
 
 
-		reference.point = L.larva.project(
-			this.unproject(
-				reference.screenX - bounding.left + position.x,
-				reference.screenY - bounding.top + position.y
-			)
+		reference.point = this.layerPointToWorldPoint(
+			reference.screenX - bounding.left + position.x,
+			reference.screenY - bounding.top + position.y
 		);
 
 		switch (evt.handle) {
