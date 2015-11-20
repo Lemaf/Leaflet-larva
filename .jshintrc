@@ -8,7 +8,9 @@
 		"document": false,
 		"console": false,
 		"window": false,
-		"getComputedStyle": false
+		"getComputedStyle": false,
+		"setTimeout": false,
+		"MouseEvent": false
 	},
 
 	"undef": true,

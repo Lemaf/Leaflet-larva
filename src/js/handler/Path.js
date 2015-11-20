@@ -12,17 +12,21 @@ L.larva.handler.Path = L.Handler.extend({
 
 		this._path = path;
 	},
-
-	unproject: function (a, b) {
-		if (b !== undefined) {
-			return this._path._map.layerPointToLatLng(L.point(a, b));
-		} else {
-			return this._path._map.layerPointToLatLng(a);
-		}
+ 
+	getMap: function () {
+		return this._path._map;
 	},
 
 	layerPointToWorldPoint: function (a, b) {
 		return L.larva.project(this.unproject(a, b));
+	},
+
+	unproject: function (a, b) {
+		if (b !== undefined) {
+			return this.getMap().layerPointToLatLng(L.point(a, b));
+		} else {
+			return this.getMap().layerPointToLatLng(a);
+		}
 	}
 
 });

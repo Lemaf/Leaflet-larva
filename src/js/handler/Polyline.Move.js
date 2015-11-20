@@ -8,7 +8,7 @@
 L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 
 	addHooks: function() {
-		this._frame = L.larva.frame.rect(this._path).addTo(this._path._map);
+		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
 		this._frame.on('drag:start', this._onStart, this);
 
 		this._previousCursor = this._frame.getComputedStyle().cursor;

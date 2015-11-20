@@ -1,13 +1,19 @@
 L.larva = {
 	version: '0.1.0',
 
+	NOP: function () {},
+
 	getHeight: function (el) {
 		return el.offsetHeight;
 	},
 
 	getSourceEvent: function (evt) {
-		return !evt.sourceEvent.touches ?
-		        evt.sourceEvent : evt.sourceEvent.touches[0];
+		if (evt.sourceEvent) {
+			evt = evt.sourceEvent;
+		}
+
+		return !evt.touches ?
+		        evt : evt.touches[0];
 	},
 
 	getWidth: function (el) {

@@ -8,7 +8,7 @@
 L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 
 	addHooks: function () {
-		this._frame = L.larva.frame.rect(this._path).addTo(this._path._map);
+		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
 
 		this._frame.setStyle(this._frameStyle);
 

@@ -7,7 +7,8 @@ var SOURCES = {
 		'handler/Polyline.Rotate.js',
 		'handler/Polyline.Move.js',
 		'handler/Polyline.Resize.js',
-		'handler/Polyline.Edit.js'
+		'handler/Polyline.Edit.js',
+		'handler/New.Polyline.js'
 
 	]
 };

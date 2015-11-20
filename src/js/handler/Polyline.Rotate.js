@@ -14,7 +14,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 
 	addHooks: function () {
 		this._frame = L.larva.frame.rect(this._path);
-		this._frame.addTo(this._path._map);
+		this._frame.addTo(this.getMap());
 
 		this._frame.setStyle(this._frameStyle);
 

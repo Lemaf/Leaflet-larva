@@ -9,7 +9,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 	},
 
 	addHooks: function () {
-		this._frame = L.larva.frame.vertices(this._path).addTo(this._path._map);
+		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
 		this._frame.on('drag:start', this._onDragStart, this);
 	},
 
@@ -38,7 +38,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		} else {
 
 			var latlng = this._frame.getLatLng(this._handleId),
-				 newLatLng = this._path._map.layerPointToLatLng(newPoint);
+				 newLatLng = this.getMap().layerPointToLatLng(newPoint);
 
 			latlng.lat = newLatLng.lat;
 			latlng.lng = newLatLng.lng;
