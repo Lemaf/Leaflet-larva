@@ -4,13 +4,15 @@
 L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 
 	options: {
-		handleOptions: {
+
+		handleStyle: {
 			border: '1px solid #0f0',
 			cursor: 'crosshair',
 			height: '20px',
 			position: 'absolute',
 			width: '20px'
 		},
+
 		layerOptions: {
 
 		},
@@ -18,24 +20,26 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 		// Snap here?
 		onMove: L.larva.NOP,
 
-		threshold: 2
+		threshold: 1
 	},
 
 	addHooks: function() {
 
-		this._newLayer = this.createLayer().addTo(this._map);
-		this._previewLayer = this._lineLayer = L.polyline(this.options.layerOptions);
+		this._latlngs = [];
 
 		this._pane = this._map.getPane('popupPane');
 
 		var handle = this._handle = L.DomUtil.create('div', 'llarva-new-vertex-handle', this._pane);
-		L.extend(handle.style, this.options.handleOptions);
+		L.extend(handle.style, this.options.handleStyle);
 
 		this._newLatLng = new L.LatLng(0, 0);
-		this._latlngs = [this._newLatLng];
+		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options, {
+			noClip: true
+		}));
 
 		this._map
-			.on('mousemove', this._onMapMouseMove, this);
+			.on('mousemove', this._onMapMouseMove, this)
+			.on('movestart', this._onMapMoveStart, this);
 
 		L.DomEvent
 			.on(handle, 'click', this._onClick, this)
@@ -43,7 +47,9 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 	},
 
 	createLayer: function () {
-		return L.polyline(this.options.layerOptions);
+		return L.polyline([], L.extend({}, this.options.layerOptions, {
+			noClip: true
+		}));
 	},
 
 	next: function () {
@@ -54,7 +60,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 			try {
 
 				this._map.removeLayer(this._previewLayer);
-
 				this._previewLayer.setLatLngs(this._latlngs);
 
 				this.fire('ldraw:created', {
@@ -67,10 +72,10 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 				});
 
 			} finally {
-				this._newLayer = this.createLayer().addTo(this._map);
 				this._lineLayer.setLatLngs([]);
-				this._latlngs = [this._newLatLng];
+				this._latlngs = [];
 				this._previewLayer = this._lineLayer;
+				delete this._newLayer;
 			}
 		}
 	},
@@ -81,25 +86,14 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 			.off(this._handle, 'dblclick', this._onDblClick, this);
 
 		this._map
-			.off('mousemove', this._onMapMouseMove, this);
+			.off('mousemove', this._onMapMouseMove, this)
+			.off('movestart', this._onMapMoveStart, this);
 
 		L.DomUtil.remove(this._handle);
-	},
 
-	_addVertex: function () {
-
-
-		this._latlngs[this._latlngs.length - 1] = this._newLatLng.clone();
-		this._latlngs.push(this._newLatLng);
-
-		if (this._latlngs.length === this.options.threshold) {
-			this._map.removeLayer(this._lineLayer);
-			this._previewLayer = this._newLayer;
-			this._map.addLayer(this._previewLayer);
+		if (this._previewLayer) {
+			this._map.removeLayer(this._previewLayer);
 		}
-
-		this._previewLayer.setLatLngs(this._latlngs);
-		this._previewLayer.redraw();
 	},
 
 	_getEventLayerPoint: function (evt) {
@@ -114,7 +108,12 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 
 	_onClick: function (evt) {
 		L.DomEvent.stop(evt);
-		this._addVertex();
+
+		if (!this._move) {
+			this._pushLatLng();
+		} else {
+			delete this._move;
+		}
 	},
 
 	_onDblClick: function (evt) {
@@ -142,6 +141,28 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 		if (this._latlngs.length) {
 			this._previewLayer.redraw();
 		}
+	},
+
+	_onMapMoveStart: function () {
+		this._move = true;
+	},
+
+	_pushLatLng: function () {
+
+		this._latlngs.push(this._newLatLng.clone());
+
+		if (this._latlngs.length === this.options.threshold) {
+			this._map.removeLayer(this._lineLayer);
+			this._newLayer = this.createLayer().addTo(this._map);
+			this._previewLayer = this._newLayer;
+		}
+
+		if (!this._previewLayer._map) {
+			this._map.addLayer(this._previewLayer);
+		}
+
+		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+		this._previewLayer.redraw();
 	}
 
 });

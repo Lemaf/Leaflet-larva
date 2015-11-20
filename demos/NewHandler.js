@@ -1,28 +1,7 @@
-var edit = false,
-    layers = [],
-    newPolyline;
-
-
-function toogle() {
-	edit = !edit;
-
-	layers.forEach(function (layer) {
-		if (edit) {
-			layer.larva.edit.enable();
-		} else {
-			layer.larva.edit.disable();
-		}
-	});
-
-	if (edit) {
-		newPolyline.disable();
-	} else {
-		newPolyline.enable();
-	}
-}
-
-
 window.onload = function moveHandler () {
+
+	var edit = false,
+	    layers = [];
 
 
 	var map = L.map('map', {
@@ -34,16 +13,51 @@ window.onload = function moveHandler () {
 	map.setView([-15.80064, -47.86164], 16);
 
 	newPolyline = L.larva.handler.newPolyline(map);
+	newPolygon = L.larva.handler.newPolygon(map);
 
 	newPolyline.enable();
 
 	map.on('ldraw:created', function (evt) {
 		map.addLayer(evt.layer);
-
 		layers.push(evt.layer);
-
-		if (edit) {
-			evt.layer.larva.edit.enable();
-		}
 	});
+
+	L.DomEvent.on(L.DomUtil.get('toogle'), 'click', function () {
+		newPolyline.disable();
+		newPolygon.disable();
+
+		edit = true;
+
+		updateLayers();
+	});
+
+	L.DomEvent.on(L.DomUtil.get('polyline'), 'click', function () {
+		newPolyline.enable();
+		newPolygon.disable();
+
+		edit = false;
+		updateLayers();
+	});
+
+	L.DomEvent.on(L.DomUtil.get('polygon'), 'click', function () {
+		newPolygon.enable();
+		newPolyline.disable();
+
+		edit = false;
+		updateLayers();
+	});
+
+	function updateLayers () {
+		layers.forEach(function (layer) {
+			try {
+				if (edit) {
+					layer.larva.edit.enable();
+				} else {
+					layer.larva.edit.disable();
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		});
+	}
 }
