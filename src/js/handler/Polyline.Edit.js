@@ -11,6 +11,25 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
 		this._frame.on('drag:start', this._onDragStart, this);
+		this._path.on('dblclick', this._onDblClick, this);
+	},
+
+	searchNearestPoint: function (point) {
+		var dist;
+
+		this._path.forEachLine(function (latlngs) {
+			for (i=0, l = latlngs.length - 1; i < l; i++) {
+				
+			}
+		}, this);
+	},
+
+	_onDblClick: function (evt) {
+		L.DomEvent.stop(evt);
+
+		var point = this._map.mouseEventoToLayerPoint(evt);
+
+		this.searchNearestPoint(point);
 	},
 
 	_onDragEnd: function () {
