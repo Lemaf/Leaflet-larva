@@ -4,7 +4,7 @@
 L.larva.handler.New.Polygon = L.larva.handler.New.Polyline.extend({
 
 	options: {
-		threshold: 3
+		threshold: 2
 	},
 
 	createLayer: function () {

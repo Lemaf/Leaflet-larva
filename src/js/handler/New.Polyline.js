@@ -109,6 +109,22 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 	_onClick: function (evt) {
 		L.DomEvent.stop(evt);
 
+		if (this._lastClick) {
+			evt = L.larva.getSourceEvent(evt);
+			var dx = evt.clientX - this._lastClick.x,
+			    dy = evt.clientY - this._lastClick.y;
+
+			if ((dx * dx + dy * dy) < 100) {
+				console.log('cancelado!');
+				return;
+			}
+		} else {
+			this._lastClick = {};
+		}
+
+		this._lastClick.x = evt.clientX;
+		this._lastClick.y = evt.clientY;
+
 		if (!this._move) {
 			this._pushLatLng();
 		} else {
@@ -118,6 +134,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 
 	_onDblClick: function (evt) {
 		L.DomEvent.stop(evt);
+		this._pushLatLng();
 		this.next();
 	},
 
