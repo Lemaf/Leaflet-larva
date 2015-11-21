@@ -5,31 +5,59 @@
 L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
 	options: {
-		aura: true
+		aura: true,
+		newVertexRatioClick: 10
 	},
 
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
 		this._frame.on('drag:start', this._onDragStart, this);
-		this._path.on('dblclick', this._onDblClick, this);
+		this._path.on('dblclick', this._onPathDblClick, this);
 	},
 
 	searchNearestPoint: function (point) {
-		var dist;
+		var dist, aPoint, bPoint, found = [], i, l;
 
 		this._path.forEachLine(function (latlngs) {
+
 			for (i=0, l = latlngs.length - 1; i < l; i++) {
-				
+				aPoint = this.getMap().latLngToLayerPoint(latlngs[i]);
+				bPoint = this.getMap().latLngToLayerPoint(latlngs[i+1]);
+				dist = L.LineUtil.pointToSegmentDistance(point, aPoint, bPoint);
+
+				if (dist <= this.options.newVertexRatioClick) {
+					found.push({
+						point: L.LineUtil.closestPointOnSegment(point, aPoint, bPoint),
+						index: i + 1,
+						latlngs: latlngs
+					});
+				}
 			}
 		}, this);
+
+		return found;
 	},
 
-	_onDblClick: function (evt) {
+	_onPathDblClick: function (evt) {
 		L.DomEvent.stop(evt);
 
-		var point = this._map.mouseEventoToLayerPoint(evt);
+		var founds, found, point, newLatLng;
 
-		this.searchNearestPoint(point);
+		point = this.getMap().mouseEventToLayerPoint(evt.originalEvent);
+		founds = this.searchNearestPoint(point);
+
+		if (founds.length) {
+			if (founds.length === 1) {
+				found = founds[0];
+				newLatLng = this.getMap().layerPointToLatLng(found.point);
+
+				found.latlngs.splice(found.index, 0, newLatLng);
+
+				this._path.updateBounds();
+				this._path.redraw();
+				this._frame.redraw();
+			}
+		}
 	},
 
 	_onDragEnd: function () {
@@ -92,8 +120,4 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
 	}
 
-});
-
-L.Polyline.addInitHook(function () {
-	this.larva.edit = new L.larva.handler.Polyline.Edit(this);
 });

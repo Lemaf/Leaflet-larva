@@ -8,6 +8,7 @@ var SOURCES = {
 		'handler/Polyline.Move.js',
 		'handler/Polyline.Resize.js',
 		'handler/Polyline.Edit.js',
+		'handler/Polygon.Edit.js',
 		'handler/New.Polyline.js',
 		'handler/New.Polygon.js'
 

@@ -128,6 +128,12 @@ L.larva.frame.Vertices = L.Layer.extend({
 		return true;
 	},
 
+	redraw: function () {
+		this._updateHandles();
+		this._updateView();
+		return this;
+	},
+
 	stopAura: function (handleId, commit) {
 		var aura;
 		if (this._aura && (aura = this._aura[handleId])) {
