@@ -25,12 +25,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		return found;
 	},
 
-	_onPathDblClick: function (evt) {
-		L.DomEvent.stop(evt);
+	_addVertex: function (point) {
+		var founds, found, newLatLng;
 
-		var founds, found, point, newLatLng;
-
-		point = this.getMap().mouseEventToLayerPoint(evt.originalEvent);
 		founds = this.searchNearestPoint(point);
 
 		if (founds.length) {
@@ -45,6 +42,11 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 				this._frame.redraw();
 			}
 		}
+	},
+
+	_onPathDblClick: function (evt) {
+		L.DomEvent.stop(evt);
+		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
 	_onDragEnd: function () {
