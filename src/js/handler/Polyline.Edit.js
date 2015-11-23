@@ -15,6 +15,13 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 		this._path.on('dblclick', this._onPathDblClick, this);
 	},
 
+	removeHooks: function () {
+		this.getMap().removeLayer(this._frame);
+		this._frame
+			.off('drag:start', this._onDragStart, this)
+			.off('dblclick', this._onPathDblClick, this);
+	},
+
 	searchNearestPoint: function (point) {
 		var found = [], map = this.getMap();
 

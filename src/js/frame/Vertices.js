@@ -57,6 +57,23 @@ L.larva.frame.Vertices = L.Layer.extend({
 		this._updateView();
 	},
 
+	onRemove: function () {
+		var id, handle;
+
+		if (this._handles) {
+
+			for (id in this._handles) {
+				handle = this._handles[id];
+
+				if (handle.offsetParent) {
+					L.DomUtil.remove(handle);
+				}
+			}
+
+			delete this._handles;
+		}
+	},
+
 	createAura: function (handleId) {
 		var handle = this._handles[handleId];
 
