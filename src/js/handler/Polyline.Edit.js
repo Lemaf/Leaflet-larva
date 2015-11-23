@@ -16,23 +16,10 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 	},
 
 	searchNearestPoint: function (point) {
-		var dist, aPoint, bPoint, found = [], i, l;
+		var found = [], map = this.getMap();
 
 		this._path.forEachLine(function (latlngs) {
-
-			for (i=0, l = latlngs.length - 1; i < l; i++) {
-				aPoint = this.getMap().latLngToLayerPoint(latlngs[i]);
-				bPoint = this.getMap().latLngToLayerPoint(latlngs[i+1]);
-				dist = L.LineUtil.pointToSegmentDistance(point, aPoint, bPoint);
-
-				if (dist <= this.options.newVertexRatioClick) {
-					found.push({
-						point: L.LineUtil.closestPointOnSegment(point, aPoint, bPoint),
-						index: i + 1,
-						latlngs: latlngs
-					});
-				}
-			}
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.newVertexRatioClick, latlngs, map));
 		}, this);
 
 		return found;
@@ -121,3 +108,37 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 	}
 
 });
+
+
+L.larva.handler.Polyline.Edit.searchNearestPointIn = function (point, maxDist, latlngs, map, closed) {
+	var found = [],
+	    aPoint, bPoint,
+	    i, index, l, dist;
+
+	if (closed) {
+		l = latlngs.length;
+	} else {
+		l = latlngs.length - 1;
+	}
+
+	for (i = 0; i < l; i++) {
+
+		index = (i + 1) % latlngs.length;
+
+		aPoint = map.latLngToLayerPoint(latlngs[i]);
+		bPoint = map.latLngToLayerPoint(latlngs[index]);
+
+		dist = L.LineUtil.pointToSegmentDistance(point, aPoint, bPoint);
+
+		if (dist <= maxDist) {
+			found.push({
+				point: L.LineUtil.closestPointOnSegment(point, aPoint, bPoint),
+				index: index,
+				latlngs: latlngs
+			});
+		}
+	}
+
+	return found;
+
+};
