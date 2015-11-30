@@ -4,6 +4,18 @@
  */
 L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
+	options: {
+		makeHoleCursor: 'crosshair'
+	},
+
+	addHooks: function () {
+		L.larva.handler.Polyline.Edit.prototype.addHooks.call(this);
+
+		L.DomEvent
+			.on(document, 'keydown', this._onKeyDown, this)
+			.on(document, 'keyup', this._onKeyUp, this);
+	},
+
 	searchNearestPoint: function (point) {
 		var found = [],
 		    map = this.getMap(),
@@ -20,6 +32,25 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		}, this);
 
 		return found;
+	},
+
+	_onKeyDown: function (event) {
+		var keyCode = L.larva.getEventKeyCode(event);
+
+		if (keyCode === L.larva.CTRL_KEY && !this._makeHole) {
+			this._makeHole = true;
+			this._previousCursor = this._path._path.style.cursor;
+			this._path._path.style.cursor = this.options.makeHoleCursor;
+		}
+	},
+
+	_onKeyUp: function (event) {
+		var keyCode = L.larva.getEventKeyCode(event);
+
+		if (this._makeHole && keyCode === L.larva.CTRL_KEY) {
+			delete this._makeHole;
+			this._path._path.style.cursor = this._previousCursor;
+		}
 	}
 
 });

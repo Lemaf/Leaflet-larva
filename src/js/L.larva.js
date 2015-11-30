@@ -1,7 +1,14 @@
 L.larva = {
 	version: '0.1.0',
 
+	CTRL_KEY: 17,
+
 	NOP: function () {},
+
+
+	getEventKeyCode: function (event) {
+		return event.keyCode || event.key;
+	},
 
 	getHeight: function (el) {
 		return el.offsetHeight;
