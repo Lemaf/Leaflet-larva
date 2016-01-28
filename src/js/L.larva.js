@@ -1,5 +1,5 @@
 L.larva = {
-	version: '0.1.0',
+	version: '0.1.1',
 
 	CTRL_KEY: 17,
 

@@ -1,6 +1,6 @@
 {
   "name": "Leaflet-larva",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Leaflet larva (leaflet + edit geometry)",
   "main": "dist/leaflet-larva.js",
   "scripts": {
