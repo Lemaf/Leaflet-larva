@@ -1,25 +1,32 @@
 /**
  * @requires Polygon.js
  * @requires Polyline.Edit.js
+ * @requires ../Util.js
+ * @requires New.Polygon.js
  */
 L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
 	options: {
-		makeHoleCursor: 'crosshair'
+		allowMakeHole: true,
+		makeHoleCursor: 'crosshair',
+		newHoleOptions: {
+
+		}
 	},
 
 	addHooks: function () {
 		L.larva.handler.Polyline.Edit.prototype.addHooks.call(this);
 
-		L.DomEvent
-			.on(document, 'keydown', this._onKeyDown, this)
-			.on(document, 'keyup', this._onKeyUp, this);
+		if (this.options.allowMakeHole) {
+			this._path
+				.on('click', this._onPathClickHole, this);
+		}
 	},
 
-	searchNearestPoint: function (point) {
+	_searchNearestPoint: function (point) {
 		var found = [],
 		    map = this.getMap(),
-		    maxDist = this.options.newVertexRatioClick;
+		    maxDist = this.options.maxDist;
 
 		var search = L.larva.handler.Polyline.Edit.searchNearestPointIn;
 
@@ -34,23 +41,50 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		return found;
 	},
 
-	_onKeyDown: function (event) {
-		var keyCode = L.larva.getEventKeyCode(event);
+	_onNewHole: function () {
+		if (this._shellHole) {
+			var holeLatlngs = evt.layer.getLatLngs().slice(0);
 
-		if (keyCode === L.larva.CTRL_KEY && !this._makeHole) {
-			this._makeHole = true;
-			this._previousCursor = this._path._path.style.cursor;
-			this._path._path.style.cursor = this.options.makeHoleCursor;
+			var latlngs = this._path.getLatLngs();
 		}
 	},
 
-	_onKeyUp: function (event) {
-		var keyCode = L.larva.getEventKeyCode(event);
+	_onPathClickHole: function (evt) {
 
-		if (this._makeHole && keyCode === L.larva.CTRL_KEY) {
-			delete this._makeHole;
-			this._path._path.style.cursor = this._previousCursor;
+		if (!this._makingHole && evt.originalEvent.ctrlKey) {
+			this._makingHole = true;
+
+			var point = evt.layerPoint, points, found = [];
+
+			this._path.forEachPolygon(function (shell) {
+				points = shell.map(this.getMap().latLngToLayerPoint, this.getMap());
+
+				if (L.larva.Util.pointIsInside(point, points)) {
+					found.push(shell);
+				}
+			}, this);
+
+			if (found.length === 1) {
+				this._shellHole = found[0];
+				this._newPolygonHole = new L.larva.handler.New.Polygon(this.getMap(), L.extend({}, this.options.newHoleOptions, {
+					allowFireOnMap: false
+				}));
+
+				this._newPolygonHole
+					.on('ldraw:created', this._onNewHole, this)
+					.enable();
+
+				this._newPolygonHole.addLatLng(evt.latlng);
+			}
 		}
+	},
+
+	_restoreCursor: function () {
+
+	},
+
+	_setHoleCursor: function () {
+
 	}
 
 });

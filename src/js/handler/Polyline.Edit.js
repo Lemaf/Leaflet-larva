@@ -6,7 +6,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
 	options: {
 		aura: true,
-		newVertexRatioClick: 10
+		maxDist: 10
 	},
 
 	addHooks: function () {
@@ -22,11 +22,11 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 			.off('dblclick', this._onPathDblClick, this);
 	},
 
-	searchNearestPoint: function (point) {
+	_searchNearestPoint: function (point) {
 		var found = [], map = this.getMap();
 
 		this._path.forEachLine(function (latlngs) {
-			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.newVertexRatioClick, latlngs, map));
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
 		}, this);
 
 		return found;
@@ -35,7 +35,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 	_addVertex: function (point) {
 		var founds, found, newLatLng;
 
-		founds = this.searchNearestPoint(point);
+		founds = this._searchNearestPoint(point);
 
 		if (founds.length) {
 			if (founds.length === 1) {

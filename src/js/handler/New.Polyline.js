@@ -46,6 +46,11 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 			.on(handle, 'dblclick', this._onDblClick, this);
 	},
 
+	addLatLng: function (latlng) {
+		this._newLatLng = latlng.clone();
+		this._pushLatLng();
+	},
+
 	createLayer: function () {
 		return L.polyline([], L.extend({}, this.options.layerOptions, {
 			noClip: true
@@ -115,7 +120,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 			    dy = evt.clientY - this._lastClick.y;
 
 			if ((dx * dx + dy * dy) < 100) {
-				console.log('cancelado!');
 				return;
 			}
 		} else {
@@ -125,10 +129,10 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 		this._lastClick.x = evt.clientX;
 		this._lastClick.y = evt.clientY;
 
-		if (!this._move) {
+		if (!this._moving) {
 			this._pushLatLng();
 		} else {
-			delete this._move;
+			delete this._moving;
 		}
 	},
 
@@ -161,7 +165,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 	},
 
 	_onMapMoveStart: function () {
-		this._move = true;
+		this._moving = true;
 	},
 
 	_pushLatLng: function () {
