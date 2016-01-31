@@ -1,4 +1,34 @@
-L.larva.Style = L.Class.extend({
+/**
+ * @class
+ *
+ * Style class with helper methods
+ *
+ * Example:
+ * 
+ * ```js
+ *
+ * 	var polygon = L.polygon(latlngs, {
+ * 		fillOpacity: 0.5,
+ * 		fillColor: '#ABABAB'
+ * 	});
+ * 
+ * 	var style = L.larva.style(polygon);
+ *
+ * 	style.multiplyBy({
+ * 		fillColor: [1, 0.5, 2],
+  * 	}).subtract({
+  * 		fillOpacity: 0.2
+  * 	});
+ *
+ * 	polygon.setStyle(style);
+ * 
+ * ```
+ * @param {(L.Path | L.larva.Style)} source
+ *
+ */
+L.larva.Style = L.Class.extend(
+/** @lends L.larva.Style.prototype */
+{
 
 	statics: {
 
@@ -23,13 +53,21 @@ L.larva.Style = L.Class.extend({
 		}, this);
 	},
 
+	/**
+	 * @param  {Object} style
+	 * @return {L.larva.Style} this
+	 */
 	subtract: function (styles) {
 		return this._transform(styles, function (cV, d) {
 			return cV - d;
 		});
 	},
 
-	multipleBy: function(styles) {
+	/**
+	 * @param  {Object} style
+	 * @return {L.larva.Style} this
+	 */
+	multiplyBy: function(styles) {
 		return this._transform(styles, function (cV, d) {
 			return cV * d;
 		});
@@ -70,6 +108,11 @@ L.larva.Style = L.Class.extend({
 	}
 });
 
+/**
+ * @memberOf L.larva.Style
+ * @param  {String} color
+ * @return {Array} [r, g, b]
+ */
 L.larva.Style.getRGB = function (color) {
 
 	if (!color) {
