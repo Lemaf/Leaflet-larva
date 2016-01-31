@@ -6,7 +6,14 @@
  * @requires Polyline.Transform.js
  */
 
-L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
+/**
+ * @class Rotate polygon
+ *
+ * @extends {L.larva.handler.Polyline.Transform}
+ */
+L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
+/** @lends L.larva.handler.Polyline.Transform.prototype */
+{
 
 	options: {
 		noUpdate: [L.larva.frame.Rect.MIDDLE_MIDDLE]
@@ -21,6 +28,14 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} sin
+	 * @param  {Number} cos
+	 * @param  {Number} dx
+	 * @param  {Number} dy
+	 */
 	transformPoint: function (original, transformed, sin, cos, dx, dy) {
 		transformed.x = original.x * cos - original.y * sin + dx;
 		transformed.y = original.x * sin + original.y * cos + dy;

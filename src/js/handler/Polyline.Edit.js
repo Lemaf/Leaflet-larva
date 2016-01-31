@@ -2,7 +2,15 @@
  * @requires Polyline.js
  * @requires ../frame/Vertices.js
  */
-L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
+
+/**
+ * @class Hand point by point of a layer
+ *
+ * @extends {L.larva.handler.Polyline}
+ */
+L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
+/** @lends L.larva.handler.Polyline.prototype */
+{
 
 	options: {
 		aura: true,
@@ -118,7 +126,15 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
 
 });
 
-
+/**
+ * @memberOf L.larva.handler.Polyline.Edit
+ * @param  {L.Point} point
+ * @param  {Number} maxDist
+ * @param  {LatLng[]} latlngs
+ * @param  {L.Map} map
+ * @param  {Boolean} closed
+ * @return {Object[]}
+ */
 L.larva.handler.Polyline.Edit.searchNearestPointIn = function (point, maxDist, latlngs, map, closed) {
 	var found = [],
 	    aPoint, bPoint,

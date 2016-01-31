@@ -24,7 +24,6 @@ gulp.task('lint:javascript', function () {
 		.pipe(jshint.reporter('default', {verbose: true}))
 		.pipe(jshint.reporter('fail'))
 		.on("error", notify.onError(function (error) {
-			console.log(error);
 			return {
 				wait: false,
 				message: error.message
@@ -39,6 +38,14 @@ gulp.task('clean:javascript', function () {
 	return del([
 		'dist/*.js',
 		'dist/*.js.map'
+	]);
+});
+
+gulp.task('clean:jsdoc', function () {
+	var del = require('del');
+
+	return del([
+		'dist/doc'
 	]);
 });
 
@@ -101,6 +108,52 @@ gulp.task('less:less', function () {
 			paths: [path.join(__dirname, 'src', 'less', 'includes')]
 		}))
 		.pipe(gulp.dest('dist/'));
+});
+
+gulp.task('jsdoc', ['clean:jsdoc'], function (cb) {
+
+	var jsdoc = require('gulp-jsdoc3');
+
+	gulp.src('src/js/**/*.js')
+		.pipe(jsdoc({
+
+			tags: {
+				"allowUnknownTags": true
+			},
+
+			source: {
+				excludePattern: "(^|\\/|\\\\)_"
+			},
+
+			opts: {
+				destination: "dist/doc"
+			},
+
+			plugins: [
+				"plugins/markdown"
+			],
+
+			templates: {
+
+				cleverLinks: false,
+
+				monospaceLinks: true,
+
+				"default": {
+					outputSourceFiles: true
+				},
+
+				path: "ink-docstrap",
+
+				theme: "journal",
+
+				navType: "vertical",
+
+				linenums: true,
+
+				dateFormat: "D/M/YYYY HH:mm:ss Z"
+			}}, cb));
+
 });
 
 gulp.task('serve', ['concat:javascript', 'less:less'], function () {

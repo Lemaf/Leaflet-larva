@@ -5,7 +5,15 @@
  * 
  * @requires Polyline.Transform.js
  */
-L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
+
+/**
+ * @class Move layer
+ *
+ * @extends {L.larva.handler.Polyline.Transform}
+ */
+L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
+/** @lends L.larva.handler.Polyline.Move.prototype */
+{
 
 	addHooks: function() {
 		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
@@ -17,6 +25,12 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
 		});
 	},
 
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} dx
+	 * @param  {Number} dy
+	 */
 	transformPoint: function (original, transformed, dx, dy) {
 		if (dx) {
 			transformed.x = original.x + dx;

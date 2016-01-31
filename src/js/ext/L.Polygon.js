@@ -7,8 +7,24 @@ L.extend(L.Polygon, {
 	MULTIPOLYGON: 4
 });
 
-L.Polygon.include({
+/**
+ * @class
+ * @name L.Polygon
+ */
+L.Polygon.include(
+/** @lends L.Polygon.prototype */
+{
 
+	/**
+	 *
+	 * Value|Type
+	 * -----|----
+	 * 3| Polygon
+	 * 4| MultiPolygon
+
+	 * @memberOf L.Polygon
+	 * @return {Number}
+	 */
 	getType: function () {
 		var latlngs = this._latlngs;
 

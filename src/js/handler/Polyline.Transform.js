@@ -1,9 +1,19 @@
 /**
  * @requires Polyline.js
  */
-L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 
-
+/**
+ * @class Base class for every LatLng transformer
+ *
+ * @extends {L.larva.handler.Polyline}
+ *
+ * @param {L.Path} path Layer to transform
+ * @param {L.larva.frame.Style} frameStyle, @see {L.larva.frame}
+ * @param {Object} options
+ */
+L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
+/** @lends L.larva.handler.Polyline.Transform.prototype */
+{
 	options: {
 		noUpdate: []
 	},
@@ -14,6 +24,10 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 		this._frameStyle = frameStyle;
 	},
 
+	/**
+	 * Transform each layer point
+	 * @param {...Object}
+	 */
 	transform: function () {
 
 		var transformed = L.point(0, 0),
@@ -43,6 +57,12 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
 		this._path.redraw();
 	},
 
+	/**
+	 * @abstract
+	 * @param {L.Point} original Original point
+	 * @param {L.Point} transformed Point transformed
+	 * @param {...Object}
+	 */
 	transformPoint: function () {
 		throw new Error('Unsupported Operation!');
 	}

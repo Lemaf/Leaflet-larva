@@ -5,7 +5,16 @@
  * 
  * @requires Polyline.Transform.js
  */
-L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
+
+/**
+ * @class Resize layer
+ *
+ * @extends {L.larva.handler.Polyline.Transform}
+ * 
+ */
+L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
+/** @lends L.larva.handler.Polyline.Resize.prototype */
+{
 
 	addHooks: function () {
 		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
@@ -15,6 +24,12 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} [xscale=null]
+	 * @param  {Number} [yscale=null]
+	 */
 	transformPoint: function (original, transformed, xscale, yscale) {
 
 		if (xscale !== null) {

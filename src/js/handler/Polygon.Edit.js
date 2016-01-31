@@ -43,9 +43,8 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
 	_onNewHole: function () {
 		if (this._shellHole) {
-			var holeLatlngs = evt.layer.getLatLngs().slice(0);
-
-			var latlngs = this._path.getLatLngs();
+			// var holeLatlngs = evt.layer.getLatLngs().slice(0);
+			// var latlngs = this._path.getLatLngs();
 		}
 	},
 

@@ -1,7 +1,21 @@
 /**
  * @requires package.js
+ *
  */
-L.larva.frame.Rect = L.Layer.extend({
+
+/**
+ * @class 
+ * Rectangle frame, create a frame to layer edition with handlers
+ * 
+ * @extends L.Layer
+ *
+ * @param {L.Path} path
+ * @param {Object} [options]
+ * @param {String} options.pane Where in leaflet pane
+ */
+L.larva.frame.Rect = L.Layer.extend(
+/** @lends L.larva.frame.Rect.prototype */
+{
 
 	statics: {
 		TOP_LEFT: 'tl',
@@ -29,6 +43,11 @@ L.larva.frame.Rect = L.Layer.extend({
 		}
 	},
 
+	/**
+	 * Returns Computed CSS Style of an handler
+	 * @param  {String} id
+	 * @return {CSSStyleDeclaration}
+	 */
 	getComputedStyle: function(id) {
 		if (id) {
 			if (this._handles[id]) {

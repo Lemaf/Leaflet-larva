@@ -2,9 +2,18 @@
  * @requires package.js
  */
 
-L.larva.frame.RECT_STYLE = {
-	
-};
+/**
+ * 
+ * **L.larva.frame.RECT_STYLE.RESIZE**
+ *
+ * *Resizable* frame properties
+ *
+ * **L.larva.frame.RECT_STYLE.ROTATE**
+ *
+ * *Rotateable* frame properties
+ * 
+ */
+L.larva.frame.RECT_STYLE = {};
 
 L.larva.frame.RECT_STYLE.RESIZE = {
 	className: 'llarva-pathframe-resize',

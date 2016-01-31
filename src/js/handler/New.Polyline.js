@@ -1,7 +1,14 @@
 /**
  * @requires New.js
  */
-L.larva.handler.New.Polyline = L.larva.handler.New.extend({
+
+/**
+ * @class Polyline creator
+ * @extends L.larva.handler.New
+ */
+L.larva.handler.New.Polyline = L.larva.handler.New.extend(
+/** @lends L.larva.handler.New.Polyline.prototype */
+{
 
 	options: {
 
@@ -51,13 +58,17 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 		this._pushLatLng();
 	},
 
+	/**
+	 * Create an empty Polyline layer
+	 * @return {L.Polyline}
+	 */
 	createLayer: function () {
 		return L.polyline([], L.extend({}, this.options.layerOptions, {
 			noClip: true
 		}));
 	},
 
-	next: function () {
+	_next: function () {
 
 		this._latlngs.pop();
 
@@ -139,7 +150,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend({
 	_onDblClick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._pushLatLng();
-		this.next();
+		this._next();
 	},
 
 	_onMapMouseMove: function (evt) {

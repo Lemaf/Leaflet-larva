@@ -4,7 +4,16 @@
  * @requires ../ext/L.Polygon.js
  * @requires ../Style.js
  */
-L.larva.frame.Vertices = L.Layer.extend({
+
+/**
+ * @class
+ *
+ * Frame for handle point by point editor
+ * 
+ */
+L.larva.frame.Vertices = L.Layer.extend(
+/** @lends L.larva.frame.Vertices.prototype */
+{
 
 	statics: {
 		MULTIPOLYGON: 4,
@@ -39,12 +48,22 @@ L.larva.frame.Vertices = L.Layer.extend({
 		};
 	},
 
+	/**
+	 * Returns handle L.LatLng
+	 * @param  {String} handleId
+	 * @return {L.LatLng}
+	 */
 	getLatLng: function (handleId) {
 		if (this._handles && this._handles[handleId]) {
 			return this._handles[handleId]._latlng;
 		}
 	},
 
+	/**
+	 * Returns handle layer position
+	 * @param  {String} handleId
+	 * @return {L.Point}
+	 */
 	getPosition: function (handleId) {
 		if (this._handles && this._handles[handleId]) {
 			return this._handles[handleId]._layerPoint;
@@ -74,6 +93,9 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
+	/**
+	 * @param  {String} handleId
+	 */
 	createAura: function (handleId) {
 		var handle = this._handles[handleId];
 
@@ -151,6 +173,10 @@ L.larva.frame.Vertices = L.Layer.extend({
 		return this;
 	},
 
+	/**
+	 * @param  {String} handleId
+	 * @param  {Boolean} commit
+	 */
 	stopAura: function (handleId, commit) {
 		var aura;
 		if (this._aura && (aura = this._aura[handleId])) {
@@ -163,6 +189,10 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
+	/**
+	 * @param  {String} handleId
+	 * @param  {L.Point} new layer position
+	 */
 	updateAura: function (handleId, newPoint) {
 		var aura = this._aura ? this._aura[handleId] : null;
 
@@ -179,6 +209,9 @@ L.larva.frame.Vertices = L.Layer.extend({
 		}
 	},
 
+	/**
+	 * @param  {String} handleId
+	 */
 	updateHandle: function (handleId) {
 		var handle = this._handles[handleId];
 		if (handle) {

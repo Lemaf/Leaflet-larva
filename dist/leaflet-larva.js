@@ -1,6 +1,6 @@
 (function () {
 	L.larva = {
-		version: '0.1.0',
+		version: '0.1.1',
 		CTRL_KEY: 17,
 		NOP: function () {
 		},
@@ -38,11 +38,26 @@
 			return L.Projection.Mercator.unproject(point);
 		}
 	};
+	/**
+	 * @namespace L.larva.frame
+	 */
 	L.larva.frame = {};
 	/**
 	 * @requires package.js
+	 *
 	 */
-	L.larva.frame.Rect = L.Layer.extend({
+	/**
+	 * @class 
+	 * Rectangle frame, create a frame to layer edition with handlers
+	 * 
+	 * @extends L.Layer
+	 *
+	 * @param {L.Path} path
+	 * @param {Object} [options]
+	 * @param {String} options.pane Where in leaflet pane
+	 */
+	L.larva.frame.Rect = L.Layer.extend(/** @lends L.larva.frame.Rect.prototype */
+	{
 		statics: {
 			TOP_LEFT: 'tl',
 			TOP_MIDDLE: 'tm',
@@ -63,6 +78,11 @@
 				map.createPane(this.options.pane);
 			}
 		},
+		/**
+		* Returns Computed CSS Style of an handler
+		* @param  {String} id
+		* @return {CSSStyleDeclaration}
+		*/
 		getComputedStyle: function (id) {
 			if (id) {
 				if (this._handles[id]) {
@@ -354,6 +374,17 @@
 	/**
 	 * @requires package.js
 	 */
+	/**
+	 * 
+	 * **L.larva.frame.RECT_STYLE.RESIZE**
+	 *
+	 * *Resizable* frame properties
+	 *
+	 * **L.larva.frame.RECT_STYLE.ROTATE**
+	 *
+	 * *Rotateable* frame properties
+	 * 
+	 */
 	L.larva.frame.RECT_STYLE = {};
 	L.larva.frame.RECT_STYLE.RESIZE = {
 		className: 'llarva-pathframe-resize',
@@ -426,24 +457,50 @@
 			}
 		}
 	});
+	/**
+	 * All larva handlers
+	 * 
+	 * @namespace L.larva.handler
+	 */
 	L.larva.handler = {};
 	/**
 	 * @requires package.js
-	 * 
-	 * Base class for Path handlers
 	 */
-	L.larva.handler.Path = L.Handler.extend({
+	/**
+	 * @class Base class for layers handlers
+	 * 
+	 * @extends L.Handler
+	 * @mixes L.Evented
+	 *
+	 * @param {L.Path} path layer to handle
+	 * @param {Object} options
+	 */
+	L.larva.handler.Path = L.Handler.extend(/** @lends L.larva.handler.Path.prototype */
+	{
 		includes: [L.Evented.prototype],
 		initialize: function (path, options) {
 			L.setOptions(this, options);
 			this._path = path;
 		},
+		/**
+		* @return {L.Map}
+		*/
 		getMap: function () {
 			return this._path._map;
 		},
+		/**
+		* @param  {Number} x
+		* @param  {Number} y
+		* @return {L.Point} 
+		*/
 		layerPointToWorldPoint: function (a, b) {
 			return L.larva.project(this.unproject(a, b));
 		},
+		/**
+		* @param  {Number} x layer x
+		* @param  {Number} y layer y
+		* @return {L.LatLng}
+		*/
 		unproject: function (a, b) {
 			if (b !== undefined) {
 				return this.getMap().layerPointToLatLng(L.point(a, b));
@@ -458,7 +515,16 @@
 	/**
 	 * @requires Path.js
 	 */
-	L.larva.handler.Polyline = L.larva.handler.Path.extend({
+	/**
+	 * @class Polyline Handler base class
+	 *
+	 * @extends {L.larva.handler.Path}
+	 */
+	L.larva.handler.Polyline = L.larva.handler.Path.extend(/** @lends L.larva.handler.Polyline.prototype */
+	{
+		/**
+		* Backup all latlngs
+		*/
 		backupLatLngs: function () {
 			this._path.forEachLatLng(function (latlng) {
 				latlng._original = latlng.clone();
@@ -468,12 +534,26 @@
 	/**
 	 * @requires Polyline.js
 	 */
-	L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend({
+	/**
+	 * @class Base class for every LatLng transformer
+	 *
+	 * @extends {L.larva.handler.Polyline}
+	 *
+	 * @param {L.Path} path Layer to transform
+	 * @param {L.larva.frame.Style} frameStyle, @see {L.larva.frame}
+	 * @param {Object} options
+	 */
+	L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(/** @lends L.larva.handler.Polyline.Transform.prototype */
+	{
 		options: { noUpdate: [] },
 		initialize: function (path, frameStyle, options) {
 			L.larva.handler.Polyline.prototype.initialize.call(this, path, options);
 			this._frameStyle = frameStyle;
 		},
+		/**
+		* Transform each layer point
+		* @param {...Object}
+		*/
 		transform: function () {
 			var transformed = L.point(0, 0), original, newLatLng;
 			var args = [
@@ -493,6 +573,12 @@
 			this._frame.updateBounds.apply(this._frame, this.options.noUpdate);
 			this._path.redraw();
 		},
+		/**
+		* @abstract
+		* @param {L.Point} original Original point
+		* @param {L.Point} transformed Point transformed
+		* @param {...Object}
+		*/
 		transformPoint: function () {
 			throw new Error('Unsupported Operation!');
 		}
@@ -504,7 +590,13 @@
 	 * 
 	 * @requires Polyline.Transform.js
 	 */
-	L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend({
+	/**
+	 * @class Rotate polygon
+	 *
+	 * @extends {L.larva.handler.Polyline.Transform}
+	 */
+	L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(/** @lends L.larva.handler.Polyline.Transform.prototype */
+	{
 		options: { noUpdate: [L.larva.frame.Rect.MIDDLE_MIDDLE] },
 		addHooks: function () {
 			this._frame = L.larva.frame.rect(this._path);
@@ -512,6 +604,14 @@
 			this._frame.setStyle(this._frameStyle);
 			this._frame.on('drag:start', this._onStart, this);
 		},
+		/**
+		* @param  {L.Point} original
+		* @param  {L.Point} transformed
+		* @param  {Number} sin
+		* @param  {Number} cos
+		* @param  {Number} dx
+		* @param  {Number} dy
+		*/
 		transformPoint: function (original, transformed, sin, cos, dx, dy) {
 			transformed.x = original.x * cos - original.y * sin + dx;
 			transformed.y = original.x * sin + original.y * cos + dy;
@@ -565,13 +665,25 @@
 	 * 
 	 * @requires Polyline.Transform.js
 	 */
-	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend({
+	/**
+	 * @class Move layer
+	 *
+	 * @extends {L.larva.handler.Polyline.Transform}
+	 */
+	L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(/** @lends L.larva.handler.Polyline.Move.prototype */
+	{
 		addHooks: function () {
 			this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
 			this._frame.on('drag:start', this._onStart, this);
 			this._previousCursor = this._frame.getComputedStyle().cursor;
 			this._frame.setElementStyle({ cursor: 'move' });
 		},
+		/**
+		* @param  {L.Point} original
+		* @param  {L.Point} transformed
+		* @param  {Number} dx
+		* @param  {Number} dy
+		*/
 		transformPoint: function (original, transformed, dx, dy) {
 			if (dx) {
 				transformed.x = original.x + dx;
@@ -620,12 +732,25 @@
 	 * 
 	 * @requires Polyline.Transform.js
 	 */
-	L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend({
+	/**
+	 * @class Resize layer
+	 *
+	 * @extends {L.larva.handler.Polyline.Transform}
+	 * 
+	 */
+	L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(/** @lends L.larva.handler.Polyline.Resize.prototype */
+	{
 		addHooks: function () {
 			this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
 			this._frame.setStyle(this._frameStyle);
 			this._frame.on('drag:start', this._onStart, this);
 		},
+		/**
+		* @param  {L.Point} original
+		* @param  {L.Point} transformed
+		* @param  {Number} [xscale=null]
+		* @param  {Number} [yscale=null]
+		*/
 		transformPoint: function (original, transformed, xscale, yscale) {
 			if (xscale !== null) {
 				transformed.x = this._reference.point.x + xscale * (original.x - this._reference.point.x);
@@ -742,7 +867,22 @@
 		POLYGON: 3,
 		MULTIPOLYGON: 4
 	});
-	L.Polygon.include({
+	/**
+	 * @class
+	 * @name L.Polygon
+	 */
+	L.Polygon.include(/** @lends L.Polygon.prototype */
+	{
+		/**
+			 *
+			 * Value|Type
+			 * -----|----
+			 * 3| Polygon
+			 * 4| MultiPolygon
+		
+			 * @memberOf L.Polygon
+			 * @return {Number}
+			 */
 		getType: function () {
 			var latlngs = this._latlngs;
 			if (latlngs.length) {
@@ -874,7 +1014,14 @@
 	 * @requires ../ext/L.Polygon.js
 	 * @requires ../Style.js
 	 */
-	L.larva.frame.Vertices = L.Layer.extend({
+	/**
+	 * @class
+	 *
+	 * Frame for handle point by point editor
+	 * 
+	 */
+	L.larva.frame.Vertices = L.Layer.extend(/** @lends L.larva.frame.Vertices.prototype */
+	{
 		statics: {
 			MULTIPOLYGON: 4,
 			MULTIPOLYLINE: 3,
@@ -907,11 +1054,21 @@
 				zoomend: this._onZoomEnd
 			};
 		},
+		/**
+		* Returns handle L.LatLng
+		* @param  {String} handleId
+		* @return {L.LatLng}
+		*/
 		getLatLng: function (handleId) {
 			if (this._handles && this._handles[handleId]) {
 				return this._handles[handleId]._latlng;
 			}
 		},
+		/**
+		* Returns handle layer position
+		* @param  {String} handleId
+		* @return {L.Point}
+		*/
 		getPosition: function (handleId) {
 			if (this._handles && this._handles[handleId]) {
 				return this._handles[handleId]._layerPoint;
@@ -934,6 +1091,9 @@
 				delete this._handles;
 			}
 		},
+		/**
+		* @param  {String} handleId
+		*/
 		createAura: function (handleId) {
 			var handle = this._handles[handleId];
 			if (!handle) {
@@ -985,6 +1145,10 @@
 			this._updateView();
 			return this;
 		},
+		/**
+		* @param  {String} handleId
+		* @param  {Boolean} commit
+		*/
 		stopAura: function (handleId, commit) {
 			var aura;
 			if (this._aura && (aura = this._aura[handleId])) {
@@ -995,6 +1159,10 @@
 				}
 			}
 		},
+		/**
+		* @param  {String} handleId
+		* @param  {L.Point} new layer position
+		*/
 		updateAura: function (handleId, newPoint) {
 			var aura = this._aura ? this._aura[handleId] : null;
 			if (aura) {
@@ -1006,6 +1174,9 @@
 				this._updatePosition(this._handles[handleId], newPoint);
 			}
 		},
+		/**
+		* @param  {String} handleId
+		*/
 		updateHandle: function (handleId) {
 			var handle = this._handles[handleId];
 			if (handle) {
@@ -1204,7 +1375,13 @@
 	 * @requires Polyline.js
 	 * @requires ../frame/Vertices.js
 	 */
-	L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend({
+	/**
+	 * @class Hand point by point of a layer
+	 *
+	 * @extends {L.larva.handler.Polyline}
+	 */
+	L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(/** @lends L.larva.handler.Polyline.prototype */
+	{
 		options: {
 			aura: true,
 			maxDist: 10
@@ -1283,6 +1460,15 @@
 			this._frame.on('drag:move', this._onDragMove, this).on('drag:end', this._onDragEnd, this);
 		}
 	});
+	/**
+	 * @memberOf L.larva.handler.Polyline.Edit
+	 * @param  {L.Point} point
+	 * @param  {Number} maxDist
+	 * @param  {LatLng[]} latlngs
+	 * @param  {L.Map} map
+	 * @param  {Boolean} closed
+	 * @return {Object[]}
+	 */
 	L.larva.handler.Polyline.Edit.searchNearestPointIn = function (point, maxDist, latlngs, map, closed) {
 		var found = [], aPoint, bPoint, i, index, l, dist;
 		if (closed) {
@@ -1308,6 +1494,11 @@
 	/**
 	 * @requires Path.js
 	 */
+	/**
+	 * @class Polygon handler
+	 *
+	 * @extends L.larva.handler.Path
+	 */
 	L.larva.handler.Polygon = L.larva.handler.Path.extend({});
 	L.larva.Util = {
 		/**
@@ -1326,7 +1517,16 @@
 	/**
 	 * @requires package.js
 	 */
-	L.larva.handler.New = L.Handler.extend({
+	/**
+	 * @class Base type to creators
+	 * @param {L.Map} map
+	 * @param {Object} options
+	 * 
+	 * @extends L.Handler
+	 * @mixes L.Evented
+	 */
+	L.larva.handler.New = L.Handler.extend(/** @lends L.larva.handler.New.prototype */
+	{
 		includes: [L.Evented.prototype],
 		options: { allowFireOnMap: true },
 		initialize: function (map, options) {
@@ -1335,23 +1535,39 @@
 				L.setOptions(this, options);
 			}
 		},
+		/**
+		* Fire a event on map
+		* @param  {String} eventName
+		* @param  {Object} eventObject
+		*/
+		fireOnMap: function (eventName, eventObject) {
+			if (this.options.allowFireOnMap) {
+				this._map.fire(eventName, eventObject);
+			}
+		},
+		/**
+		* Project a (lat, lng) to a layer point
+		* @param  {number} lat
+		* @param  {number} lng
+		* @return {L.Point}
+		*/
 		project: function (a, b) {
 			if (b !== undefined) {
 				return this._map.latLngToLayerPoint(L.latLng(a, b));
 			} else {
 				return this._map.latLngToLayerPoint(a);
 			}
-		},
-		fireOnMap: function (eventName, eventObject) {
-			if (this.options.allowFireOnMap) {
-				this._map.fire(eventName, eventObject);
-			}
 		}
 	});
 	/**
 	 * @requires New.js
 	 */
-	L.larva.handler.New.Polyline = L.larva.handler.New.extend({
+	/**
+	 * @class Polyline creator
+	 * @extends L.larva.handler.New
+	 */
+	L.larva.handler.New.Polyline = L.larva.handler.New.extend(/** @lends L.larva.handler.New.Polyline.prototype */
+	{
 		options: {
 			handleStyle: {
 				border: '1px solid #0f0',
@@ -1379,10 +1595,14 @@
 			this._newLatLng = latlng.clone();
 			this._pushLatLng();
 		},
+		/**
+		* Create an empty Polyline layer
+		* @return {L.Polyline}
+		*/
 		createLayer: function () {
 			return L.polyline([], L.extend({}, this.options.layerOptions, { noClip: true }));
 		},
-		next: function () {
+		_next: function () {
 			this._latlngs.pop();
 			if (this._latlngs.length >= this.options.threshold) {
 				try {
@@ -1436,7 +1656,7 @@
 		_onDblClick: function (evt) {
 			L.DomEvent.stop(evt);
 			this._pushLatLng();
-			this.next();
+			this._next();
 		},
 		_onMapMouseMove: function (evt) {
 			var latlng = evt.latlng;
@@ -1474,12 +1694,26 @@
 	/**
 	 * @requires  New.Polyline.js
 	 */
-	L.larva.handler.New.Polygon = L.larva.handler.New.Polyline.extend({
+	/**
+	 * @class Polygon creator
+	 * @extends {L.larva.handler.New.Polyline}
+	 */
+	L.larva.handler.New.Polygon = L.larva.handler.New.Polyline.extend(/** @lends L.larva.handler.New.Polygon.prototype */
+	{
 		options: { threshold: 2 },
+		/**
+		* @return {L.Polygon} Creates blank layer
+		*/
 		createLayer: function () {
 			return L.polygon([], this.options.layerOptions);
 		}
 	});
+	/**
+	 * @memberOf L.larva.handler.New.Polygon
+	 * @param  {L.Map} map
+	 * @param  {Object} options
+	 * @return {L.larva.handler.New.Polygon}
+	 */
 	L.larva.handler.newPolygon = function (map, options) {
 		return new L.larva.handler.New.Polygon(map, options);
 	};
@@ -1517,7 +1751,6 @@
 			}
 		},
 		_onPathClickHole: function (evt) {
-			console.log(evt);
 			if (!this._makingHole && evt.originalEvent.ctrlKey) {
 				this._makingHole = true;
 				var point = evt.layerPoint, points, found = [];

@@ -1,3 +1,14 @@
+/**
+ * Leaflet namespace
+ * @namespace L
+ */
+
+/**
+ * Leaflet Larva namespace
+ *
+ * @namespace L.larva
+ * 
+ */
 L.larva = {
 	version: '0.1.1',
 
