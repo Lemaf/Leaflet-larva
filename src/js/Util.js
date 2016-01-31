@@ -1,7 +1,15 @@
+/**
+ * @namespace
+ */
 L.larva.Util = {
 
 	/**
-	 * Reference https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#The C Code
+	 * @see {@link https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#The%20C%20Code Reference}
+	 *
+	 * @param {L.Point} point
+	 * @param {L.Point[]} points
+	 *
+	 * @returns {Boolean} Point inside points?
 	 */
 	pointIsInside: function (point, points) {
 		var i, j, isInside = false;

@@ -4,21 +4,41 @@
 		CTRL_KEY: 17,
 		NOP: function () {
 		},
+		/**
+		* @param  {Event} event
+		* @return {Number}
+		*/
 		getEventKeyCode: function (event) {
 			return event.keyCode || event.key;
 		},
+		/**
+		* @param  {HTMLElement} el
+		* @return {Number}
+		*/
 		getHeight: function (el) {
 			return el.offsetHeight;
 		},
+		/**
+		* @param  {L.Event} evt
+		* @return {Event}
+		*/
 		getSourceEvent: function (evt) {
 			if (evt.sourceEvent) {
 				evt = evt.sourceEvent;
 			}
 			return !evt.touches ? evt : evt.touches[0];
 		},
+		/**
+		* @param  {HTMLElement} el
+		* @return {Number}
+		*/
 		getWidth: function (el) {
 			return el.offsetWidth;
 		},
+		/**
+		* @param  {L.LatLng[]}  latlngs
+		* @return {Boolean}
+		*/
 		isFlat: function (latlngs) {
 			if (Array.isArray(latlngs)) {
 				if (latlngs[0] instanceof L.LatLng) {
@@ -398,8 +418,17 @@
 		bm: { hide: true },
 		mm: { draggable: true }
 	};
+	/**
+	 * @external "L.Polyline"
+	 */
 	if (!L.Polyline.prototype.forEachLatLng) {
 		L.Polyline.include({
+			/**
+			 * @memberOf external:"L.Polyline"
+			 * @instance
+			 * @param  {Function} fn
+			 * @param  {Any}   context
+			 */
 			forEachLatLng: function (fn, context) {
 				var toVisit = [this.getLatLngs()], latlngs, i, l;
 				var call = context ? function (latlng) {
@@ -420,6 +449,10 @@
 	}
 	if (!L.Polyline.prototype.updateBounds) {
 		L.Polyline.include({
+			/**
+			 * @memberOf external:"L.Polyline"
+			 * @instance
+			 */
 			updateBounds: function () {
 				var bounds = this._bounds = new L.LatLngBounds();
 				this.forEachLatLng(function (latlng) {
@@ -434,12 +467,28 @@
 			MULTIPOLYLINE: 2
 		});
 		L.Polyline.include({
+			/**
+			 * @memberOf external:"L.Polyline"
+			 * @instance
+			 * @returns {Number}
+			 *
+			 * Value | Type
+			 * ------|-----
+			 * 1 | Polyline
+			 * 2 | MultiPolyline
+			 */
 			getType: function () {
 				return Array.isArray(this._latlngs[0]) ? L.Polyline.MULTIPOLYLINE : L.Polyline.POLYLINE;
 			}
 		});
 	}
 	L.Polyline.include({
+		/**
+		* @memberOf external:"L.Polyline"
+		* @instance
+		* @param  {Function} fn
+		* @param  {Any}   context
+		*/
 		forEachLine: function (fn, context) {
 			switch (this.getType()) {
 			case L.Polyline.POLYLINE:
@@ -863,26 +912,25 @@
 	/**
 	 * @requires L.Polyline.js
 	 */
+	/**
+	 * @external "L.Polygon"
+	 * @see {@link external:"L.Polyline" Extends L.Polyline}
+	 */
 	L.extend(L.Polygon, {
 		POLYGON: 3,
 		MULTIPOLYGON: 4
 	});
-	/**
-	 * @class
-	 * @name L.Polygon
-	 */
-	L.Polygon.include(/** @lends L.Polygon.prototype */
-	{
+	L.Polygon.include({
 		/**
-			 *
-			 * Value|Type
-			 * -----|----
-			 * 3| Polygon
-			 * 4| MultiPolygon
-		
-			 * @memberOf L.Polygon
-			 * @return {Number}
-			 */
+		* @memberOf external:"L.Polygon"
+		* @instance
+		* @returns {Number}
+		*
+		* Value|Type
+		* -----|----
+		* 3| Polygon
+		* 4| MultiPolygon
+		*/
 		getType: function () {
 			var latlngs = this._latlngs;
 			if (latlngs.length) {
@@ -914,7 +962,36 @@
 			}
 		}
 	});
-	L.larva.Style = L.Class.extend({
+	/**
+	 * @class
+	 *
+	 * Style class with helper methods
+	 *
+	 * Example:
+	 * 
+	 * ```js
+	 *
+	 * 	var polygon = L.polygon(latlngs, {
+	 * 		fillOpacity: 0.5,
+	 * 		fillColor: '#ABABAB'
+	 * 	});
+	 * 
+	 * 	var style = L.larva.style(polygon);
+	 *
+	 * 	style.multiplyBy({
+	 * 		fillColor: [1, 0.5, 2],
+	  * 	}).subtract({
+	  * 		fillOpacity: 0.2
+	  * 	});
+	 *
+	 * 	polygon.setStyle(style);
+	 * 
+	 * ```
+	 * @param {(L.Path | L.larva.Style)} source
+	 *
+	 */
+	L.larva.Style = L.Class.extend(/** @lends L.larva.Style.prototype */
+	{
 		statics: {
 			STYLES: [
 				'fillOpacity',
@@ -937,12 +1014,20 @@
 				this[styleName] = source[styleName];
 			}, this);
 		},
+		/**
+		* @param  {Object} style
+		* @return {L.larva.Style} this
+		*/
 		subtract: function (styles) {
 			return this._transform(styles, function (cV, d) {
 				return cV - d;
 			});
 		},
-		multipleBy: function (styles) {
+		/**
+		* @param  {Object} style
+		* @return {L.larva.Style} this
+		*/
+		multiplyBy: function (styles) {
 			return this._transform(styles, function (cV, d) {
 				return cV * d;
 			});
@@ -974,6 +1059,11 @@
 			return this;
 		}
 	});
+	/**
+	 * @memberOf L.larva.Style
+	 * @param  {String} color
+	 * @return {Array} [r, g, b]
+	 */
 	L.larva.Style.getRGB = function (color) {
 		if (!color) {
 			return;
@@ -1104,7 +1194,7 @@
 			}
 			if (!this._aura[handleId]) {
 				var polyline;
-				var latlngs = [], latlng = handle._latlng.clone(), style = L.larva.style(this._path).multipleBy({
+				var latlngs = [], latlng = handle._latlng.clone(), style = L.larva.style(this._path).multiplyBy({
 						color: this.options.colorFactor,
 						opacity: this.options.opacityFactor
 					}), latlng0;
@@ -1500,9 +1590,17 @@
 	 * @extends L.larva.handler.Path
 	 */
 	L.larva.handler.Polygon = L.larva.handler.Path.extend({});
+	/**
+	 * @namespace
+	 */
 	L.larva.Util = {
 		/**
-		* Reference https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#The C Code
+		* @see {@link https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html#The%20C%20Code Reference}
+		*
+		* @param {L.Point} point
+		* @param {L.Point[]} points
+		*
+		* @returns {Boolean} Point inside points?
 		*/
 		pointIsInside: function (point, points) {
 			var i, j, isInside = false;

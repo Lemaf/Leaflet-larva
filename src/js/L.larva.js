@@ -16,15 +16,26 @@ L.larva = {
 
 	NOP: function () {},
 
-
+	/**
+	 * @param  {Event} event
+	 * @return {Number}
+	 */
 	getEventKeyCode: function (event) {
 		return event.keyCode || event.key;
 	},
 
+	/**
+	 * @param  {HTMLElement} el
+	 * @return {Number}
+	 */
 	getHeight: function (el) {
 		return el.offsetHeight;
 	},
 
+	/**
+	 * @param  {L.Event} evt
+	 * @return {Event}
+	 */
 	getSourceEvent: function (evt) {
 		if (evt.sourceEvent) {
 			evt = evt.sourceEvent;
@@ -34,10 +45,18 @@ L.larva = {
 		        evt : evt.touches[0];
 	},
 
+	/**
+	 * @param  {HTMLElement} el
+	 * @return {Number}
+	 */
 	getWidth: function (el) {
 		return el.offsetWidth;
 	},
 
+	/**
+	 * @param  {L.LatLng[]}  latlngs
+	 * @return {Boolean}
+	 */
 	isFlat: function (latlngs) {
 
 		if (Array.isArray(latlngs)) {
