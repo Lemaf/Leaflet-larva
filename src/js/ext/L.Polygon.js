@@ -2,28 +2,27 @@
  * @requires L.Polyline.js
  */
 
+/**
+ * @external "L.Polygon"
+ * @see {@link external:"L.Polyline" Extends L.Polyline}
+ */
+
 L.extend(L.Polygon, {
 	POLYGON: 3,
 	MULTIPOLYGON: 4
 });
 
-/**
- * @class
- * @name L.Polygon
- */
-L.Polygon.include(
-/** @lends L.Polygon.prototype */
-{
+L.Polygon.include({
 
 	/**
+	 * @memberOf external:"L.Polygon"
+	 * @instance
+	 * @returns {Number}
 	 *
 	 * Value|Type
 	 * -----|----
 	 * 3| Polygon
 	 * 4| MultiPolygon
-
-	 * @memberOf L.Polygon
-	 * @return {Number}
 	 */
 	getType: function () {
 		var latlngs = this._latlngs;

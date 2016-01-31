@@ -1,6 +1,15 @@
+/**
+ * @external "L.Polyline"
+ */
 if (!L.Polyline.prototype.forEachLatLng) {
 	L.Polyline.include({
 
+		/**
+		 * @memberOf external:"L.Polyline"
+		 * @instance
+		 * @param  {Function} fn
+		 * @param  {Any}   context
+		 */
 		forEachLatLng: function (fn, context) {
 			var toVisit = [this.getLatLngs()],
 			    latlngs, i, l;
@@ -27,6 +36,10 @@ if (!L.Polyline.prototype.forEachLatLng) {
 if (!L.Polyline.prototype.updateBounds) {
 	L.Polyline.include({
 
+		/**
+		 * @memberOf external:"L.Polyline"
+		 * @instance
+		 */
 		updateBounds: function () {
 			var bounds = this._bounds = new L.LatLngBounds();
 
@@ -46,6 +59,16 @@ if (!L.Polyline.prototype.getType) {
 	});
 
 	L.Polyline.include({
+		/**
+		 * @memberOf external:"L.Polyline"
+		 * @instance
+		 * @returns {Number}
+		 *
+		 * Value | Type
+		 * ------|-----
+		 * 1 | Polyline
+		 * 2 | MultiPolyline
+		 */
 		getType: function () {
 			return Array.isArray(this._latlngs[0]) ?
 			       L.Polyline.MULTIPOLYLINE : L.Polyline.POLYLINE;
@@ -54,6 +77,12 @@ if (!L.Polyline.prototype.getType) {
 }
 
 L.Polyline.include({
+	/**
+	 * @memberOf external:"L.Polyline"
+	 * @instance
+	 * @param  {Function} fn
+	 * @param  {Any}   context
+	 */
 	forEachLine: function (fn, context) {
 
 		switch (this.getType()) {
