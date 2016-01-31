@@ -113,7 +113,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 			var latlngs = [],
 			    latlng = handle._latlng.clone(),
-			    style = L.larva.style(this._path).multipleBy({
+			    style = L.larva.style(this._path).multiplyBy({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
 			    }),
