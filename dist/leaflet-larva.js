@@ -269,14 +269,12 @@
 			var bounds = this._path.getBounds();
 			var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()), northWestPoint = this._map.latLngToLayerPoint(bounds.getNorthWest());
 			var computedStyle = getComputedStyle(this._el);
-			if (maintainHandles && maintainHandles.length) {
-				if (currentPosition) {
-					for (var i = 0; i < maintainHandles.length; i++) {
-						handle = this._handles[maintainHandles[i]];
-						if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
-							handlePosition = handlePosition.add(currentPosition);
-							L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
-						}
+			if (maintainHandles && currentPosition && maintainHandles.length) {
+				for (var i = 0; i < maintainHandles.length; i++) {
+					handle = this._handles[maintainHandles[i]];
+					if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
+						handlePosition = handlePosition.add(currentPosition);
+						L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
 					}
 				}
 			}
