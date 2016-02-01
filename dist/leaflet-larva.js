@@ -987,7 +987,7 @@
 	 * 	polygon.setStyle(style);
 	 * 
 	 * ```
-	 * @param {(L.Path | L.larva.Style)} source
+	 * @param {(L.Path | L.larva.Style | Object)} source
 	 *
 	 */
 	L.larva.Style = L.Class.extend(/** @lends L.larva.Style.prototype */
@@ -1634,7 +1634,7 @@
 			}
 		},
 		/**
-		* Fire a event on map
+		* Fire an event on map
 		* @param  {String} eventName
 		* @param  {Object} eventObject
 		*/

@@ -23,7 +23,7 @@
  * 	polygon.setStyle(style);
  * 
  * ```
- * @param {(L.Path | L.larva.Style)} source
+ * @param {(L.Path | L.larva.Style | Object)} source
  *
  */
 L.larva.Style = L.Class.extend(
