@@ -28,7 +28,7 @@ L.larva.handler.New = L.Handler.extend(
 	},
 
 	/**
-	 * Fire a event on map
+	 * Fire an event on map
 	 * @param  {String} eventName
 	 * @param  {Object} eventObject
 	 */
