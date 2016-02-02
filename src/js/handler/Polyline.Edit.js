@@ -59,6 +59,17 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		}
 	},
 
+	_onAuraEnd: function (evt) {
+		var latlng = this._frame.getLatLng(evt.id);
+
+		latlng.lat = evt.latlng.lat;
+		latlng.lng = evt.latlng.lng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
 	_onPathDblClick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
@@ -69,8 +80,13 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			.off('drag:move', this._onDragMove, this)
 			.off('drag:end', this._onDragEnd, this);
 
-		if (this.options.aura) {
-			this._frame.stopAura(this._handleId, true);
+		if (this._aura) {
+			var newLatLng = this._frame.stopAura(this._handleId, true);
+			var currentLatLng = this._frame.getLatLng(this._handleId);
+
+			currentLatLng.lat = newLatLng.lat;
+			currentLatLng.lng = newLatLng.lng;
+
 			this._path.updateBounds();
 			this._path.redraw();
 		}
@@ -84,21 +100,15 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 		var newPoint = this._original.add(L.point(dx, dy));
 
-		if (this._aura) {
-			this._frame.updateAura(this._handleId, newPoint);
-		} else {
+		var latlng = this._frame.getLatLng(this._handleId),
+			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
 
-			var latlng = this._frame.getLatLng(this._handleId),
-				 newLatLng = this.getMap().layerPointToLatLng(newPoint);
+		latlng.lat = newLatLng.lat;
+		latlng.lng = newLatLng.lng;
 
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
-
-			this._path.updateBounds();
-			this._frame.updateHandle(this._handleId);
-			this._path.redraw();
-		}
-
+		this._path.updateBounds();
+		this._frame.updateHandle(this._handleId);
+		this._path.redraw();
 	},
 
 	_onDragStart: function (evt) {
@@ -112,16 +122,14 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		};
 
 		if (this.options.aura) {
-			this._aura = this._frame.createAura(evt.id);
+			this._aura = this._frame.startAura(evt.id);
+			this._frame.on('aura:end', this._onAuraEnd, this);
 		} else {
-			// TODO:
 			delete this._aura;
+			this._frame
+				.on('drag:move', this._onDragMove, this)
+				.on('drag:end', this._onDragEnd, this);
 		}
-
-		this._frame
-			.on('drag:move', this._onDragMove, this)
-			.on('drag:end', this._onDragEnd, this);
-
 	}
 
 });
