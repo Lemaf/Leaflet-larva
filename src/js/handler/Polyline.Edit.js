@@ -67,7 +67,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.updateHandle(evt.id);
 	},
 
 	_onPathDblClick: function (evt) {
