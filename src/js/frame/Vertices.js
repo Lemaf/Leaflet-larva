@@ -172,6 +172,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 		return true;
 	},
 
+	/**
+	 * 
+	 */
 	redraw: function () {
 		this._updateHandles();
 		this._updateView();
