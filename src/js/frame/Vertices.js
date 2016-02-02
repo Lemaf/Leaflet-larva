@@ -51,7 +51,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * Returns handle L.LatLng
-	 * @param  {String} handleId
+	 * @param  {String}  handleId
 	 * @return {L.LatLng}
 	 */
 	getLatLng: function (handleId) {
@@ -61,11 +61,21 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * Returns handle layer position
+	 * @param  {String} handleId
+	 * @return {L.LatLng[]}
+	 */
+	getLatLngs: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			return this._handles[handleId]._latlngs;
+		}
+	},
+
+	/**
+	 * Returns handle layer point
 	 * @param  {String} handleId
 	 * @return {L.Point}
 	 */
-	getPosition: function (handleId) {
+	getPoint: function (handleId) {
 		if (this._handles && this._handles[handleId]) {
 			return this._handles[handleId]._point;
 		}
@@ -91,6 +101,47 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			delete this._handles;
+		}
+
+		for (id in L.Draggable.MOVE) {
+			L.DomEvent
+				.off(document, L.Draggable.MOVE[id], this._onMove, this)
+				.off(document, L.Draggable.END[id], this._onEnd, this);
+		}
+	},
+
+	/**
+	 * @param  {String} handleId
+	 */
+	removeHandle: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			var handle = this._handles[handleId];
+
+			L.Draggable.START.forEach(function (evtName) {
+				L.DomEvent.off(handle, evtName, this._onStart, this);
+			}, this);
+
+			L.DomEvent.off(handle, 'dblclick', this._onHandleDbclick, this);
+
+			if (handle.offsetParent) {
+				L.DomUtil.remove(handle);
+			}
+
+			for (var i=0, index; i<this._lines.length; i++) {
+				if ((index = this._lines[i].handles.indexOf(handle)) >= 0) {
+					this._lines[i].handles.splice(index, 1);
+					if (this._lines[i].handles.length === 0) {
+						this._lines.splice(i, 1);
+					}
+				}
+			}
+
+			delete this._handles[handleId];
+
+			if (this._aura && this._aura[handleId]) {
+				this._map.removeLayer(this._aura[handleId].polyline);
+				delete this._aura[handleId];
+			}
 		}
 	},
 
@@ -245,9 +296,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			handle._latlng = latlngs[i];
+			handle._latlngs = latlngs;
 			handle._point = this._map.latLngToLayerPoint(handle._latlng);
 
-			L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this);
+			L.DomEvent
+				.on(handle, L.Draggable.START.join(' '), this._onStart, this)
+				.on(handle, 'dblclick', this._onHandleDbclick, this);
 
 			this._handles[L.stamp(handle)] = handle;
 
@@ -279,6 +333,15 @@ L.larva.frame.Vertices = L.Layer.extend(
 		});
 
 		return handles;
+	},
+
+	_onHandleDbclick: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('handle:dblclick', {
+			id: L.stamp(evt.target),
+			originalEvent: evt
+		});
 	},
 
 	_onEnd: function (evt) {
@@ -522,6 +585,11 @@ L.larva.frame.Vertices = L.Layer.extend(
 	}
 });
 
+/**
+ * @param  {L.Path} path
+ * @memberOf L.larva.frame
+ * @return {L.larva.frame.Vertices}
+ */
 L.larva.frame.vertices = function (path) {
 	if (path._verticesFrame) {
 		return path._verticesFrame;

@@ -43,6 +43,8 @@ window.onload = function moveHandler () {
 	]).addTo(map);
 
 	mct.larva.edit.enable();
+	mct.larva.move.enable();
+
 	L.setOptions(mct.larva.edit, {
 		aura: false
 	});

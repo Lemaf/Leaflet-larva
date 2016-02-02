@@ -19,7 +19,11 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
-		this._frame.on('drag:start', this._onDragStart, this);
+
+		this._frame
+			.on('drag:start', this._onDragStart, this)
+			.on('handle:dblclick', this._onHandleDbclick, this);
+
 		this._path.on('dblclick', this._onPathDblClick, this);
 	},
 
@@ -60,6 +64,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	},
 
 	_onAuraEnd: function (evt) {
+		this._frame.off('aura:end', this._onAuraEnd, this);
 		var latlng = this._frame.getLatLng(evt.id);
 
 		latlng.lat = evt.latlng.lat;
@@ -68,6 +73,23 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._path.updateBounds();
 		this._path.redraw();
 		this._frame.updateHandle(evt.id);
+	},
+
+	_onHandleDbclick: function (evt) {
+		var originalEvent = evt.originalEvent;
+
+		if (originalEvent.shiftKey) {
+			var latlngs = this._frame.getLatLngs(evt.id),
+			latlng = this._frame.getLatLng(evt.id);
+
+			var index = latlngs.indexOf(latlng);
+			latlngs.splice(index, 1);
+
+			this._path.updateBounds();
+			this._path.redraw();
+
+			this._frame.removeHandle(evt.id);
+		}
 	},
 
 	_onPathDblClick: function (evt) {
@@ -79,26 +101,15 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame
 			.off('drag:move', this._onDragMove, this)
 			.off('drag:end', this._onDragEnd, this);
-
-		if (this._aura) {
-			var newLatLng = this._frame.stopAura(this._handleId, true);
-			var currentLatLng = this._frame.getLatLng(this._handleId);
-
-			currentLatLng.lat = newLatLng.lat;
-			currentLatLng.lng = newLatLng.lng;
-
-			this._path.updateBounds();
-			this._path.redraw();
-		}
 	},
 
 	_onDragMove: function (evt) {
 		var sourceEvent = L.larva.getSourceEvent(evt);
 
-		var dx = sourceEvent.clientX - this._startPos.x,
-		    dy = sourceEvent.clientY - this._startPos.y;
+		var dx = sourceEvent.clientX - this._origin.x,
+		    dy = sourceEvent.clientY - this._origin.y;
 
-		var newPoint = this._original.add(L.point(dx, dy));
+		var newPoint = this._originalPoint.add(L.point(dx, dy));
 
 		var latlng = this._frame.getLatLng(this._handleId),
 			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
@@ -107,25 +118,25 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlng.lng = newLatLng.lng;
 
 		this._path.updateBounds();
-		this._frame.updateHandle(this._handleId);
 		this._path.redraw();
+		this._frame.updateHandle(this._handleId);
 	},
 
 	_onDragStart: function (evt) {
-		var sourceEvent = L.larva.getSourceEvent(evt);
+		var sourceEvent;
 
-		this._original = this._frame.getPosition(evt.id).clone();
 		this._handleId = evt.id;
-
-		this._startPos = {
-			x: sourceEvent.clientX, y: sourceEvent.clientY
-		};
 
 		if (this.options.aura) {
 			this._aura = this._frame.startAura(evt.id);
 			this._frame.on('aura:end', this._onAuraEnd, this);
 		} else {
 			delete this._aura;
+			sourceEvent = L.larva.getSourceEvent(evt);
+			this._origin = {
+				x: sourceEvent.clientX, y: sourceEvent.clientY
+			};
+			this._originalPoint = this._frame.getPoint(evt.id).clone();
 			this._frame
 				.on('drag:move', this._onDragMove, this)
 				.on('drag:end', this._onDragEnd, this);
