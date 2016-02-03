@@ -127,12 +127,41 @@ L.larva.frame.Vertices = L.Layer.extend(
 				L.DomUtil.remove(handle);
 			}
 
+			var prev = handle._prev, next = handle._next;
+
+			if (prev && next) {
+
+				prev._next = next;
+				next._prev = prev;
+
+			} else if (prev !== next) {
+				if (prev) {
+					// handle is last
+					delete prev._next;
+
+					if (handle._isPolygon) {
+						prev._first._last = prev;
+					}
+				} else {
+					// handle is first
+					delete next._prev;
+
+					if (handle._isPolygon) {
+						var first = next;
+						do  {
+							next._first = first;
+						} while ((next = next._next));
+					}
+				}
+			}
+
 			for (var i=0, index; i<this._lines.length; i++) {
 				if ((index = this._lines[i].handles.indexOf(handle)) >= 0) {
 					this._lines[i].handles.splice(index, 1);
 					if (this._lines[i].handles.length === 0) {
 						this._lines.splice(i, 1);
 					}
+					break;
 				}
 			}
 
@@ -317,6 +346,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			} else {
 				first = handle;
 				prev = handle;
+				handle._first = handle;
 			}
 
 			handles.push(handle);
