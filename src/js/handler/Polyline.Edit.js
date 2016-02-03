@@ -21,17 +21,17 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
 
 		this._frame
-			.on('handle:start', this._onDragStart, this)
+			.on('handle:start', this._onHandleStart, this)
 			.on('handle:dblclick', this._onHandleDbclick, this);
 
-		this._path.on('dblclick', this._onPathDblClick, this);
+		this._path.on('dblclick', this._onDblclick, this);
 	},
 
 	removeHooks: function () {
 		this.getMap().removeLayer(this._frame);
 		this._frame
-			.off('handle:start', this._onDragStart, this)
-			.off('dblclick', this._onPathDblClick, this);
+			.off('handle:start', this._onHandleStart, this)
+			.off('dblclick', this._onDblclick, this);
 	},
 
 	_searchNearestPoint: function (point) {
@@ -92,18 +92,18 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		}
 	},
 
-	_onPathDblClick: function (evt) {
+	_onDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
-	_onDragEnd: function () {
+	_onHandleEnd: function () {
 		this._frame
-			.off('handle:move', this._onDragMove, this)
-			.off('handle:end', this._onDragEnd, this);
+			.off('handle:move', this._onHandleMove, this)
+			.off('handle:end', this._onHandleEnd, this);
 	},
 
-	_onDragMove: function (evt) {
+	_onHandleMove: function (evt) {
 		var sourceEvent = L.larva.getSourceEvent(evt);
 
 		var dx = sourceEvent.clientX - this._origin.x,
@@ -122,7 +122,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.updateHandle(this._handleId);
 	},
 
-	_onDragStart: function (evt) {
+	_onHandleStart: function (evt) {
 		var sourceEvent;
 
 		this._handleId = evt.id;
@@ -138,8 +138,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			};
 			this._originalPoint = this._frame.getPoint(evt.id).clone();
 			this._frame
-				.on('handle:move', this._onDragMove, this)
-				.on('handle:end', this._onDragEnd, this);
+				.on('handle:move', this._onHandleMove, this)
+				.on('handle:end', this._onHandleEnd, this);
 		}
 	}
 

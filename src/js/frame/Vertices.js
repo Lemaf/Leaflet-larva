@@ -121,7 +121,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				L.DomEvent.off(handle, evtName, this._onStart, this);
 			}, this);
 
-			L.DomEvent.off(handle, 'dblclick', this._onHandleDbclick, this);
+			L.DomEvent.off(handle, 'dblclick', this._onHandleDblclick, this);
 
 			if (handle.offsetParent) {
 				L.DomUtil.remove(handle);
@@ -310,7 +310,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 			L.DomEvent
 				.on(handle, L.Draggable.START.join(' '), this._onStart, this)
-				.on(handle, 'dblclick', this._onHandleDbclick, this);
+				.on(handle, 'dblclick', this._onHandleDblclick, this);
 
 			this._handles[L.stamp(handle)] = handle;
 
@@ -345,7 +345,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		return handles;
 	},
 
-	_onHandleDbclick: function (evt) {
+	_onHandleDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 
 		this.fire('handle:dblclick', {
