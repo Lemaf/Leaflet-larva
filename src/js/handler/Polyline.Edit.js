@@ -21,7 +21,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
 
 		this._frame
-			.on('drag:start', this._onDragStart, this)
+			.on('handle:start', this._onDragStart, this)
 			.on('handle:dblclick', this._onHandleDbclick, this);
 
 		this._path.on('dblclick', this._onPathDblClick, this);
@@ -30,7 +30,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	removeHooks: function () {
 		this.getMap().removeLayer(this._frame);
 		this._frame
-			.off('drag:start', this._onDragStart, this)
+			.off('handle:start', this._onDragStart, this)
 			.off('dblclick', this._onPathDblClick, this);
 	},
 
@@ -99,8 +99,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	_onDragEnd: function () {
 		this._frame
-			.off('drag:move', this._onDragMove, this)
-			.off('drag:end', this._onDragEnd, this);
+			.off('handle:move', this._onDragMove, this)
+			.off('handle:end', this._onDragEnd, this);
 	},
 
 	_onDragMove: function (evt) {
@@ -138,8 +138,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			};
 			this._originalPoint = this._frame.getPoint(evt.id).clone();
 			this._frame
-				.on('drag:move', this._onDragMove, this)
-				.on('drag:end', this._onDragEnd, this);
+				.on('handle:move', this._onDragMove, this)
+				.on('handle:end', this._onDragEnd, this);
 		}
 	}
 

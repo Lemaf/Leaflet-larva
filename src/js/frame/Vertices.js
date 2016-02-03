@@ -280,26 +280,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * @param  {String} handleId
-	 * @param  {L.Point} new layer position
-	 */
-	// updateAura: function (handleId, newPoint) {
-	// 	var aura = this._aura ? this._aura[handleId] : null;
-
-	// 	if (aura) {
-
-	// 		var newLatLng = this._map.layerPointToLatLng(newPoint);
-	// 		aura.latlng.lat = newLatLng.lat;
-	// 		aura.latlng.lng = newLatLng.lng;
-
-	// 		aura.polyline.updateBounds();
-	// 		aura.polyline.redraw();
-
-	// 		this._updateHandlePosition(this._handles[handleId], newPoint);
-	// 	}
-	// },
-
-	/**
-	 * @param  {String} handleId
 	 */
 	updateHandle: function (handleId) {
 		var handle = this._handles[handleId];
@@ -400,7 +380,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				});
 			}
 		} finally {
-			this.fire('drag:end', {
+			this.fire('handle:end', {
 				sourceEvent: evt
 			});
 		}
@@ -432,7 +412,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			this._updateHandlePosition(handle, newPoint);
 		}
 
-		this.fire('drag:move', {
+		this.fire('handle:move', {
 			sourceEvent: evt
 		});
 	},
@@ -445,7 +425,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			x: sourceEvent.clientX, y: sourceEvent.clientY
 		};
 
-		this.fire('drag:start', {
+		this.fire('handle:start', {
 			id: L.stamp(evt.target),
 			sourceEvent: evt
 		});
