@@ -19,15 +19,19 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
-		this._frame.on('drag:start', this._onDragStart, this);
-		this._path.on('dblclick', this._onPathDblClick, this);
+
+		this._frame
+			.on('handle:start', this._onHandleStart, this)
+			.on('handle:dblclick', this._onHandleDbclick, this);
+
+		this._path.on('dblclick', this._onDblclick, this);
 	},
 
 	removeHooks: function () {
 		this.getMap().removeLayer(this._frame);
 		this._frame
-			.off('drag:start', this._onDragStart, this)
-			.off('dblclick', this._onPathDblClick, this);
+			.off('handle:start', this._onHandleStart, this)
+			.off('dblclick', this._onDblclick, this);
 	},
 
 	_searchNearestPoint: function (point) {
@@ -59,69 +63,111 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		}
 	},
 
-	_onPathDblClick: function (evt) {
+	_removeLatLng: function (handleId) {
+		var latlng = this._frame.getLatLng(handleId),
+		    latlngs = this._path.getLatLngs(),
+		    index, i = 0;
+
+		switch (this._path.getType()) {
+			case L.Polyline.MULTIPOLYLINE:
+
+				for (; i<latlngs[i].length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+
+						if (latlngs[i].length === 2) {
+							latlngs.splice(i, 1);
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+
+						break;
+					}
+				}
+
+				break;
+
+			default:
+				if ((index = latlngs.indexOf(latlng)) !== -1) {
+					latlngs.splice(index, 1);
+					break;
+				}
+
+		}
+
+		this._path.updateBounds();
+		this._path.redraw();
+
+		this._frame.removeHandle(handleId);
+	},
+
+	_onAuraEnd: function (evt) {
+		this._frame.off('aura:end', this._onAuraEnd, this);
+		var latlng = this._frame.getLatLng(evt.id);
+
+		latlng.lat = evt.latlng.lat;
+		latlng.lng = evt.latlng.lng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(evt.id);
+	},
+
+	_onDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
-	_onDragEnd: function () {
+	_onHandleDbclick: function (evt) {
+		var originalEvent = evt.originalEvent;
+
+		if (originalEvent.shiftKey) {
+			this._removeLatLng(evt.id);
+		}
+	},
+
+	_onHandleEnd: function () {
 		this._frame
-			.off('drag:move', this._onDragMove, this)
-			.off('drag:end', this._onDragEnd, this);
-
-		if (this.options.aura) {
-			this._frame.stopAura(this._handleId, true);
-			this._path.updateBounds();
-			this._path.redraw();
-		}
+			.off('handle:move', this._onHandleMove, this)
+			.off('handle:end', this._onHandleEnd, this);
 	},
 
-	_onDragMove: function (evt) {
+	_onHandleMove: function (evt) {
 		var sourceEvent = L.larva.getSourceEvent(evt);
 
-		var dx = sourceEvent.clientX - this._startPos.x,
-		    dy = sourceEvent.clientY - this._startPos.y;
+		var dx = sourceEvent.clientX - this._origin.x,
+		    dy = sourceEvent.clientY - this._origin.y;
 
-		var newPoint = this._original.add(L.point(dx, dy));
+		var newPoint = this._originalPoint.add(L.point(dx, dy));
 
-		if (this._aura) {
-			this._frame.updateAura(this._handleId, newPoint);
-		} else {
+		var latlng = this._frame.getLatLng(this._handleId),
+			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
 
-			var latlng = this._frame.getLatLng(this._handleId),
-				 newLatLng = this.getMap().layerPointToLatLng(newPoint);
+		latlng.lat = newLatLng.lat;
+		latlng.lng = newLatLng.lng;
 
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
-
-			this._path.updateBounds();
-			this._frame.updateHandle(this._handleId);
-			this._path.redraw();
-		}
-
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(this._handleId);
 	},
 
-	_onDragStart: function (evt) {
-		var sourceEvent = L.larva.getSourceEvent(evt);
+	_onHandleStart: function (evt) {
+		var sourceEvent;
 
-		this._original = this._frame.getPosition(evt.id).clone();
 		this._handleId = evt.id;
 
-		this._startPos = {
-			x: sourceEvent.clientX, y: sourceEvent.clientY
-		};
-
 		if (this.options.aura) {
-			this._aura = this._frame.createAura(evt.id);
+			this._frame.startAura(evt.id);
+			this._frame.on('aura:end', this._onAuraEnd, this);
 		} else {
-			// TODO:
-			delete this._aura;
+			sourceEvent = L.larva.getSourceEvent(evt);
+			this._origin = {
+				x: sourceEvent.clientX, y: sourceEvent.clientY
+			};
+			this._originalPoint = this._frame.getPoint(evt.id).clone();
+			this._frame
+				.on('handle:move', this._onHandleMove, this)
+				.on('handle:end', this._onHandleEnd, this);
 		}
-
-		this._frame
-			.on('drag:move', this._onDragMove, this)
-			.on('drag:end', this._onDragEnd, this);
-
 	}
 
 });

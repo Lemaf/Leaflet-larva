@@ -424,21 +424,19 @@
 			/**
 			 * @memberOf external:"L.Polyline"
 			 * @instance
-			 * @param  {Function} fn
+			 * @param  {Function} fn ({L.LatLng}, {L.LatLng[]})
 			 * @param  {Any}   context
 			 */
 			forEachLatLng: function (fn, context) {
-				var toVisit = [this.getLatLngs()], latlngs, i, l;
-				var call = context ? function (latlng) {
-					fn.call(context, latlng);
-				} : fn;
-				while (toVisit.length) {
-					latlngs = toVisit.pop();
-					for (i = 0, l = latlngs.length; i < l; i++) {
-						if (Array.isArray(latlngs[i])) {
-							toVisit.push(latlngs[i]);
-						} else {
-							call(latlngs[i]);
+				var i = 0, j, latlngs = this.getLatLngs();
+				if (L.larva.isFlat(latlngs)) {
+					for (; i < latlngs.length; i++) {
+						fn.call(context, latlngs[i], latlngs);
+					}
+				} else {
+					for (; i < latlngs.length; i++) {
+						for (j = 0; j < latlngs[i].length; j++) {
+							fn.call(context, latlngs[i][j], latlngs[i]);
 						}
 					}
 				}
@@ -938,6 +936,35 @@
 			}
 			return L.Polygon.POLYGON;
 		},
+		/**
+		* @memberOf external:"L.Polygon"
+		* @instance
+		* @param  {Function} fn      ({L.LatLng}, {L.LatLng[]}, hole? {Boolean})
+		* @param  {Any}   context
+		*/
+		forEachLatLng: function (fn, context) {
+			var i = 0, j, k, polygons = [], polygon, hole, latlngs = this.getLatLngs();
+			if (L.larva.isFlat(latlngs[0])) {
+				polygons.push(latlngs);
+			} else {
+				polygons = latlngs;
+			}
+			for (; i < polygons.length; i++) {
+				polygon = polygons[i];
+				for (j = 0; j < polygon.length; j++) {
+					hole = j > 0;
+					for (k = 0; k < polygon[j].length; k++) {
+						fn.call(context, polygon[j][k], polygon[j], hole);
+					}
+				}
+			}
+		},
+		/**
+		* @memberOf external:"L.Polygon"
+		* @instance
+		* @param  {Function} fn
+		* @param  {Any}   context
+		*/
 		forEachPolygon: function (fn, context) {
 			var latlngs = this._latlngs;
 			switch (this.getType()) {
@@ -1118,18 +1145,19 @@
 		},
 		options: {
 			colorFactor: [
-				2,
-				0.5,
-				2
+				0.8,
+				1.3,
+				0.8
 			],
 			handleClassName: 'llarva-vertex',
-			opacityFactor: 0.5,
+			opacityFactor: 0.8,
 			pane: 'llarva-frame',
 			tolerance: 10,
 			simplifyZoom: -1
 		},
 		initialize: function (path) {
 			this._path = path;
+			this._type = this._path.getType();
 		},
 		beforeAdd: function (map) {
 			if (!map.getPane(this.options.pane)) {
@@ -1144,7 +1172,7 @@
 		},
 		/**
 		* Returns handle L.LatLng
-		* @param  {String} handleId
+		* @param  {String}  handleId
 		* @return {L.LatLng}
 		*/
 		getLatLng: function (handleId) {
@@ -1153,13 +1181,22 @@
 			}
 		},
 		/**
-		* Returns handle layer position
+		* @param  {String} handleId
+		* @return {L.LatLng[]}
+		*/
+		getLatLngs: function (handleId) {
+			if (this._handles && this._handles[handleId]) {
+				return this._handles[handleId]._latlngs;
+			}
+		},
+		/**
+		* Returns handle layer point
 		* @param  {String} handleId
 		* @return {L.Point}
 		*/
-		getPosition: function (handleId) {
+		getPoint: function (handleId) {
 			if (this._handles && this._handles[handleId]) {
-				return this._handles[handleId]._layerPoint;
+				return this._handles[handleId]._point;
 			}
 		},
 		onAdd: function () {
@@ -1178,11 +1215,66 @@
 				}
 				delete this._handles;
 			}
+			for (id in L.Draggable.MOVE) {
+				L.DomEvent.off(document, L.Draggable.MOVE[id], this._onMove, this).off(document, L.Draggable.END[id], this._onEnd, this);
+			}
 		},
 		/**
 		* @param  {String} handleId
 		*/
-		createAura: function (handleId) {
+		removeHandle: function (handleId) {
+			if (this._handles && this._handles[handleId]) {
+				var handle = this._handles[handleId];
+				L.Draggable.START.forEach(function (evtName) {
+					L.DomEvent.off(handle, evtName, this._onStart, this);
+				}, this);
+				L.DomEvent.off(handle, 'dblclick', this._onHandleDblclick, this);
+				if (handle.offsetParent) {
+					L.DomUtil.remove(handle);
+				}
+				var prev = handle._prev, next = handle._next;
+				if (prev && next) {
+					prev._next = next;
+					next._prev = prev;
+				} else if (prev !== next) {
+					if (prev) {
+						// handle is last
+						delete prev._next;
+						if (handle._isPolygon) {
+							prev._first._last = prev;
+						}
+					} else {
+						// handle is first
+						delete next._prev;
+						if (handle._isPolygon) {
+							var first = next;
+							do {
+								next._first = first;
+							} while (next = next._next);
+						}
+					}
+				}
+				for (var i = 0, index; i < this._lines.length; i++) {
+					if ((index = this._lines[i].handles.indexOf(handle)) >= 0) {
+						this._lines[i].handles.splice(index, 1);
+						if (this._lines[i].handles.length === 0) {
+							this._lines.splice(i, 1);
+						}
+						break;
+					}
+				}
+				delete this._handles[handleId];
+				if (this._aura && this._aura[handleId]) {
+					this._map.removeLayer(this._aura[handleId].polyline);
+					delete this._aura[handleId];
+				}
+			}
+		},
+		/**
+		* @param  {String} handleId
+		* @returns {Boolean} Does the aura was created?
+		*/
+		startAura: function (handleId) {
 			var handle = this._handles[handleId];
 			if (!handle) {
 				return false;
@@ -1222,12 +1314,18 @@
 				polyline = L.polyline(latlngs, L.extend({}, style, { noClip: true })).addTo(this._map);
 				this._aura[handleId] = {
 					isPolygon: !!handle._isPolygon,
+					point: handle._point.clone(),
 					polyline: polyline,
-					latlng: latlng
+					latlng: latlng,
+					x: this._position.x,
+					y: this._position.y
 				};
 			}
 			return true;
 		},
+		/**
+		* 
+		*/
 		redraw: function () {
 			this._updateHandles();
 			this._updateView();
@@ -1235,31 +1333,17 @@
 		},
 		/**
 		* @param  {String} handleId
-		* @param  {Boolean} commit
+		*
+		* @returns {L.LatLng} Aura's L.LatLng
 		*/
-		stopAura: function (handleId, commit) {
-			var aura;
+		stopAura: function (handleId) {
+			var aura, handle;
 			if (this._aura && (aura = this._aura[handleId])) {
 				this._map.removeLayer(this._aura[handleId].polyline);
 				delete this._aura[handleId];
-				if (commit) {
-					this._setLatLng(handleId, aura.latlng);
-				}
-			}
-		},
-		/**
-		* @param  {String} handleId
-		* @param  {L.Point} new layer position
-		*/
-		updateAura: function (handleId, newPoint) {
-			var aura = this._aura ? this._aura[handleId] : null;
-			if (aura) {
-				var newLatLng = this._map.layerPointToLatLng(newPoint);
-				aura.latlng.lat = newLatLng.lat;
-				aura.latlng.lng = newLatLng.lng;
-				aura.polyline.updateBounds();
-				aura.polyline.redraw();
-				this._updatePosition(this._handles[handleId], newPoint);
+				handle = this._handles[handleId];
+				handle._point = this._map.latLngToLayerPoint(aura.latlng);
+				return aura.latlng;
 			}
 		},
 		/**
@@ -1268,19 +1352,8 @@
 		updateHandle: function (handleId) {
 			var handle = this._handles[handleId];
 			if (handle) {
-				delete handle._layerPoint;
-				this._updatePosition(handle);
-			}
-		},
-		_setLatLng: function (handleId, newLatLng) {
-			var handle = this._handles[handleId];
-			if (handle) {
-				handle._latlng.lat = newLatLng.lat;
-				handle._latlng.lng = newLatLng.lng;
-				delete handle._layerPoint;
-				this._updatePosition(handle);
-				this._path.updateBounds();
-				this._path.redraw();
+				delete handle._point;
+				this._updateHandlePosition(handle);
 			}
 		},
 		_createHandles: function (latlngs, isPolygon, isHole) {
@@ -1294,8 +1367,10 @@
 					handle._isHole = true;
 				}
 				handle._latlng = latlngs[i];
-				handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
-				L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this);
+				handle._latlng._handle = handle;
+				handle._latlngs = latlngs;
+				handle._point = this._map.latLngToLayerPoint(handle._latlng);
+				L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this).on(handle, 'dblclick', this._onHandleDblclick, this);
 				this._handles[L.stamp(handle)] = handle;
 				if (prev) {
 					prev._next = handle;
@@ -1307,6 +1382,7 @@
 				} else {
 					first = handle;
 					prev = handle;
+					handle._first = handle;
 				}
 				handles.push(handle);
 			}
@@ -1320,21 +1396,62 @@
 			});
 			return handles;
 		},
-		_onEnd: function (evt) {
+		_onHandleDblclick: function (evt) {
 			L.DomEvent.stop(evt);
-			for (var id in L.Draggable.MOVE) {
+			this.fire('handle:dblclick', {
+				id: L.stamp(evt.target),
+				originalEvent: evt
+			});
+		},
+		_onEnd: function (evt) {
+			var id, aura;
+			L.DomEvent.stop(evt);
+			for (id in L.Draggable.MOVE) {
 				L.DomEvent.off(document, L.Draggable.MOVE[id], this._onMove, this).off(document, L.Draggable.END[id], this._onEnd, this);
 			}
 			L.DomUtil.removeClass(document.body, 'leaflet-dragging');
-			this.fire('drag:end', { sourceEvent: evt });
+			try {
+				for (id in this._aura) {
+					aura = this._aura[id];
+					delete this._aura[id];
+					this._map.removeLayer(aura.polyline);
+					this.fire('aura:end', {
+						id: id,
+						latlng: aura.latlng
+					});
+				}
+			} finally {
+				this.fire('handle:end', { sourceEvent: evt });
+			}
 		},
 		_onMove: function (evt) {
+			var aura, handle, id, dx, dy, newPoint, newLatLng;
 			L.DomEvent.stop(evt);
-			this.fire('drag:move', { sourceEvent: evt });
+			this._position.x = evt.clientX;
+			this._position.y = evt.clientY;
+			for (id in this._aura) {
+				aura = this._aura[id];
+				handle = this._handles[id];
+				dx = this._position.x - aura.x;
+				dy = this._position.y - aura.y;
+				newPoint = aura.point.add(L.point(dx, dy));
+				newLatLng = this._map.layerPointToLatLng(newPoint);
+				aura.latlng.lat = newLatLng.lat;
+				aura.latlng.lng = newLatLng.lng;
+				aura.polyline.updateBounds();
+				aura.polyline.redraw();
+				this._updateHandlePosition(handle, newPoint);
+			}
+			this.fire('handle:move', { sourceEvent: evt });
 		},
 		_onStart: function (evt) {
 			L.DomEvent.stop(evt);
-			this.fire('drag:start', {
+			var sourceEvent = L.larva.getSourceEvent(evt);
+			this._position = {
+				x: sourceEvent.clientX,
+				y: sourceEvent.clientY
+			};
+			this.fire('handle:start', {
 				id: L.stamp(evt.target),
 				sourceEvent: evt
 			});
@@ -1345,7 +1462,7 @@
 			var id, handle;
 			for (id in this._handles) {
 				handle = this._handles[id];
-				handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
+				handle._point = this._map.latLngToLayerPoint(handle._latlng);
 			}
 		},
 		_updateHandles: function () {
@@ -1358,8 +1475,7 @@
 			}
 			this._handles = {};
 			this._lines = [];
-			var type = this._path.getType();
-			switch (type) {
+			switch (this._type) {
 			case L.Polyline.POLYLINE:
 			case L.Polyline.MULTIPOLYLINE:
 				this._path.forEachLine(function (line) {
@@ -1376,18 +1492,18 @@
 				}, this);
 				break;
 			default:
-				throw new Error('Invalid geometry type');
+				throw new Error('Invalid geometry type - ' + this._type);
 			}
 		},
-		_updatePosition: function (handle, target) {
+		_updateHandlePosition: function (handle, target) {
 			var point;
 			if (target) {
 				point = target.clone();
-			} else if (handle._layerPoint) {
-				point = handle._layerPoint.clone();
+			} else if (handle._point) {
+				point = handle._point.clone();
 			} else {
-				handle._layerPoint = this._map.latLngToLayerPoint(handle._latlng);
-				point = handle._layerPoint.clone();
+				handle._point = this._map.latLngToLayerPoint(handle._latlng);
+				point = handle._point.clone();
 			}
 			if (handle.offsetParent) {
 				point._subtract({
@@ -1401,7 +1517,7 @@
 			var pointsToShow;
 			var bounds = this._map.getPixelBounds(), pixelOrigin = this._map.getPixelOrigin();
 			var points = handles.map(function (handle) {
-				var point = handle._layerPoint.add(pixelOrigin);
+				var point = handle._point.add(pixelOrigin);
 				point._handle = handle;
 				return point;
 			});
@@ -1437,7 +1553,7 @@
 				if (!point.offsetParent) {
 					this._container.appendChild(point._handle);
 				}
-				this._updatePosition(point._handle);
+				this._updateHandlePosition(point._handle);
 			}, this);
 		},
 		_updateView: function () {
@@ -1453,6 +1569,11 @@
 			}, this);
 		}
 	});
+	/**
+	 * @param  {L.Path} path
+	 * @memberOf L.larva.frame
+	 * @return {L.larva.frame.Vertices}
+	 */
 	L.larva.frame.vertices = function (path) {
 		if (path._verticesFrame) {
 			return path._verticesFrame;
@@ -1476,12 +1597,12 @@
 		},
 		addHooks: function () {
 			this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
-			this._frame.on('drag:start', this._onDragStart, this);
-			this._path.on('dblclick', this._onPathDblClick, this);
+			this._frame.on('handle:start', this._onHandleStart, this).on('handle:dblclick', this._onHandleDbclick, this);
+			this._path.on('dblclick', this._onDblclick, this);
 		},
 		removeHooks: function () {
 			this.getMap().removeLayer(this._frame);
-			this._frame.off('drag:start', this._onDragStart, this).off('dblclick', this._onPathDblClick, this);
+			this._frame.off('handle:start', this._onHandleStart, this).off('dblclick', this._onDblclick, this);
 		},
 		_searchNearestPoint: function (point) {
 			var found = [], map = this.getMap();
@@ -1504,48 +1625,79 @@
 				}
 			}
 		},
-		_onPathDblClick: function (evt) {
+		_removeLatLng: function (handleId) {
+			var latlng = this._frame.getLatLng(handleId), latlngs = this._path.getLatLngs(), index, i = 0;
+			switch (this._path.getType()) {
+			case L.Polyline.MULTIPOLYLINE:
+				for (; i < latlngs[i].length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+						if (latlngs[i].length === 2) {
+							latlngs.splice(i, 1);
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+						break;
+					}
+				}
+				break;
+			default:
+				if ((index = latlngs.indexOf(latlng)) !== -1) {
+					latlngs.splice(index, 1);
+					break;
+				}
+			}
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.removeHandle(handleId);
+		},
+		_onAuraEnd: function (evt) {
+			this._frame.off('aura:end', this._onAuraEnd, this);
+			var latlng = this._frame.getLatLng(evt.id);
+			latlng.lat = evt.latlng.lat;
+			latlng.lng = evt.latlng.lng;
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.updateHandle(evt.id);
+		},
+		_onDblclick: function (evt) {
 			L.DomEvent.stop(evt);
 			this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 		},
-		_onDragEnd: function () {
-			this._frame.off('drag:move', this._onDragMove, this).off('drag:end', this._onDragEnd, this);
-			if (this.options.aura) {
-				this._frame.stopAura(this._handleId, true);
-				this._path.updateBounds();
-				this._path.redraw();
+		_onHandleDbclick: function (evt) {
+			var originalEvent = evt.originalEvent;
+			if (originalEvent.shiftKey) {
+				this._removeLatLng(evt.id);
 			}
 		},
-		_onDragMove: function (evt) {
-			var sourceEvent = L.larva.getSourceEvent(evt);
-			var dx = sourceEvent.clientX - this._startPos.x, dy = sourceEvent.clientY - this._startPos.y;
-			var newPoint = this._original.add(L.point(dx, dy));
-			if (this._aura) {
-				this._frame.updateAura(this._handleId, newPoint);
-			} else {
-				var latlng = this._frame.getLatLng(this._handleId), newLatLng = this.getMap().layerPointToLatLng(newPoint);
-				latlng.lat = newLatLng.lat;
-				latlng.lng = newLatLng.lng;
-				this._path.updateBounds();
-				this._frame.updateHandle(this._handleId);
-				this._path.redraw();
-			}
+		_onHandleEnd: function () {
+			this._frame.off('handle:move', this._onHandleMove, this).off('handle:end', this._onHandleEnd, this);
 		},
-		_onDragStart: function (evt) {
+		_onHandleMove: function (evt) {
 			var sourceEvent = L.larva.getSourceEvent(evt);
-			this._original = this._frame.getPosition(evt.id).clone();
+			var dx = sourceEvent.clientX - this._origin.x, dy = sourceEvent.clientY - this._origin.y;
+			var newPoint = this._originalPoint.add(L.point(dx, dy));
+			var latlng = this._frame.getLatLng(this._handleId), newLatLng = this.getMap().layerPointToLatLng(newPoint);
+			latlng.lat = newLatLng.lat;
+			latlng.lng = newLatLng.lng;
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.updateHandle(this._handleId);
+		},
+		_onHandleStart: function (evt) {
+			var sourceEvent;
 			this._handleId = evt.id;
-			this._startPos = {
-				x: sourceEvent.clientX,
-				y: sourceEvent.clientY
-			};
 			if (this.options.aura) {
-				this._aura = this._frame.createAura(evt.id);
+				this._frame.startAura(evt.id);
+				this._frame.on('aura:end', this._onAuraEnd, this);
 			} else {
-				// TODO:
-				delete this._aura;
+				sourceEvent = L.larva.getSourceEvent(evt);
+				this._origin = {
+					x: sourceEvent.clientX,
+					y: sourceEvent.clientY
+				};
+				this._originalPoint = this._frame.getPoint(evt.id).clone();
+				this._frame.on('handle:move', this._onHandleMove, this).on('handle:end', this._onHandleEnd, this);
 			}
-			this._frame.on('drag:move', this._onDragMove, this).on('drag:end', this._onDragEnd, this);
 		}
 	});
 	/**
@@ -1863,6 +2015,50 @@
 					this._newPolygonHole.addLatLng(evt.latlng);
 				}
 			}
+		},
+		_removeLatLng: function (handleId) {
+			var latlng = this._frame.getLatLng(handleId), latlngs = this._path.getLatLngs(), index, i = 0, p = 0;
+			switch (this._path.getType()) {
+			case L.Polygon.POLYGON:
+				for (; i < latlngs.length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+						if (latlngs[i].length === 3) {
+							if (i === 0) {
+								// shell..
+								latlngs.splice(0, latlngs.length);
+							} else {
+								latlngs.splice(index, 1);
+							}
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+					}
+				}
+				break;
+			default:
+				l:
+					for (; p < latlngs.length; p++) {
+						// each polygon
+						for (i = 0; i < latlngs[p].length; i++) {
+							if ((index = latlngs[p][i].indexOf(latlng)) !== -1) {
+								if (latlngs[p][i].length === 3) {
+									if (i === 0) {
+										//shell
+										latlngs.splice(p, 1);
+									} else {
+										latlngs[p].splice(i, 1);
+									}
+								} else {
+									latlngs[p][i].splice(index, 1);
+								}
+								break l;
+							}
+						}
+					}
+			}
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.redraw();
 		},
 		_restoreCursor: function () {
 		},

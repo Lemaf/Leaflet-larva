@@ -78,6 +78,59 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		}
 	},
 
+	_removeLatLng: function (handleId) {
+		var latlng = this._frame.getLatLng(handleId),
+		    latlngs = this._path.getLatLngs(),
+		    index, i=0, p=0;
+
+		switch (this._path.getType()) {
+			case L.Polygon.POLYGON:
+
+				for (; i<latlngs.length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+						if (latlngs[i].length === 3) {
+							if (i === 0) {
+								// shell..
+								latlngs.splice(0, latlngs.length);
+							} else {
+								latlngs.splice(index, 1);
+							}
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+					}
+				}
+
+				break;
+
+			default:
+
+				l: for (; p<latlngs.length; p++) {
+					// each polygon
+					for (i=0; i<latlngs[p].length; i++) {
+						if ((index = latlngs[p][i].indexOf(latlng)) !== -1) {
+							if (latlngs[p][i].length === 3) {
+								if (i === 0) {
+									//shell
+									latlngs.splice(p, 1);
+								} else {
+									latlngs[p].splice(i, 1);
+								}
+							} else {
+								latlngs[p][i].splice(index, 1);
+							}
+
+							break l;
+						}
+					}
+				}
+		}
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
 	_restoreCursor: function () {
 
 	},
