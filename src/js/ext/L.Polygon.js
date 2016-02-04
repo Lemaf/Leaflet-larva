@@ -36,6 +36,35 @@ L.Polygon.include({
 		return L.Polygon.POLYGON;
 	},
 
+	/**
+	 * @param  {Function} fn      ({L.LatLng}, {L.LatLng[]}, hole? {Boolean})
+	 * @param  {Any}   context
+	 */
+	forEachLatLng: function (fn, context) {
+		var i=0, j, k, polygons = [], polygon, hole, latlngs = this.getLatLngs();
+
+		if (L.larva.isFlat(latlngs[0])) {
+			polygons.push(latlngs);
+		} else {
+			polygons = latlngs;
+		}
+
+		for (; i<polygons.length; i++) {
+			polygon = polygons[i];
+
+			for (j=0; j<polygon.length; j++) {
+				hole = j > 0;
+				for (k=0; k<polygon[j].length; k++) {
+					fn.call(context, polygon[j][k], polygon[j], hole);
+				}
+			}
+		}
+	},
+
+	/**
+	 * @param  {Function} fn
+	 * @param  {Any}   context
+k	 */
 	forEachPolygon: function (fn, context) {
 		var latlngs = this._latlngs;
 

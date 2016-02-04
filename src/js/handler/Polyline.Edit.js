@@ -75,6 +75,11 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.updateHandle(evt.id);
 	},
 
+	_onDblclick: function (evt) {
+		L.DomEvent.stop(evt);
+		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
+	},
+
 	_onHandleDbclick: function (evt) {
 		var originalEvent = evt.originalEvent;
 
@@ -90,11 +95,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 			this._frame.removeHandle(evt.id);
 		}
-	},
-
-	_onDblclick: function (evt) {
-		L.DomEvent.stop(evt);
-		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
 	_onHandleEnd: function () {
@@ -128,10 +128,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._handleId = evt.id;
 
 		if (this.options.aura) {
-			this._aura = this._frame.startAura(evt.id);
+			this._frame.startAura(evt.id);
 			this._frame.on('aura:end', this._onAuraEnd, this);
 		} else {
-			delete this._aura;
 			sourceEvent = L.larva.getSourceEvent(evt);
 			this._origin = {
 				x: sourceEvent.clientX, y: sourceEvent.clientY
