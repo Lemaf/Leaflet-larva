@@ -1994,8 +1994,24 @@
 			}, this);
 			return found;
 		},
-		_onNewHole: function () {
+		_onNewHole: function (evt) {
 			if (this._shellHole) {
+				delete this._makingHole;
+				var polygons = this._path.getLatLngs();
+				if (this._path.getLatLngs() === L.Polygon.POLYGON) {
+					polygons = [polygons];
+				}
+				this._newPolygonHole.disable();
+				var index;
+				for (var p = 0; p < polygons.length; p++) {
+					if ((index = polygons[p].indexOf(this._shellHole)) !== -1) {
+						polygons[p].push(evt.layer.getLatLngs()[0]);
+						this._path.updateBounds();
+						this._path.redraw();
+						this._frame.redraw();
+						break;
+					}
+				}
 			}
 		},
 		_onPathClickHole: function (evt) {
@@ -2003,7 +2019,7 @@
 				this._makingHole = true;
 				var point = evt.layerPoint, points, found = [];
 				this._path.forEachPolygon(function (shell) {
-					points = shell.map(this.getMap().latLngToLayerPoint, this.getMap());
+					points = shell.map(L.Map.prototype.latLngToLayerPoint, this.getMap());
 					if (L.larva.Util.pointIsInside(point, points)) {
 						found.push(shell);
 					}
