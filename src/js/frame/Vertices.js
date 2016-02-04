@@ -305,6 +305,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			handle._latlng = latlngs[i];
+			handle._latlng._handle = handle;
 			handle._latlngs = latlngs;
 			handle._point = this._map.latLngToLayerPoint(handle._latlng);
 

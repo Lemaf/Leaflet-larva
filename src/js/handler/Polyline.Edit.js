@@ -63,6 +63,43 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		}
 	},
 
+	_removeLatLng: function (handleId) {
+		var latlng = this._frame.getLatLng(handleId),
+		    latlngs = this._path.getLatLngs(),
+		    index, i = 0;
+
+		switch (this._path.getType()) {
+			case L.Polyline.MULTIPOLYLINE:
+
+				for (; i<latlngs[i].length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+
+						if (latlngs[i].length === 2) {
+							latlngs.splice(i, 1);
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+
+						break;
+					}
+				}
+
+				break;
+
+			default:
+				if ((index = latlngs.indexOf(latlng)) !== -1) {
+					latlngs.splice(index, 1);
+					break;
+				}
+
+		}
+
+		this._path.updateBounds();
+		this._path.redraw();
+
+		this._frame.removeHandle(handleId);
+	},
+
 	_onAuraEnd: function (evt) {
 		this._frame.off('aura:end', this._onAuraEnd, this);
 		var latlng = this._frame.getLatLng(evt.id);
@@ -84,16 +121,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		var originalEvent = evt.originalEvent;
 
 		if (originalEvent.shiftKey) {
-			var latlngs = this._frame.getLatLngs(evt.id),
-			latlng = this._frame.getLatLng(evt.id);
-
-			var index = latlngs.indexOf(latlng);
-			latlngs.splice(index, 1);
-
-			this._path.updateBounds();
-			this._path.redraw();
-
-			this._frame.removeHandle(evt.id);
+			this._removeLatLng(evt.id);
 		}
 	},
 

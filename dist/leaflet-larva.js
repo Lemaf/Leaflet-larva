@@ -424,21 +424,19 @@
 			/**
 			 * @memberOf external:"L.Polyline"
 			 * @instance
-			 * @param  {Function} fn
+			 * @param  {Function} fn ({L.LatLng}, {L.LatLng[]})
 			 * @param  {Any}   context
 			 */
 			forEachLatLng: function (fn, context) {
-				var toVisit = [this.getLatLngs()], latlngs, i, l;
-				var call = context ? function (latlng) {
-					fn.call(context, latlng);
-				} : fn;
-				while (toVisit.length) {
-					latlngs = toVisit.pop();
-					for (i = 0, l = latlngs.length; i < l; i++) {
-						if (Array.isArray(latlngs[i])) {
-							toVisit.push(latlngs[i]);
-						} else {
-							call(latlngs[i]);
+				var i = 0, j, latlngs = this.getLatLngs();
+				if (L.larva.isFlat(latlngs)) {
+					for (; i < latlngs.length; i++) {
+						fn.call(context, latlngs[i], latlngs);
+					}
+				} else {
+					for (; i < latlngs.length; i++) {
+						for (j = 0; j < latlngs[i].length; j++) {
+							fn.call(context, latlngs[i][j], latlngs[i]);
 						}
 					}
 				}
@@ -938,6 +936,35 @@
 			}
 			return L.Polygon.POLYGON;
 		},
+		/**
+		* @memberOf external:"L.Polygon"
+		* @instance
+		* @param  {Function} fn      ({L.LatLng}, {L.LatLng[]}, hole? {Boolean})
+		* @param  {Any}   context
+		*/
+		forEachLatLng: function (fn, context) {
+			var i = 0, j, k, polygons = [], polygon, hole, latlngs = this.getLatLngs();
+			if (L.larva.isFlat(latlngs[0])) {
+				polygons.push(latlngs);
+			} else {
+				polygons = latlngs;
+			}
+			for (; i < polygons.length; i++) {
+				polygon = polygons[i];
+				for (j = 0; j < polygon.length; j++) {
+					hole = j > 0;
+					for (k = 0; k < polygon[j].length; k++) {
+						fn.call(context, polygon[j][k], polygon[j], hole);
+					}
+				}
+			}
+		},
+		/**
+		* @memberOf external:"L.Polygon"
+		* @instance
+		* @param  {Function} fn
+		* @param  {Any}   context
+		*/
 		forEachPolygon: function (fn, context) {
 			var latlngs = this._latlngs;
 			switch (this.getType()) {
@@ -1201,9 +1228,31 @@
 				L.Draggable.START.forEach(function (evtName) {
 					L.DomEvent.off(handle, evtName, this._onStart, this);
 				}, this);
-				L.DomEvent.off(handle, 'dblclick', this._onHandleDbclick, this);
+				L.DomEvent.off(handle, 'dblclick', this._onHandleDblclick, this);
 				if (handle.offsetParent) {
 					L.DomUtil.remove(handle);
+				}
+				var prev = handle._prev, next = handle._next;
+				if (prev && next) {
+					prev._next = next;
+					next._prev = prev;
+				} else if (prev !== next) {
+					if (prev) {
+						// handle is last
+						delete prev._next;
+						if (handle._isPolygon) {
+							prev._first._last = prev;
+						}
+					} else {
+						// handle is first
+						delete next._prev;
+						if (handle._isPolygon) {
+							var first = next;
+							do {
+								next._first = first;
+							} while (next = next._next);
+						}
+					}
 				}
 				for (var i = 0, index; i < this._lines.length; i++) {
 					if ((index = this._lines[i].handles.indexOf(handle)) >= 0) {
@@ -1211,6 +1260,7 @@
 						if (this._lines[i].handles.length === 0) {
 							this._lines.splice(i, 1);
 						}
+						break;
 					}
 				}
 				delete this._handles[handleId];
@@ -1298,21 +1348,6 @@
 		},
 		/**
 		* @param  {String} handleId
-		* @param  {L.Point} new layer position
-		*/
-		// updateAura: function (handleId, newPoint) {
-		// 	var aura = this._aura ? this._aura[handleId] : null;
-		// 	if (aura) {
-		// 		var newLatLng = this._map.layerPointToLatLng(newPoint);
-		// 		aura.latlng.lat = newLatLng.lat;
-		// 		aura.latlng.lng = newLatLng.lng;
-		// 		aura.polyline.updateBounds();
-		// 		aura.polyline.redraw();
-		// 		this._updateHandlePosition(this._handles[handleId], newPoint);
-		// 	}
-		// },
-		/**
-		* @param  {String} handleId
 		*/
 		updateHandle: function (handleId) {
 			var handle = this._handles[handleId];
@@ -1332,9 +1367,10 @@
 					handle._isHole = true;
 				}
 				handle._latlng = latlngs[i];
+				handle._latlng._handle = handle;
 				handle._latlngs = latlngs;
 				handle._point = this._map.latLngToLayerPoint(handle._latlng);
-				L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this).on(handle, 'dblclick', this._onHandleDbclick, this);
+				L.DomEvent.on(handle, L.Draggable.START.join(' '), this._onStart, this).on(handle, 'dblclick', this._onHandleDblclick, this);
 				this._handles[L.stamp(handle)] = handle;
 				if (prev) {
 					prev._next = handle;
@@ -1346,6 +1382,7 @@
 				} else {
 					first = handle;
 					prev = handle;
+					handle._first = handle;
 				}
 				handles.push(handle);
 			}
@@ -1359,7 +1396,7 @@
 			});
 			return handles;
 		},
-		_onHandleDbclick: function (evt) {
+		_onHandleDblclick: function (evt) {
 			L.DomEvent.stop(evt);
 			this.fire('handle:dblclick', {
 				id: L.stamp(evt.target),
@@ -1384,7 +1421,7 @@
 					});
 				}
 			} finally {
-				this.fire('drag:end', { sourceEvent: evt });
+				this.fire('handle:end', { sourceEvent: evt });
 			}
 		},
 		_onMove: function (evt) {
@@ -1405,7 +1442,7 @@
 				aura.polyline.redraw();
 				this._updateHandlePosition(handle, newPoint);
 			}
-			this.fire('drag:move', { sourceEvent: evt });
+			this.fire('handle:move', { sourceEvent: evt });
 		},
 		_onStart: function (evt) {
 			L.DomEvent.stop(evt);
@@ -1414,7 +1451,7 @@
 				x: sourceEvent.clientX,
 				y: sourceEvent.clientY
 			};
-			this.fire('drag:start', {
+			this.fire('handle:start', {
 				id: L.stamp(evt.target),
 				sourceEvent: evt
 			});
@@ -1560,12 +1597,12 @@
 		},
 		addHooks: function () {
 			this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
-			this._frame.on('drag:start', this._onDragStart, this).on('handle:dblclick', this._onHandleDbclick, this);
-			this._path.on('dblclick', this._onPathDblClick, this);
+			this._frame.on('handle:start', this._onHandleStart, this).on('handle:dblclick', this._onHandleDbclick, this);
+			this._path.on('dblclick', this._onDblclick, this);
 		},
 		removeHooks: function () {
 			this.getMap().removeLayer(this._frame);
-			this._frame.off('drag:start', this._onDragStart, this).off('dblclick', this._onPathDblClick, this);
+			this._frame.off('handle:start', this._onHandleStart, this).off('dblclick', this._onDblclick, this);
 		},
 		_searchNearestPoint: function (point) {
 			var found = [], map = this.getMap();
@@ -1588,6 +1625,31 @@
 				}
 			}
 		},
+		_removeLatLng: function (handleId) {
+			var latlng = this._frame.getLatLng(handleId), latlngs = this._path.getLatLngs(), index, i = 0;
+			switch (this._path.getType()) {
+			case L.Polyline.MULTIPOLYLINE:
+				for (; i < latlngs[i].length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+						if (latlngs[i].length === 2) {
+							latlngs.splice(i, 1);
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+						break;
+					}
+				}
+				break;
+			default:
+				if ((index = latlngs.indexOf(latlng)) !== -1) {
+					latlngs.splice(index, 1);
+					break;
+				}
+			}
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.removeHandle(handleId);
+		},
 		_onAuraEnd: function (evt) {
 			this._frame.off('aura:end', this._onAuraEnd, this);
 			var latlng = this._frame.getLatLng(evt.id);
@@ -1597,25 +1659,20 @@
 			this._path.redraw();
 			this._frame.updateHandle(evt.id);
 		},
-		_onHandleDbclick: function (evt) {
-			var originalEvent = evt.originalEvent;
-			if (originalEvent.shiftKey) {
-				var latlngs = this._frame.getLatLngs(evt.id), latlng = this._frame.getLatLng(evt.id);
-				var index = latlngs.indexOf(latlng);
-				latlngs.splice(index, 1);
-				this._path.updateBounds();
-				this._path.redraw();
-				this._frame.removeHandle(evt.id);
-			}
-		},
-		_onPathDblClick: function (evt) {
+		_onDblclick: function (evt) {
 			L.DomEvent.stop(evt);
 			this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 		},
-		_onDragEnd: function () {
-			this._frame.off('drag:move', this._onDragMove, this).off('drag:end', this._onDragEnd, this);
+		_onHandleDbclick: function (evt) {
+			var originalEvent = evt.originalEvent;
+			if (originalEvent.shiftKey) {
+				this._removeLatLng(evt.id);
+			}
 		},
-		_onDragMove: function (evt) {
+		_onHandleEnd: function () {
+			this._frame.off('handle:move', this._onHandleMove, this).off('handle:end', this._onHandleEnd, this);
+		},
+		_onHandleMove: function (evt) {
 			var sourceEvent = L.larva.getSourceEvent(evt);
 			var dx = sourceEvent.clientX - this._origin.x, dy = sourceEvent.clientY - this._origin.y;
 			var newPoint = this._originalPoint.add(L.point(dx, dy));
@@ -1626,21 +1683,20 @@
 			this._path.redraw();
 			this._frame.updateHandle(this._handleId);
 		},
-		_onDragStart: function (evt) {
+		_onHandleStart: function (evt) {
 			var sourceEvent;
 			this._handleId = evt.id;
 			if (this.options.aura) {
-				this._aura = this._frame.startAura(evt.id);
+				this._frame.startAura(evt.id);
 				this._frame.on('aura:end', this._onAuraEnd, this);
 			} else {
-				delete this._aura;
 				sourceEvent = L.larva.getSourceEvent(evt);
 				this._origin = {
 					x: sourceEvent.clientX,
 					y: sourceEvent.clientY
 				};
 				this._originalPoint = this._frame.getPoint(evt.id).clone();
-				this._frame.on('drag:move', this._onDragMove, this).on('drag:end', this._onDragEnd, this);
+				this._frame.on('handle:move', this._onHandleMove, this).on('handle:end', this._onHandleEnd, this);
 			}
 		}
 	});
@@ -1959,6 +2015,50 @@
 					this._newPolygonHole.addLatLng(evt.latlng);
 				}
 			}
+		},
+		_removeLatLng: function (handleId) {
+			var latlng = this._frame.getLatLng(handleId), latlngs = this._path.getLatLngs(), index, i = 0, p = 0;
+			switch (this._path.getType()) {
+			case L.Polygon.POLYGON:
+				for (; i < latlngs.length; i++) {
+					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+						if (latlngs[i].length === 3) {
+							if (i === 0) {
+								// shell..
+								latlngs.splice(0, latlngs.length);
+							} else {
+								latlngs.splice(index, 1);
+							}
+						} else {
+							latlngs[i].splice(index, 1);
+						}
+					}
+				}
+				break;
+			default:
+				l:
+					for (; p < latlngs.length; p++) {
+						// each polygon
+						for (i = 0; i < latlngs[p].length; i++) {
+							if ((index = latlngs[p][i].indexOf(latlng)) !== -1) {
+								if (latlngs[p][i].length === 3) {
+									if (i === 0) {
+										//shell
+										latlngs.splice(p, 1);
+									} else {
+										latlngs[p].splice(i, 1);
+									}
+								} else {
+									latlngs[p][i].splice(index, 1);
+								}
+								break l;
+							}
+						}
+					}
+			}
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.redraw();
 		},
 		_restoreCursor: function () {
 		},

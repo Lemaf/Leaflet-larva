@@ -13,7 +13,6 @@ L.extend(L.Polygon, {
 });
 
 L.Polygon.include({
-
 	/**
 	 * @memberOf external:"L.Polygon"
 	 * @instance
@@ -35,8 +34,9 @@ L.Polygon.include({
 
 		return L.Polygon.POLYGON;
 	},
-
 	/**
+	 * @memberOf external:"L.Polygon"
+	 * @instance
 	 * @param  {Function} fn      ({L.LatLng}, {L.LatLng[]}, hole? {Boolean})
 	 * @param  {Any}   context
 	 */
@@ -60,11 +60,12 @@ L.Polygon.include({
 			}
 		}
 	},
-
 	/**
+	 * @memberOf external:"L.Polygon"
+	 * @instance
 	 * @param  {Function} fn
 	 * @param  {Any}   context
-k	 */
+	 */
 	forEachPolygon: function (fn, context) {
 		var latlngs = this._latlngs;
 
