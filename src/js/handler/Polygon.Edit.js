@@ -45,7 +45,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		if (this._shellHole) {
 			delete this._makingHole;
 			var polygons = this._path.getLatLngs();
-			if (this._path.getLatLngs() === L.Polygon.POLYGON) {
+			if (this._path.getType() === L.Polygon.POLYGON) {
 				polygons = [polygons];
 			}
 
@@ -84,11 +84,10 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 				this._shellHole = found[0];
 				this._newPolygonHole = new L.larva.handler.New.Polygon(this.getMap(), L.extend({}, this.options.newHoleOptions, {
 					allowFireOnMap: false
-				}))
-				.on('ldraw:created', this._onNewHole, this)
-				.addLatLng(evt.latlng);
+				})).on('ldraw:created', this._onNewHole, this);
 
 				this._newPolygonHole.enable();
+				this._newPolygonHole.addLatLng(evt.latlng);
 			}
 		}
 	},
