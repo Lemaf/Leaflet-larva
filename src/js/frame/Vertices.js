@@ -50,17 +50,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 			return this._handles[handleId]._latlng;
 		}
 	},
-
-	/**
-	 * @param  {String} handleId
-	 * @return {L.LatLng[]}
-	 */
-	getLatLngs: function (handleId) {
-		if (this._handles && this._handles[handleId]) {
-			return this._handles[handleId]._latlngs;
-		}
-	},
-
 	/**
 	 * @return {Number}
 	 *

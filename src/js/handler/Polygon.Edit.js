@@ -84,13 +84,11 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 				this._shellHole = found[0];
 				this._newPolygonHole = new L.larva.handler.New.Polygon(this.getMap(), L.extend({}, this.options.newHoleOptions, {
 					allowFireOnMap: false
-				}));
+				}))
+				.on('ldraw:created', this._onNewHole, this)
+				.addLatLng(evt.latlng);
 
-				this._newPolygonHole
-					.on('ldraw:created', this._onNewHole, this)
-					.enable();
-
-				this._newPolygonHole.addLatLng(evt.latlng);
+				this._newPolygonHole.enable();
 			}
 		}
 	},

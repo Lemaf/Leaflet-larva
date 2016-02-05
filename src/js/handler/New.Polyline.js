@@ -39,6 +39,11 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		var handle = this._handle = L.DomUtil.create('div', 'llarva-new-vertex-handle', this._pane);
 		L.extend(handle.style, this.options.handleStyle);
 
+		this._halfHandleSize = new L.Point(
+			handle.offsetWidth / 2,
+			handle.offsetHeight / 2
+		);
+
 		this._newLatLng = new L.LatLng(0, 0);
 		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options, {
 			noClip: true
@@ -49,15 +54,9 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 			.on('movestart', this._onMapMoveStart, this);
 
 		L.DomEvent
-			.on(handle, 'click', this._onClick, this)
-			.on(handle, 'dblclick', this._onDblClick, this);
+			.on(handle, 'click', this._onHandleClick, this)
+			.on(handle, 'dblclick', this._onHandleDblClick, this);
 	},
-
-	addLatLng: function (latlng) {
-		this._newLatLng = latlng.clone();
-		this._pushLatLng();
-	},
-
 	/**
 	 * Create an empty Polyline layer
 	 * @return {L.Polyline}
@@ -98,8 +97,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	removeHooks: function () {
 		L.DomEvent
-			.off(this._handle, 'click', this._onClick, this)
-			.off(this._handle, 'dblclick', this._onDblClick, this);
+			.off(this._handle, 'click', this._onHandleClick, this)
+			.off(this._handle, 'dblclick', this._onHandleDblClick, this);
 
 		this._map
 			.off('mousemove', this._onMapMouseMove, this)
@@ -112,17 +111,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}
 	},
 
-	_getEventLayerPoint: function (evt) {
-		var bounding = this._pane.getBoundingClientRect();
-		evt = L.larva.getSourceEvent(evt);
-
-		return new L.Point(
-			evt.clientX - bounding.left,
-			evt.clientY - bounding.top
-		);
-	},
-
-	_onClick: function (evt) {
+	_onHandleClick: function (evt) {
 		L.DomEvent.stop(evt);
 
 		if (this._lastClick) {
@@ -147,7 +136,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}
 	},
 
-	_onDblClick: function (evt) {
+	_onHandleDblClick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._pushLatLng();
 		this._next();
@@ -165,10 +154,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 		var point = this._map.latLngToLayerPoint(latlng);
 
-		L.DomUtil.setPosition(this._handle, point.subtract(new L.Point(
-			this._handle.offsetWidth / 2,
-			this._handle.offsetHeight / 2
-		)));
+		L.DomUtil.setPosition(this._handle, point.subtract(this._halfHandleSize));
 
 		if (this._latlngs.length) {
 			this._previewLayer.redraw();
