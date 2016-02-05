@@ -12,6 +12,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	options: {
 
+		allowFireOnMap: true,
+
 		handleStyle: {
 			border: '1px solid #0f0',
 			cursor: 'crosshair',
@@ -50,8 +52,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}));
 
 		this._map
-			.on('mousemove', this._onMapMouseMove, this)
-			.on('movestart', this._onMapMoveStart, this);
+			.on('mousemove', this._onMapMouseMove, this);
 
 		L.DomEvent
 			.on(handle, 'click', this._onHandleClick, this)
@@ -68,9 +69,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_next: function () {
-
-		this._latlngs.pop();
-
 		if (this._latlngs.length >= this.options.threshold) {
 			try {
 
@@ -81,10 +79,12 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 					layer: this._previewLayer
 				});
 
-				this.fireOnMap('ldraw:created', {
-					handler: this,
-					layer: this._previewLayer
-				});
+				if (this.options.allowFireOnMap) {
+					this.fireOnMap('ldraw:created', {
+						handler: this,
+						layer: this._previewLayer
+					});
+				}
 
 			} finally {
 				this._lineLayer.setLatLngs([]);
@@ -101,8 +101,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 			.off(this._handle, 'dblclick', this._onHandleDblClick, this);
 
 		this._map
-			.off('mousemove', this._onMapMouseMove, this)
-			.off('movestart', this._onMapMoveStart, this);
+			.off('mousemove', this._onMapMouseMove, this);
 
 		L.DomUtil.remove(this._handle);
 
@@ -113,6 +112,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	_onHandleClick: function (evt) {
 		L.DomEvent.stop(evt);
+		console.log('click');
 
 		if (this._lastClick) {
 			evt = L.larva.getSourceEvent(evt);
@@ -120,6 +120,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 			    dy = evt.clientY - this._lastClick.y;
 
 			if ((dx * dx + dy * dy) < 100) {
+				console.log('failed');
 				return;
 			}
 		} else {
@@ -129,16 +130,12 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		this._lastClick.x = evt.clientX;
 		this._lastClick.y = evt.clientY;
 
-		if (!this._moving) {
-			this._pushLatLng();
-		} else {
-			delete this._moving;
-		}
+		this._pushLatLng();
 	},
 
 	_onHandleDblClick: function (evt) {
 		L.DomEvent.stop(evt);
-		this._pushLatLng();
+		console.log('dblclick');
 		this._next();
 	},
 
@@ -159,10 +156,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		if (this._latlngs.length) {
 			this._previewLayer.redraw();
 		}
-	},
-
-	_onMapMoveStart: function () {
-		this._moving = true;
 	},
 
 	_pushLatLng: function () {
