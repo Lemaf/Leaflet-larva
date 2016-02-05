@@ -1137,12 +1137,6 @@
 	 */
 	L.larva.frame.Vertices = L.Layer.extend(/** @lends L.larva.frame.Vertices.prototype */
 	{
-		statics: {
-			MULTIPOLYGON: 4,
-			MULTIPOLYLINE: 3,
-			POLYGON: 2,
-			POLYLINE: 1
-		},
 		options: {
 			colorFactor: [
 				0.8,
@@ -1157,7 +1151,6 @@
 		},
 		initialize: function (path) {
 			this._path = path;
-			this._type = this._path.getType();
 		},
 		beforeAdd: function (map) {
 			if (!map.getPane(this.options.pane)) {
@@ -1181,13 +1174,12 @@
 			}
 		},
 		/**
-		* @param  {String} handleId
-		* @return {L.LatLng[]}
+		* @return {Number}
+		*
+		* @see {@link external:"L.Polygon" L.Polygon}
 		*/
-		getLatLngs: function (handleId) {
-			if (this._handles && this._handles[handleId]) {
-				return this._handles[handleId]._latlngs;
-			}
+		getPathType: function () {
+			return this._path.getType();
 		},
 		/**
 		* Returns handle layer point
@@ -1386,7 +1378,7 @@
 				}
 				handles.push(handle);
 			}
-			if (isPolygon) {
+			if (isPolygon && first) {
 				first._last = handle;
 			}
 			this._lines.push({
@@ -1475,7 +1467,7 @@
 			}
 			this._handles = {};
 			this._lines = [];
-			switch (this._type) {
+			switch (this.getPathType()) {
 			case L.Polyline.POLYLINE:
 			case L.Polyline.MULTIPOLYLINE:
 				this._path.forEachLine(function (line) {
@@ -1492,7 +1484,7 @@
 				}, this);
 				break;
 			default:
-				throw new Error('Invalid geometry type - ' + this._type);
+				throw new Error('Invalid geometry type - ' + this.getPathType());
 			}
 		},
 		_updateHandlePosition: function (handle, target) {
@@ -1631,7 +1623,7 @@
 			case L.Polyline.MULTIPOLYLINE:
 				for (; i < latlngs[i].length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
-						if (latlngs[i].length === 2) {
+						if (latlngs[i].length <= 2) {
 							latlngs.splice(i, 1);
 						} else {
 							latlngs[i].splice(index, 1);
@@ -1817,6 +1809,7 @@
 	L.larva.handler.New.Polyline = L.larva.handler.New.extend(/** @lends L.larva.handler.New.Polyline.prototype */
 	{
 		options: {
+			allowFireOnMap: true,
 			handleStyle: {
 				border: '1px solid #0f0',
 				cursor: 'crosshair',
@@ -1829,19 +1822,24 @@
 			onMove: L.larva.NOP,
 			threshold: 1
 		},
+		/**
+		* Invoke after enable
+		* @param {L.LatLng} latlng
+		*/
+		addLatLng: function (latlng) {
+			this._newLatLng = latlng.clone();
+			this._pushLatLng();
+		},
 		addHooks: function () {
 			this._latlngs = [];
 			this._pane = this._map.getPane('popupPane');
 			var handle = this._handle = L.DomUtil.create('div', 'llarva-new-vertex-handle', this._pane);
 			L.extend(handle.style, this.options.handleStyle);
+			this._halfHandleSize = new L.Point(handle.offsetWidth / 2, handle.offsetHeight / 2);
 			this._newLatLng = new L.LatLng(0, 0);
 			this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options, { noClip: true }));
-			this._map.on('mousemove', this._onMapMouseMove, this).on('movestart', this._onMapMoveStart, this);
-			L.DomEvent.on(handle, 'click', this._onClick, this).on(handle, 'dblclick', this._onDblClick, this);
-		},
-		addLatLng: function (latlng) {
-			this._newLatLng = latlng.clone();
-			this._pushLatLng();
+			this._map.on('mousemove', this._onMapMouseMove, this);
+			L.DomEvent.on(handle, 'click', this._onHandleClick, this).on(handle, 'dblclick', this._onHandleDblClick, this);
 		},
 		/**
 		* Create an empty Polyline layer
@@ -1851,16 +1849,17 @@
 			return L.polyline([], L.extend({}, this.options.layerOptions, { noClip: true }));
 		},
 		_next: function () {
-			this._latlngs.pop();
 			if (this._latlngs.length >= this.options.threshold) {
 				try {
 					this._map.removeLayer(this._previewLayer);
 					this._previewLayer.setLatLngs(this._latlngs);
 					this.fire('ldraw:created', { layer: this._previewLayer });
-					this.fireOnMap('ldraw:created', {
-						handler: this,
-						layer: this._previewLayer
-					});
+					if (this.options.allowFireOnMap) {
+						this.fireOnMap('ldraw:created', {
+							handler: this,
+							layer: this._previewLayer
+						});
+					}
 				} finally {
 					this._lineLayer.setLatLngs([]);
 					this._latlngs = [];
@@ -1870,24 +1869,21 @@
 			}
 		},
 		removeHooks: function () {
-			L.DomEvent.off(this._handle, 'click', this._onClick, this).off(this._handle, 'dblclick', this._onDblClick, this);
-			this._map.off('mousemove', this._onMapMouseMove, this).off('movestart', this._onMapMoveStart, this);
+			L.DomEvent.off(this._handle, 'click', this._onHandleClick, this).off(this._handle, 'dblclick', this._onHandleDblClick, this);
+			this._map.off('mousemove', this._onMapMouseMove, this);
 			L.DomUtil.remove(this._handle);
 			if (this._previewLayer) {
 				this._map.removeLayer(this._previewLayer);
 			}
 		},
-		_getEventLayerPoint: function (evt) {
-			var bounding = this._pane.getBoundingClientRect();
-			evt = L.larva.getSourceEvent(evt);
-			return new L.Point(evt.clientX - bounding.left, evt.clientY - bounding.top);
-		},
-		_onClick: function (evt) {
+		_onHandleClick: function (evt) {
 			L.DomEvent.stop(evt);
+			console.log('click');
 			if (this._lastClick) {
 				evt = L.larva.getSourceEvent(evt);
 				var dx = evt.clientX - this._lastClick.x, dy = evt.clientY - this._lastClick.y;
 				if (dx * dx + dy * dy < 100) {
+					console.log('failed');
 					return;
 				}
 			} else {
@@ -1895,15 +1891,11 @@
 			}
 			this._lastClick.x = evt.clientX;
 			this._lastClick.y = evt.clientY;
-			if (!this._moving) {
-				this._pushLatLng();
-			} else {
-				delete this._moving;
-			}
-		},
-		_onDblClick: function (evt) {
-			L.DomEvent.stop(evt);
 			this._pushLatLng();
+		},
+		_onHandleDblClick: function (evt) {
+			L.DomEvent.stop(evt);
+			console.log('dblclick');
 			this._next();
 		},
 		_onMapMouseMove: function (evt) {
@@ -1914,13 +1906,10 @@
 			this._newLatLng.lat = latlng.lat;
 			this._newLatLng.lng = latlng.lng;
 			var point = this._map.latLngToLayerPoint(latlng);
-			L.DomUtil.setPosition(this._handle, point.subtract(new L.Point(this._handle.offsetWidth / 2, this._handle.offsetHeight / 2)));
+			L.DomUtil.setPosition(this._handle, point.subtract(this._halfHandleSize));
 			if (this._latlngs.length) {
 				this._previewLayer.redraw();
 			}
-		},
-		_onMapMoveStart: function () {
-			this._moving = true;
 		},
 		_pushLatLng: function () {
 			this._latlngs.push(this._newLatLng.clone());
@@ -1998,7 +1987,7 @@
 			if (this._shellHole) {
 				delete this._makingHole;
 				var polygons = this._path.getLatLngs();
-				if (this._path.getLatLngs() === L.Polygon.POLYGON) {
+				if (this._path.getType() === L.Polygon.POLYGON) {
 					polygons = [polygons];
 				}
 				this._newPolygonHole.disable();
@@ -2026,8 +2015,8 @@
 				}, this);
 				if (found.length === 1) {
 					this._shellHole = found[0];
-					this._newPolygonHole = new L.larva.handler.New.Polygon(this.getMap(), L.extend({}, this.options.newHoleOptions, { allowFireOnMap: false }));
-					this._newPolygonHole.on('ldraw:created', this._onNewHole, this).enable();
+					this._newPolygonHole = new L.larva.handler.New.Polygon(this.getMap(), L.extend({}, this.options.newHoleOptions, { allowFireOnMap: false })).on('ldraw:created', this._onNewHole, this);
+					this._newPolygonHole.enable();
 					this._newPolygonHole.addLatLng(evt.latlng);
 				}
 			}
@@ -2038,7 +2027,7 @@
 			case L.Polygon.POLYGON:
 				for (; i < latlngs.length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
-						if (latlngs[i].length === 3) {
+						if (latlngs[i].length <= 3) {
 							if (i === 0) {
 								// shell..
 								latlngs.splice(0, latlngs.length);
@@ -2057,7 +2046,7 @@
 						// each polygon
 						for (i = 0; i < latlngs[p].length; i++) {
 							if ((index = latlngs[p][i].indexOf(latlng)) !== -1) {
-								if (latlngs[p][i].length === 3) {
+								if (latlngs[p][i].length <= 3) {
 									if (i === 0) {
 										//shell
 										latlngs.splice(p, 1);
