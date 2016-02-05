@@ -74,7 +74,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				for (; i<latlngs[i].length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
 
-						if (latlngs[i].length === 2) {
+						if (latlngs[i].length <= 2) {
 							latlngs.splice(i, 1);
 						} else {
 							latlngs[i].splice(index, 1);

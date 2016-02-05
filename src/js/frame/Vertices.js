@@ -333,7 +333,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			handles.push(handle);
 		}
 
-		if (isPolygon) {
+		if (isPolygon && first) {
 			first._last = handle;
 		}
 

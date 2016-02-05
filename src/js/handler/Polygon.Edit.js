@@ -105,7 +105,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
 				for (; i<latlngs.length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
-						if (latlngs[i].length === 3) {
+						if (latlngs[i].length <= 3) {
 							if (i === 0) {
 								// shell..
 								latlngs.splice(0, latlngs.length);
@@ -126,7 +126,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 					// each polygon
 					for (i=0; i<latlngs[p].length; i++) {
 						if ((index = latlngs[p][i].indexOf(latlng)) !== -1) {
-							if (latlngs[p][i].length === 3) {
+							if (latlngs[p][i].length <= 3) {
 								if (i === 0) {
 									//shell
 									latlngs.splice(p, 1);
