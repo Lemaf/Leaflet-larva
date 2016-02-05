@@ -14,14 +14,6 @@
 L.larva.frame.Vertices = L.Layer.extend(
 /** @lends L.larva.frame.Vertices.prototype */
 {
-
-	statics: {
-		MULTIPOLYGON: 4,
-		MULTIPOLYLINE: 3,
-		POLYGON: 2,
-		POLYLINE: 1
-	},
-
 	options: {
 		colorFactor: [0.8, 1.3, 0.8],
 		handleClassName: 'llarva-vertex',
