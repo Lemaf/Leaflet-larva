@@ -32,6 +32,15 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		threshold: 1
 	},
 
+	/**
+	 * Invoke after enable
+	 * @param {L.LatLng} latlng
+	 */
+	addLatLng: function (latlng) {
+		this._newLatLng = latlng.clone();
+		this._pushLatLng();
+	},
+
 	addHooks: function() {
 
 		this._latlngs = [];
