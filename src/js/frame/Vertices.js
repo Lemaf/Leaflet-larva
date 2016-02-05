@@ -33,7 +33,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	initialize: function (path) {
 		this._path = path;
-		this._type = this._path.getType();
 	},
 
 	beforeAdd: function (map) {
@@ -68,6 +67,15 @@ L.larva.frame.Vertices = L.Layer.extend(
 		if (this._handles && this._handles[handleId]) {
 			return this._handles[handleId]._latlngs;
 		}
+	},
+
+	/**
+	 * @return {Number}
+	 *
+	 * @see {@link external:"L.Polygon" L.Polygon}
+	 */
+	getPathType: function () {
+		return this._path.getType();
 	},
 
 	/**
@@ -463,7 +471,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		this._handles = {};
 		this._lines = [];
 
-		switch (this._type) {
+		switch (this.getPathType()) {
 			case L.Polyline.POLYLINE:
 			case L.Polyline.MULTIPOLYLINE:
 
@@ -489,7 +497,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				break;
 
 			default:
-				throw new Error('Invalid geometry type - ' + this._type);
+				throw new Error('Invalid geometry type - ' + this.getPathType());
 		}
 	},
 
