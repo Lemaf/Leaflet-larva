@@ -1,5 +1,6 @@
 /**
  * @requires New.js
+ * @requires ../ext/L.LatLngBounds.js
  */
 
 /**
@@ -101,6 +102,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 				this._latlngs = [];
 				this._previewLayer = this._lineLayer;
 				delete this._newLayer;
+				delete this._currentBounds;
 			}
 		}
 	},
@@ -122,10 +124,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	_onHandleClick: function (evt) {
 		L.DomEvent.stop(evt);
-		console.log('click');
 
 		if (this._dragging) {
-			console.log('click dragging...');
 			delete this._dragging;
 			return;
 		}
@@ -136,7 +136,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 			    dy = evt.clientY - this._lastClick.y;
 
 			if ((dx * dx + dy * dy) < 100) {
-				console.log('failed');
 				return;
 			}
 		} else {
@@ -151,7 +150,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	_onHandleDblClick: function (evt) {
 		L.DomEvent.stop(evt);
-		console.log('dblclick');
 		this._next();
 	},
 
@@ -170,17 +168,25 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		L.DomUtil.setPosition(this._handle, point.subtract(this._halfHandleSize));
 
 		if (this._latlngs.length) {
-			this._previewLayer.updateBounds();
+			this._previewLayer.setBounds(this._previewBounds());
 			this._previewLayer.redraw();
 		}
 	},
 
 	_onMapDragStart: function () {
-		console.log('dragging...');
 		this._dragging = true;
 	},
 
+	_previewBounds: function () {
+		return this._currentBounds.clone().extend(this._newLatLng);
+	},
+
 	_pushLatLng: function () {
+		if (this._currentBounds) {
+			this._currentBounds.extend(this._newLatLng);
+		} else {
+			this._currentBounds = L.latLngBounds(this._newLatLng.clone(), this._newLatLng.clone());
+		}
 
 		this._latlngs.push(this._newLatLng.clone());
 
@@ -195,7 +201,6 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}
 
 		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
-		this._previewLayer.getBounds().extend(this._newLatLng);
 		this._previewLayer.redraw();
 	}
 
