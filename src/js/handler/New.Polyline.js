@@ -61,7 +61,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}));
 
 		this._map
-			.on('mousemove', this._onMapMouseMove, this);
+			.on('mousemove', this._onMapMouseMove, this)
+			.on('dragstart', this._onMapDragStart, this);
 
 		L.DomEvent
 			.on(handle, 'click', this._onHandleClick, this)
@@ -123,6 +124,12 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		L.DomEvent.stop(evt);
 		console.log('click');
 
+		if (this._dragging) {
+			console.log('click dragging...');
+			delete this._dragging;
+			return;
+		}
+
 		if (this._lastClick) {
 			evt = L.larva.getSourceEvent(evt);
 			var dx = evt.clientX - this._lastClick.x,
@@ -163,8 +170,14 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		L.DomUtil.setPosition(this._handle, point.subtract(this._halfHandleSize));
 
 		if (this._latlngs.length) {
+			this._previewLayer.updateBounds();
 			this._previewLayer.redraw();
 		}
+	},
+
+	_onMapDragStart: function () {
+		console.log('dragging...');
+		this._dragging = true;
 	},
 
 	_pushLatLng: function () {
@@ -182,6 +195,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}
 
 		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+		this._previewLayer.getBounds().extend(this._newLatLng);
 		this._previewLayer.redraw();
 	}
 
