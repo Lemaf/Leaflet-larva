@@ -97,5 +97,14 @@ L.Polyline.include({
 			default:
 				throw new Error('Invalid geometry type!');
 		}
+	},
+
+	/**
+	 * @memberOf external:"L.Polyline"
+	 * @instance
+	 * @param {L.LatLngBounds} bounds
+	 */
+	setBounds: function (bounds) {
+		this._bounds = bounds;
 	}
 });
