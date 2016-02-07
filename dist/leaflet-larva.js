@@ -1821,7 +1821,6 @@
 		options: { limit: 5 },
 		initialize: function (map, options) {
 			this._map = map;
-			map.undoRedo = this;
 			map.on('lundo:do', this._onDo, this);
 			L.setOptions(this, options);
 			this._bottom = null;
@@ -1860,6 +1859,12 @@
 				this._push(evt.command);
 			}
 		},
+		_pop: function () {
+			var newBottom = this._bottom._n;
+			delete newBottom._p;
+			delete this._bottom._n;
+			this._bottom = newBottom;
+		},
 		_push: function (command) {
 			var previous, next;
 			if (this._total) {
@@ -1870,10 +1875,7 @@
 						this._top = this._current = command;
 						// here + command
 						if (this._total === this.options.limit) {
-							next = this._bottom._n;
-							delete next._p;
-							delete this._bottom._n;
-							this._bottom = next;
+							this._pop();
 						} else {
 							this._total++;
 						}
@@ -1891,16 +1893,27 @@
 						this._total++;
 					}
 				} else {
-					// current before last
-					previous = this._top;
-					while (previous) {
-						delete previous._n;
-						next = previous;
-						previous = previous._p;
-						delete next._p;
+					if (this._op === 'undo') {
+						// current before last
+						previous = this._top;
+						while (previous) {
+							delete previous._n;
+							next = previous;
+							previous = previous._p;
+							delete next._p;
+						}
+						this._top = this._bottom = this._current = command;
+						this._total = 1;
+					} else {
+						command._p = this._top;
+						this._top._n = command;
+						this._top = this._current = command;
+						if (this._total === this.options.limit) {
+							this._pop();
+						} else {
+							this._total++;
+						}
 					}
-					this._top = this._bottom = this._current = command;
-					this._total = 1;
 				}
 			} else {
 				this._top = this._current = this._bottom = command;
@@ -1908,11 +1921,23 @@
 			}
 		}
 	});
-	L.Map.addInitHook(function () {
-		if (this.options.allowUndo) {
-			this._undoRedo = new L.larva.UndoRedo(this, this.options.undoOptions);
-		}
-	});
+	(function () {
+		var Mixin = {
+			redo: function () {
+				this.undoRedo.redo();
+			},
+			undo: function () {
+				this.undoRedo.undo();
+			}
+		};
+		L.Map.addInitHook(function () {
+			if (this.options.allowUndo) {
+				this.larva = this.larva || {};
+				this.larva.undoRedo = new L.larva.UndoRedo(this, this.options.undoOptions);
+				L.extend(this.larva, Mixin);
+			}
+		});
+	}());
 	/**
 	 * @class
 	 *

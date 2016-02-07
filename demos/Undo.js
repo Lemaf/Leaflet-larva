@@ -70,9 +70,9 @@ window.onload = function undoExample () {
 				case 'KeyZ':
 
 					if (!evt.shiftKey) {
-						map.undoRedo.undo();
+						map.larva.undo();
 					} else {
-						map.undoRedo.redo();
+						map.larva.redo();
 					}
 					break;
 			}
