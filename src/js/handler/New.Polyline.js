@@ -1,6 +1,8 @@
 /**
  * @requires New.js
  * @requires ../ext/L.LatLngBounds.js
+ * @requires ../Undoable.js
+ * @requires ../l10n.js
  */
 
 /**
@@ -10,6 +12,8 @@
 L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 /** @lends L.larva.handler.New.Polyline.prototype */
 {
+
+	includes: [L.larva.Undoable],
 
 	options: {
 
@@ -85,6 +89,13 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		return L.polyline([], L.extend({}, this.options.layerOptions, {
 			noClip: true
 		}));
+	},
+
+	/**
+	 * @return {L.Map}
+	 */
+	getMap: function () {
+		return this._map;
 	},
 
 	_next: function () {
@@ -199,13 +210,17 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_pushLatLng: function () {
+		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._undoPushLatLng, this._toAddLatLng);
+	},
+
+	_doPushLatLng: function (toAddLatLng) {
 		if (this._currentBounds) {
-			this._currentBounds.extend(this._toAddLatLng);
+			this._currentBounds.extend(toAddLatLng);
 		} else {
-			this._currentBounds = L.latLngBounds(this._toAddLatLng.clone(), this._toAddLatLng.clone());
+			this._currentBounds = L.latLngBounds(toAddLatLng.clone(), toAddLatLng.clone());
 		}
 
-		this._latlngs.push(this._toAddLatLng.clone());
+		this._latlngs.push(toAddLatLng.clone());
 
 		if (this._latlngs.length === this.options.threshold) {
 			this._map.removeLayer(this._lineLayer);
@@ -217,6 +232,12 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 			this._map.addLayer(this._previewLayer);
 		}
 
+		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+		this._previewLayer.redraw();
+	},
+
+	_undoPushLatLng: function () {
+		this._latlngs.pop();
 		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
 		this._previewLayer.redraw();
 	}
