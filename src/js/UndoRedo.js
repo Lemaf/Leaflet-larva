@@ -21,6 +21,34 @@ L.larva.UndoRedo = L.Class.extend({
 		this._total = 0;
 	},
 
+	/**
+	 */
+	undo: function () {
+		var current = this._current || (this._op === 'redo' ? this._top : null);
+
+		if (current) {
+			try {
+				current.unapply();
+			} finally {
+				this._current = current._p;
+				this._op = 'undo';
+			}
+		}
+	},
+
+	redo: function () {
+		var current = this._current || (this._op === 'undo' ? this._bottom : null);
+
+		if (current) {
+			try {
+				current.apply();
+			} finally {
+				this._current = current._n;
+				this._op = 'redo';
+			}
+		}
+	},
+
 	_onDo: function (evt) {
 		try {
 			evt.command.apply();
@@ -83,20 +111,7 @@ L.larva.UndoRedo = L.Class.extend({
 			this._top = this._current = this._bottom = command;
 			this._total = 1;
 		}
-	},
-
-	/**
-	 */
-	undo: function () {
-		if (this._current) {
-			try {
-				this._current.unapply();
-			} finally {
-				this._current = this._current._p;
-			}
-		}
 	}
-
 });
 
 

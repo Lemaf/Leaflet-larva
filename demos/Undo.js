@@ -66,8 +66,15 @@ window.onload = function undoExample () {
 
 	L.DomEvent.on(document, 'keydown', function (evt) {
 		if (evt.ctrlKey) {
-			if (evt.code === 'KeyZ') {
-				map.undoRedo.undo();
+			switch (evt.code) {
+				case 'KeyZ':
+
+					if (!evt.shiftKey) {
+						map.undoRedo.undo();
+					} else {
+						map.undoRedo.redo();
+					}
+					break;
 			}
 		}
 	});
