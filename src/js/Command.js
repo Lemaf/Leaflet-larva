@@ -33,22 +33,22 @@ L.larva.Command = L.Class.extend(
 	},
 
 	apply: function () {
-		try {
-			if (!this._nextState || (this._nextState === L.larva.Command.APPLY)) {
+		if (!this._nextState || (this._nextState === L.larva.Command.APPLY)) {
+			try {
 				this._doFn.apply(this._undoable, this._args);
+			} finally {
+				this._nextState = L.larva.Command.UNAPPLY;
 			}
-		} finally {
-			this._nextState = L.larva.Command.UNAPPLY;
 		}
 	},
 
 	unapply: function () {
-		try {
-			if (!this._nextState || (this._nextState === L.larva.Command.UNAPPLY)) {
-				this._undoFn.apply(this._undoable, this._args);
+		if (!this._nextState || (this._nextState === L.larva.Command.UNAPPLY)) {
+			try {
+					this._undoFn.apply(this._undoable, this._args);
+			} finally {
+				this._nextState = L.larva.Command.APPLY;
 			}
-		} finally {
-			this._nextState = L.larva.Command.APPLY;
 		}
 	},
 	/**
