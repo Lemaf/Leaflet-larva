@@ -49,6 +49,14 @@ gulp.task('clean:jsdoc', function () {
 	]);
 });
 
+gulp.task('copy:images', function () {
+
+	var copy = require('gulp-copy');
+
+	return gulp.src(['*.png'], {cwd: 'imgs'})
+		.pipe(copy('dist/'));
+});
+
 gulp.task('concat:javascript', ['lint:javascript'], function () {
 
 	var cached = require('gulp-cached'),
@@ -156,7 +164,7 @@ gulp.task('jsdoc', ['clean:jsdoc'], function (cb) {
 
 });
 
-gulp.task('serve', ['concat:javascript', 'less:less'], function () {
+gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images'], function () {
 
 	var connect = require('gulp-connect'),
 	connectJade = require('connect-jade'),
