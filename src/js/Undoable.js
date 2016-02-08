@@ -8,6 +8,13 @@
  */
 L.larva.Undoable = {
 
+	/**
+	 * @instance
+	 * @protected
+	 * @param  {String} desc
+	 * @param  {Function} doFn
+	 * @param  {Function} undoFn
+	 */
 	_do: function (desc, doFn, undoFn) {
 		var args = Array.prototype.slice.call(arguments, 3);
 		var map = this.getMap();
