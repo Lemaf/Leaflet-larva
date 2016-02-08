@@ -75,7 +75,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 		.pipe(cached('js'))
 		.pipe(remember('js'))
 		.pipe(concat('leaflet-larva.js'))
-		.pipe(wrapJS('(function() {%= body %})()', {
+		.pipe(wrapJS('(function () {%= body %})();', {
 			newline: '\n',
 			indent: {
 				adjustMultilineComment: true,
