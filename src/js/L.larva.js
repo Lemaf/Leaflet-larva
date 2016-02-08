@@ -80,3 +80,7 @@ L.larva = {
 		return L.Projection.Mercator.unproject(point);
 	}
 };
+
+L.Map.addInitHook(function () {
+	this.larva = {};
+});

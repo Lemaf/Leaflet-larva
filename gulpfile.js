@@ -61,7 +61,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 
 	var baseDir = path.join(process.cwd(), 'src', 'js');
 
-	return gulp.src(SOURCES.JS, {cwd: 'src/js'})
+	return gulp.src(SOURCES.JS, {cwd: 'src/js', base: 'src/js'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
 		.pipe(cached('js'))
@@ -74,7 +74,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 				style: '\t',
 			}
 		}))
-		.pipe(sourcemaps.write('./'))
+		.pipe(sourcemaps.write('./', {sourceRoot: 'l.larva'}))
 		.pipe(gulp.dest('dist/'));
 });
 
