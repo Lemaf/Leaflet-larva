@@ -3,10 +3,17 @@
  *
  * @param {L.Map} map
  */
-L.larva.UndoRedo = L.Class.extend({
+L.larva.UndoRedo = L.Class.extend(
+/** @lends L.larva.UndoRedo.prototype */
+{
 
 	options: {
-		limit: 5
+		limit: 10
+	},
+
+	statics: {
+		REDO: 1,
+		UNDO: 2
 	},
 
 	initialize: function (map, options) {
@@ -18,32 +25,35 @@ L.larva.UndoRedo = L.Class.extend({
 		this._current = null;
 		this._top = null;
 		this._total = 0;
+		this._state = null;
 	},
 
 	/**
 	 */
 	undo: function () {
-		var current = this._current || (this._op === 'redo' ? this._top : null);
+		var current = this._current || (this._state === L.larva.UndoRedo.REDO ? this._top : null);
 
 		if (current) {
 			try {
 				current.unapply();
 			} finally {
-				this._current = current._p;
-				this._op = 'undo';
+				this._current = current.prev;
+				this._state = L.larva.UndoRedo.UNDO;
 			}
 		}
 	},
 
+	/**
+	 */
 	redo: function () {
-		var current = this._current || (this._op === 'undo' ? this._bottom : null);
+		var current = this._current || (this._state === L.larva.UndoRedo.UNDO ? this._bottom : null);
 
 		if (current) {
 			try {
 				current.apply();
 			} finally {
-				this._current = current._n;
-				this._op = 'redo';
+				this._current = current.next;
+				this._state = L.larva.UndoRedo.REDO;
 			}
 		}
 	},
@@ -53,25 +63,27 @@ L.larva.UndoRedo = L.Class.extend({
 			evt.command.apply();
 		} finally  {
 			this._push(evt.command);
+			this._state = L.larva.UndoRedo.REDO;
 		}
 	},
 
 	_pop: function () {
-		var newBottom = this._bottom._n;
-		delete newBottom._p;
-		delete this._bottom._n;
+		var newBottom = this._bottom.next;
+		delete newBottom.prev;
+		delete this._bottom.next;
 		this._bottom = newBottom;
 	},
 
 	_push: function (command) {
-		var previous, next;
+		var prev, next;
 
 		if (this._total) {
+
 			if (this._current) {
-				command._p = this._current;
+				command.prev = this._current;
 
 				if (this._current === this._top) {
-					this._top._n = command;
+					this._top.next = command;
 					this._top = this._current = command;
 
 					// here + command
@@ -84,37 +96,37 @@ L.larva.UndoRedo = L.Class.extend({
 
 				} else {
 
-					next = this._current._n;
+					next = this._current.next;
 					while (next) {
-						delete next._p;
-						previous = next;
-						next = next._n;
-						delete previous._n;
+						delete next.prev;
+						prev = next;
+						next = next.next;
+						delete prev.next;
 						this._total--;
 					}
 
-					this._current._n = command;
+					this._current.next = command;
 					this._top = this._current = command;
 					this._total++;
 				}
 			} else {
 
-				if (this._op === 'undo') {
+				if (this._state === L.larva.UndoRedo.UNDO) {
 					// current before last
-					previous = this._top;
-					while (previous) {
-						delete previous._n;
-						next = previous;
-						previous = previous._p;
-						delete next._p;
+					prev = this._top;
+					while (prev) {
+						delete prev.next;
+						next = prev;
+						prev = prev.prev;
+						delete next.prev;
 					}
 
 					this._top = this._bottom = this._current = command;
 					this._total = 1;
 
 				} else {
-					command._p = this._top;
-					this._top._n = command;
+					command.prev = this._top;
+					this._top.next = command;
 					this._top = this._current = command;
 
 					if (this._total === this.options.limit) {
@@ -148,7 +160,6 @@ L.larva.UndoRedo = L.Class.extend({
 	L.Map.addInitHook(function () {
 
 		if (this.options.allowUndo) {
-			this.larva = this.larva || {};
 			this.larva.undoRedo = new L.larva.UndoRedo(this, this.options.undoOptions);
 			L.extend(this.larva, Mixin);
 		}
