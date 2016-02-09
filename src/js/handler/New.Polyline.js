@@ -8,6 +8,7 @@
 /**
  * @class Polyline creator
  * @extends L.larva.handler.New
+ * @mixes L.larva.Undoable
  */
 L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 /** @lends L.larva.handler.New.Polyline.prototype */
@@ -210,7 +211,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_pushLatLng: function () {
-		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._undoPushLatLng, this._toAddLatLng);
+		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._toAddLatLng)(this._undoPushLatLng);
 	},
 
 	_doPushLatLng: function (toAddLatLng) {

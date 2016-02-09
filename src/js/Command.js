@@ -24,18 +24,19 @@ L.larva.Command = L.Class.extend(
 	 */
 	prev: null,
 
-	initialize: function (undoable, desc, doFn, undoFn, args) {
-		this._undoable = undoable;
-		this._desc = desc;
-		this._doFn = doFn;
-		this._undoFn = undoFn;
-		this._args = args;
+	initialize: function (config) {
+		this._undoable = config.undoable;
+		this._desc = config.desc;
+		this._doFn = config.doFn;
+		this._doArgs = config.doArgs || Array.prototype;
+		this._undoFn = config.undoFn;
+		this._undoArgs = config.undoArgs || Array.prototype;
 	},
 
 	apply: function () {
 		if (!this._nextState || (this._nextState === L.larva.Command.APPLY)) {
 			try {
-				this._doFn.apply(this._undoable, this._args);
+				this._doFn.apply(this._undoable, this._doArgs);
 			} finally {
 				this._nextState = L.larva.Command.UNAPPLY;
 			}
@@ -45,7 +46,7 @@ L.larva.Command = L.Class.extend(
 	unapply: function () {
 		if (!this._nextState || (this._nextState === L.larva.Command.UNAPPLY)) {
 			try {
-					this._undoFn.apply(this._undoable, this._args);
+					this._undoFn.apply(this._undoable, this._undoArgs);
 			} finally {
 				this._nextState = L.larva.Command.APPLY;
 			}
@@ -67,6 +68,6 @@ L.larva.Command = L.Class.extend(
  * @param  {Any[]} args
  * @return {L.larva.Command}
  */
-L.larva.command = function (undoable, desc, doFn, undoFn, args) {
-	return new L.larva.Command(undoable, desc, doFn, undoFn, args);
+L.larva.command = function (config) {
+	return new L.larva.Command(config);
 };
