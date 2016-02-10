@@ -239,8 +239,13 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	_undoPushLatLng: function () {
 		this._latlngs.pop();
-		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
-		this._previewLayer.redraw();
+
+		if (this._latlngs.length) {
+			this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+			this._previewLayer.redraw();
+		} else if (this._previewLayer._map) {
+			this._map.removeLayer(this._previewLayer);
+		}
 	}
 
 });

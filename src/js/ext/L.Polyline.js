@@ -7,7 +7,7 @@ if (!L.Polyline.prototype.forEachLatLng) {
 		/**
 		 * @memberOf external:"L.Polyline"
 		 * @instance
-		 * @param  {Function} fn ({L.LatLng}, {L.LatLng[]})
+		 * @param  {Function} fn (latlng {L.LatLng}, latlngs {L.LatLng[]})
 		 * @param  {Any}   context
 		 */
 		forEachLatLng: function (fn, context) {
