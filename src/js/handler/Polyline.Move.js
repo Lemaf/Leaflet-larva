@@ -25,6 +25,27 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 		});
 	},
 
+	_deltaOf: function (evt) {
+		var event = L.larva.getSourceEvent(evt);
+		var worldPoint = this._getEventWorldPoint(event);
+
+		var x = worldPoint.x - this._startPosition.x,
+		    y = worldPoint.y - this._startPosition.y;
+
+		if (event.ctrlKey && event.altKey) {
+			var dxy = Math.min(Math.abs(x), Math.abs(y));
+
+			x = x >= 0 ? dxy : -dxy;
+			y = y >= 0 ? dxy : -dxy;
+		} else if (event.altKey) {
+			y = null;
+		} else if (event.ctrlKey) {
+			x = null;
+		}
+
+		return {x: x, y: y};
+	},
+
 	_getEventWorldPoint: function(event) {
 		var bounding = this._frame.getFrameClientRect(),
 		    position = this._frame.getPosition();
@@ -37,33 +58,31 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 		);
 	},
 
-	_onEnd: function () {
+
+	_onEndOffTheFly: function () {
+		this._stopPreview();
 
 		this._frame
-			.off('drag:move', this._onMove, this)
-			.off('drag:end', this._onEnd);
+			.off('drag:move', this._onMoveOffTheFly, this)
+			.off('drag:end', this._onEndOffTheFly, this);
+
+		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
 	},
 
-	_onMove: function (evt) {
+	_onEndOnTheFly: function () {
+		this._frame
+			.off('drag:move', this._onMoveOnTheFly, this)
+			.off('drag:end', this._onEndOnTheFly);
 
-		var event = L.larva.getSourceEvent(evt);
-		var worldPoint = this._getEventWorldPoint(event);
+		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
+	},
 
-		var dx = worldPoint.x - this._startPosition.x,
-		    dy = worldPoint.y - this._startPosition.y;
+	_onMoveOnTheFly: function (evt) {
+		this._transform(this._delta = this._deltaOf(evt));
+	},
 
-		if (event.ctrlKey && event.altKey) {
-			var dxy = Math.min(Math.abs(dx), Math.abs(dy));
-
-			dx = dx >= 0 ? dxy : -dxy;
-			dy = dy >= 0 ? dxy : -dxy;
-		} else if (event.altKey) {
-			dy = null;
-		} else if (event.ctrlKey) {
-			dx = null;
-		}
-
-		this._transform(dx, dy);
+	_onMoveOffTheFly: function (evt) {
+		this._transformPreview(this._delta = this._deltaOf(evt));
 	},
 
 	_onStart: function (evt) {
@@ -72,25 +91,41 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 
 			this._startPosition = this._getEventWorldPoint(L.larva.getSourceEvent(evt));
 
-			this._frame
-				.on('drag:move', this._onMove, this)
-				.on('drag:end', this._onEnd, this);
+			if (this.options.onTheFly) {
+				this._frame
+					.on('drag:move', this._onMoveOnTheFly, this)
+					.on('drag:end', this._onEndOnTheFly, this);
+			} else {
+				this._startPreview();
+				this._frame
+					.on('drag:move', this._onMoveOffTheFly, this)
+					.on('drag:end', this._onEndOffTheFly, this);
+			}
 		}
 
 	},
 	/**
 	 * @param  {L.Point} original
 	 * @param  {L.Point} transformed
-	 * @param  {Number} dx
-	 * @param  {Number} dy
+	 * @param {Object} delta
 	 */
-	_transformPoint: function (original, transformed, dx, dy) {
-		if (dx) {
-			transformed.x = original.x + dx;
+	_transformPoint: function (original, transformed, delta) {
+		if (delta.x) {
+			transformed.x = original.x + delta.x;
 		}
 
-		if (dy) {
-			transformed.y = original.y + dy;
+		if (delta.y) {
+			transformed.y = original.y + delta.y;
+		}
+	},
+
+	_unTransformPoint: function (original, transformed, delta) {
+		if (delta.x) {
+			transformed.x = original.x - delta.x;
+		}
+
+		if (delta.y) {
+			transformed.y = original.y - delta.y;
 		}
 	}
 

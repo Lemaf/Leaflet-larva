@@ -4,5 +4,7 @@
 L.larva.l10n = {
 	newPolylinePushLatLng: 'Push latitude/longitude',
 
-	transformRotate: 'Rotate'
+	transformRotate: 'Rotate',
+
+	transformMove: 'Move'
 };
