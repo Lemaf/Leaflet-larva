@@ -25,22 +25,6 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 		});
 	},
 
-	/**
-	 * @param  {L.Point} original
-	 * @param  {L.Point} transformed
-	 * @param  {Number} dx
-	 * @param  {Number} dy
-	 */
-	transformPoint: function (original, transformed, dx, dy) {
-		if (dx) {
-			transformed.x = original.x + dx;
-		}
-
-		if (dy) {
-			transformed.y = original.y + dy;
-		}
-	},
-
 	_getEventWorldPoint: function(event) {
 		var bounding = this._frame.getFrameClientRect(),
 		    position = this._frame.getPosition();
@@ -79,7 +63,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 			dx = null;
 		}
 
-		this.transform(dx, dy);
+		this._transform(dx, dy);
 	},
 
 	_onStart: function (evt) {
@@ -93,6 +77,21 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 				.on('drag:end', this._onEnd, this);
 		}
 
+	},
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} dx
+	 * @param  {Number} dy
+	 */
+	_transformPoint: function (original, transformed, dx, dy) {
+		if (dx) {
+			transformed.x = original.x + dx;
+		}
+
+		if (dy) {
+			transformed.y = original.y + dy;
+		}
 	}
 
 });

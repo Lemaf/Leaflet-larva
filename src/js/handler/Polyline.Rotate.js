@@ -28,35 +28,12 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
-	/**
-	 * @param  {L.Point} original
-	 * @param  {L.Point} transformed
-	 * @param  {Number} sin
-	 * @param  {Number} cos
-	 * @param  {Number} dx
-	 * @param  {Number} dy
-	 */
-	transformPoint: function (original, transformed, sin, cos, dx, dy) {
-		transformed.x = original.x * cos - original.y * sin + dx;
-		transformed.y = original.x * sin + original.y * cos + dy;
-	},
+	_angleOf: function (evt) {
+		var position = L.larva.getSourceEvent(evt),
+		    center = this._getCenterElement();
 
-	_onEnd: function () {
-		this._frame
-			.off('drag:move', this._onMove, this)
-			.off('drag:end', this._onEnd, this);
-	},
-
-	_onMove: function (evt) {
-		var position = L.larva.getSourceEvent(evt);
-
-		var centerBounding = this._centerElement.getBoundingClientRect();
-
-		var cx = (centerBounding.left + centerBounding.width / 2),
-		    cy = (centerBounding.top + centerBounding.height / 2);
-
-		var i = position.clientX - cx,
-		    j = position.clientY - cy;
+		var i = position.clientX - center.x,
+		    j = position.clientY - center.y;
 
 		var length = Math.sqrt(i * i + j * j);
 
@@ -69,15 +46,60 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 		var frameBounding = this._frame.getFrameClientRect(),
 		    framePosition = this._frame.getPosition();
 
-		cx = (cx - frameBounding.left) + framePosition.x;
-		cy = (cy - frameBounding.top) + framePosition.y;
+		center.x = (center.x - frameBounding.left) + framePosition.x;
+		center.y = (center.y - frameBounding.top) + framePosition.y;
 
-		var worldCenterPoint = this.layerPointToWorldPoint(cx, cy);
+		return {
+			sin: sin, cos: cos, center: center
+		};
+	},
 
-		var dx = worldCenterPoint.x * (1 - cos) + worldCenterPoint.y * sin;
-		var dy = worldCenterPoint.y * (1 - cos) - worldCenterPoint.x * sin;
+	_calculateParams: function (evt) {
+		var angle = this._angleOf(evt);
 
-		this.transform(sin, cos, dx, dy);
+		var worldCenterPoint = this.layerPointToWorldPoint(angle.center.x, angle.center.y);
+
+		return {
+			dx: worldCenterPoint.x * (1 - angle.cos) + worldCenterPoint.y * angle.sin,
+			dy: worldCenterPoint.y * (1 - angle.cos) - worldCenterPoint.x * angle.sin,
+			dxI: worldCenterPoint.x * (1 - angle.cos) - worldCenterPoint.y * angle.sin,
+			dyI: worldCenterPoint.y * (1 - angle.cos) + worldCenterPoint.x * angle.sin,
+			angle: angle
+		};
+	},
+
+	_getCenterElement: function () {
+		var centerBounding = this._centerElement.getBoundingClientRect();
+
+		return new L.Point(
+			centerBounding.left + centerBounding.width / 2,
+			centerBounding.top + centerBounding.height / 2
+		);
+	},
+
+	_onEndOffTheFly: function () {
+		this._stopPreview();
+		this._frame
+			.off('drag:move', this._onMoveOffTheFly, this)
+			.off('drag:end', this._onEndOffTheFly, this);
+
+		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
+	},
+
+	_onEndOnTheFly: function () {
+		this._frame
+			.off('drag:move', this._onMoveOnTheFly, this)
+			.off('drag:end', this._onEndOnTheFly, this);
+
+		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
+	},
+
+	_onMoveOffTheFly: function (evt) {
+		this._transformPreview(this._params = this._calculateParams(evt));
+	},
+
+	_onMoveOnTheFly: function (evt) {
+		this._transform(this._params = this._calculateParams(evt));
 	},
 
 	_onStart: function (evt) {
@@ -87,12 +109,11 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 
 		var centerElement = this._centerElement = this._frame.getHandle(L.larva.frame.Rect.MIDDLE_MIDDLE);
 
-		var centerBounding = centerElement.getBoundingClientRect(),
-		    targetBounding = evt.sourceEvent.target.getBoundingClientRect();
+		var centerBounding = centerElement.getBoundingClientRect();
 
 		var vector = this._vector = {
-			i: (targetBounding.left + targetBounding.width / 2) - (centerBounding.left - centerBounding.width / 2),
-			j: (targetBounding.top + targetBounding.height / 2) - (centerBounding.top - centerBounding.height / 2)
+			i: evt.sourceEvent.pageX - (centerBounding.left + centerBounding.width / 2),
+			j: evt.sourceEvent.pageY - (centerBounding.top + centerBounding.height / 2)
 		};
 
 		vector.length = Math.sqrt(vector.i * vector.i + vector.j * vector.j);
@@ -103,11 +124,34 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 
 		this.backupLatLngs();
 
-		this._frame
-			.on('drag:move', this._onMove, this)
-			.on('drag:end', this._onEnd, this);
-	}
+		if (this.options.onTheFly) {
+			this._frame
+				.on('drag:move', this._onMoveOnTheFly, this)
+				.on('drag:end', this._onEndOnTheFly, this);
+		} else {
+			this._startPreview();
+			this._frame
+				.on('drag:move', this._onMoveOffTheFly, this)
+				.on('drag:end', this._onEndOffTheFly, this);
+		}
+	},
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} sin
+	 * @param  {Number} cos
+	 * @param  {Number} dx
+	 * @param  {Number} dy
+	 */
+	_transformPoint: function (original, transformed, params) {
+		transformed.x = original.x * params.angle.cos - original.y * params.angle.sin + params.dx;
+		transformed.y = original.x * params.angle.sin + original.y * params.angle.cos + params.dy;
+	},
 
+	_unTransformPoint: function (original, transformed, params) {
+		transformed.x = original.x * params.angle.cos + original.y * params.angle.sin + params.dxI;
+		transformed.y = 0 - original.x * params.angle.sin + original.y * params.angle.cos + params.dyI;
+	}
 });
 
 L.Polyline.addInitHook(function () {

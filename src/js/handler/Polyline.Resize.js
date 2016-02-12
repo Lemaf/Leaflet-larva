@@ -24,23 +24,6 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
-	/**
-	 * @param  {L.Point} original
-	 * @param  {L.Point} transformed
-	 * @param  {Number} [xscale=null]
-	 * @param  {Number} [yscale=null]
-	 */
-	transformPoint: function (original, transformed, xscale, yscale) {
-
-		if (xscale !== null) {
-			transformed.x = this._reference.point.x + xscale * (original.x - this._reference.point.x);
-		}
-
-		if (yscale !== null) {
-			transformed.y = this._reference.point.y + yscale * (original.y - this._reference.point.y);
-		}
-	},
-
 	_onEnd: function () {
 		this._frame
 			.off('drag:move', this._onMove, this)
@@ -76,7 +59,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 			yscale = yscale >= 0 ? xyscale : -xyscale;
 		}
 
-		this.transform(xscale, yscale);
+		this._transform(xscale, yscale);
 	},
 
 	_onStart: function (evt) {
@@ -173,8 +156,23 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._frame
 			.on('drag:move', this._onMove, this)
 			.on('drag:end', this._onEnd, this);
-	}
+	},
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} [xscale=null]
+	 * @param  {Number} [yscale=null]
+	 */
+	_transformPoint: function (original, transformed, xscale, yscale) {
 
+		if (xscale !== null) {
+			transformed.x = this._reference.point.x + xscale * (original.x - this._reference.point.x);
+		}
+
+		if (yscale !== null) {
+			transformed.y = this._reference.point.y + yscale * (original.y - this._reference.point.y);
+		}
+	}
 });
 
 L.Polyline.addInitHook(function () {
