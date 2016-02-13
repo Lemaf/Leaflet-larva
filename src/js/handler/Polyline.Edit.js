@@ -1,6 +1,7 @@
 /**
  * @requires Polyline.js
  * @requires ../frame/Vertices.js
+ * @requires ../Undoable.js
  */
 
 /**
@@ -11,6 +12,8 @@
 L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 /** @lends L.larva.handler.Polyline.prototype */
 {
+
+	includes: [L.larva.Undoable],
 
 	options: {
 		aura: true,
@@ -34,16 +37,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			.off('dblclick', this._onDblclick, this);
 	},
 
-	_searchNearestPoint: function (point) {
-		var found = [], map = this.getMap();
-
-		this._path.forEachLine(function (latlngs) {
-			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
-		}, this);
-
-		return found;
-	},
-
 	_addVertex: function (point) {
 		var founds, found, newLatLng;
 
@@ -60,6 +53,114 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				this._path.redraw();
 				this._frame.redraw();
 			}
+		}
+	},
+
+	_edit: function (handleId, deltas) {
+		var latlng = this._frame.getLatLng(handleId);
+		latlng.lat += deltas.lat;
+		latlng.lng += deltas.lng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(handleId);
+	},
+
+	_onAuraEnd: function (evt) {
+		this._frame.off('aura:end', this._onAuraEnd, this);
+		var latlng = this._frame.getLatLng(evt.id);
+
+		var args = [
+			evt.id,
+			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
+		];
+
+		// latlng.lat = evt.latlng.lat;
+		// latlng.lng = evt.latlng.lng;
+
+		// this._path.updateBounds();
+		// this._path.redraw();
+		// this._frame.updateHandle(evt.id);
+
+		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+	},
+
+	_onDblclick: function (evt) {
+		L.DomEvent.stop(evt);
+		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
+	},
+
+	_onHandleDbclick: function (evt) {
+		var originalEvent = evt.originalEvent;
+
+		if (originalEvent.shiftKey) {
+			this._removeLatLng(evt.id);
+		}
+	},
+
+	_onHandleEnd: function () {
+		this._frame
+			.off('handle:move', this._onHandleMove, this)
+			.off('handle:end', this._onHandleEnd, this);
+
+		var deltas = this._deltas;
+		deltas.lat = deltas.newLatLng.lat - deltas.oriLatLng.lat;
+		deltas.lng = deltas.newLatLng.lng - deltas.oriLatLng.lng;
+
+		var args = [
+			this._handleId,
+			deltas
+		];
+
+		delete deltas.newLatLng;
+		delete deltas.oriLatLng;
+
+		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args, true);
+	},
+
+	_onHandleMove: function (evt) {
+		var sourceEvent = L.larva.getSourceEvent(evt);
+
+		var dx = sourceEvent.clientX - this._origin.x,
+		    dy = sourceEvent.clientY - this._origin.y;
+
+		var newPoint = this._originalPoint.add(L.point(dx, dy));
+
+		var latlng = this._frame.getLatLng(this._handleId),
+			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
+
+		latlng.lat = newLatLng.lat;
+		latlng.lng = newLatLng.lng;
+
+		this._deltas.newLatLng = newLatLng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(this._handleId);
+	},
+
+	_onHandleStart: function (evt) {
+		var sourceEvent;
+
+		this._handleId = evt.id;
+
+		if (this.options.aura) {
+			this._frame.startAura(evt.id);
+			this._frame.on('aura:end', this._onAuraEnd, this);
+		} else {
+			sourceEvent = L.larva.getSourceEvent(evt);
+			this._origin = {
+				x: sourceEvent.clientX, y: sourceEvent.clientY
+			};
+
+			this._deltas = {
+				oriLatLng: this._frame.getLatLng(evt.id).clone()
+			};
+
+			this._originalPoint = this._frame.getPoint(evt.id).clone();
+			this._frame
+				.on('handle:move', this._onHandleMove, this)
+				.on('handle:end', this._onHandleEnd, this);
 		}
 	},
 
@@ -100,76 +201,26 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.removeHandle(handleId);
 	},
 
-	_onAuraEnd: function (evt) {
-		this._frame.off('aura:end', this._onAuraEnd, this);
-		var latlng = this._frame.getLatLng(evt.id);
+	_searchNearestPoint: function (point) {
+		var found = [], map = this.getMap();
 
-		latlng.lat = evt.latlng.lat;
-		latlng.lng = evt.latlng.lng;
+		this._path.forEachLine(function (latlngs) {
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
+		}, this);
+
+		return found;
+	},
+
+	_unEdit: function (handleId, deltas) {
+		var latlng = this._frame.getLatLng(handleId);
+		latlng.lat -= deltas.lat;
+		latlng.lng -= deltas.lng;
 
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.updateHandle(evt.id);
-	},
 
-	_onDblclick: function (evt) {
-		L.DomEvent.stop(evt);
-		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
-	},
-
-	_onHandleDbclick: function (evt) {
-		var originalEvent = evt.originalEvent;
-
-		if (originalEvent.shiftKey) {
-			this._removeLatLng(evt.id);
-		}
-	},
-
-	_onHandleEnd: function () {
-		this._frame
-			.off('handle:move', this._onHandleMove, this)
-			.off('handle:end', this._onHandleEnd, this);
-	},
-
-	_onHandleMove: function (evt) {
-		var sourceEvent = L.larva.getSourceEvent(evt);
-
-		var dx = sourceEvent.clientX - this._origin.x,
-		    dy = sourceEvent.clientY - this._origin.y;
-
-		var newPoint = this._originalPoint.add(L.point(dx, dy));
-
-		var latlng = this._frame.getLatLng(this._handleId),
-			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
-
-		latlng.lat = newLatLng.lat;
-		latlng.lng = newLatLng.lng;
-
-		this._path.updateBounds();
-		this._path.redraw();
-		this._frame.updateHandle(this._handleId);
-	},
-
-	_onHandleStart: function (evt) {
-		var sourceEvent;
-
-		this._handleId = evt.id;
-
-		if (this.options.aura) {
-			this._frame.startAura(evt.id);
-			this._frame.on('aura:end', this._onAuraEnd, this);
-		} else {
-			sourceEvent = L.larva.getSourceEvent(evt);
-			this._origin = {
-				x: sourceEvent.clientX, y: sourceEvent.clientY
-			};
-			this._originalPoint = this._frame.getPoint(evt.id).clone();
-			this._frame
-				.on('handle:move', this._onHandleMove, this)
-				.on('handle:end', this._onHandleEnd, this);
-		}
+		this._frame.updateHandle(handleId);
 	}
-
 });
 
 /**

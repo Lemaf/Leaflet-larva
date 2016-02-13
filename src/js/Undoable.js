@@ -15,14 +15,16 @@ L.larva.Undoable = {
 	 * @param {Array.<*>} [doArgs]
 	 * @param {Function} undoFn
 	 * @param {Array.<*>} undoArgs
+	 * @param {Boolean} [applied]
 	 */
-	_do: function (desc, doFn, doArgs, undoFn, undoArgs) {
+	_do: function (desc, doFn, doArgs, undoFn, undoArgs, applied) {
 
 		var map = this.getMap();
 
 		if (map.options.allowUndo) {
 			map.fire('lundo:do', {
 				command: L.larva.command({
+					applied: !!applied,
 					undoable: this,
 					desc: desc,
 					doFn: doFn,
@@ -31,7 +33,7 @@ L.larva.Undoable = {
 					undoArgs: undoArgs || Array.prototype
 				})
 			});
-		} else {
+		} else if (!applied) {
 			doFn.apply(this, doArgs);
 		}
 	}
