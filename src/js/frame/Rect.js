@@ -42,7 +42,6 @@ L.larva.frame.Rect = L.Layer.extend(
 			map.createPane(this.options.pane);
 		}
 	},
-
 	/**
 	 * Returns Computed CSS Style of an handler
 	 * @param  {String} id

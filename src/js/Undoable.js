@@ -7,25 +7,32 @@
  * @mixin
  */
 L.larva.Undoable = {
-
 	/**
 	 * @instance
 	 * @protected
-	 * @param  {String} desc
-	 * @param  {Function} doFn
-	 * @param  {Function} undoFn
+	 * @param {String} desc
+	 * @param {Function} doFn
+	 * @param {Array.<*>} [doArgs]
+	 * @param {Function} undoFn
+	 * @param {Array.<*>} undoArgs
 	 */
-	_do: function (desc, doFn, undoFn) {
-		var args = Array.prototype.slice.call(arguments, 3);
+	_do: function (desc, doFn, doArgs, undoFn, undoArgs) {
+
 		var map = this.getMap();
 
 		if (map.options.allowUndo) {
 			map.fire('lundo:do', {
-				command: L.larva.command(this, desc, doFn, undoFn, args)
+				command: L.larva.command({
+					undoable: this,
+					desc: desc,
+					doFn: doFn,
+					doArgs: doArgs || Array.prototype,
+					undoFn: undoFn,
+					undoArgs: undoArgs || Array.prototype
+				})
 			});
 		} else {
-			doFn.apply(this, args);
+			doFn.apply(this, doArgs);
 		}
 	}
-
 };

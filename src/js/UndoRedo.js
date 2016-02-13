@@ -33,6 +33,10 @@ L.larva.UndoRedo = L.Class.extend(
 	undo: function () {
 		var current = this._current || (this._state === L.larva.UndoRedo.REDO ? this._top : null);
 
+		while (current && current.nextState() === L.larva.Command.APPLY) {
+			current = current.prev;
+		}
+
 		if (current) {
 			try {
 				current.unapply();
@@ -47,6 +51,10 @@ L.larva.UndoRedo = L.Class.extend(
 	 */
 	redo: function () {
 		var current = this._current || (this._state === L.larva.UndoRedo.UNDO ? this._bottom : null);
+
+		while (current && current.nextState() === L.larva.Command.UNAPPLY) {
+			current = current.next;
+		}
 
 		if (current) {
 			try {

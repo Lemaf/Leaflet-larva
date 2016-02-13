@@ -8,6 +8,7 @@
 /**
  * @class Polyline creator
  * @extends L.larva.handler.New
+ * @mixes L.larva.Undoable
  */
 L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 /** @lends L.larva.handler.New.Polyline.prototype */
@@ -210,7 +211,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_pushLatLng: function () {
-		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._undoPushLatLng, this._toAddLatLng);
+		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._toAddLatLng)(this._undoPushLatLng);
 	},
 
 	_doPushLatLng: function (toAddLatLng) {
@@ -238,8 +239,13 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 	_undoPushLatLng: function () {
 		this._latlngs.pop();
-		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
-		this._previewLayer.redraw();
+
+		if (this._latlngs.length) {
+			this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+			this._previewLayer.redraw();
+		} else if (this._previewLayer._map) {
+			this._map.removeLayer(this._previewLayer);
+		}
 	}
 
 });
