@@ -1,6 +1,25 @@
 window.onload = function moveHandler () {
-	var map = L.map('map', {
 
+	var map = L.map('map', {
+		allowUndo: true,
+		undoOptions: {
+			limit: 500
+		}
+	});
+
+	L.DomEvent.on(document, 'keydown', function (evt) {
+		if (evt.ctrlKey) {
+			switch (evt.code) {
+				case 'KeyZ':
+
+					if (!evt.shiftKey) {
+						map.larva.undo();
+					} else {
+						map.larva.redo();
+					}
+					break;
+			}
+		}
 	});
 
 	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);

@@ -182,7 +182,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 			y = y >= 0 ? xyscale : -xyscale;
 		}
 
-		return {x: x, y: y, refX: this._reference.point.x, refY: this._reference.point.y};
+		return {x: x, y: y, ref: this._reference.point};
 	},
 	/**
 	 * @param  {L.Point} original
@@ -193,22 +193,22 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 	_transformPoint: function (original, transformed, scale) {
 
 		if (scale.x !== null) {
-			transformed.x = scale.refX + scale.x * (original.x - scale.refX);
+			transformed.x = scale.ref.x + scale.x * (original.x - scale.ref.x);
 		}
 
 		if (scale.y !== null) {
-			transformed.y = scale.refY + scale.y * (original.y - scale.refY);
+			transformed.y = scale.ref.y + scale.y * (original.y - scale.ref.y);
 		}
 	},
 
 	_unTransformPoint: function (original, transformed, scale) {
 
 		if (scale.x !== null) {
-			transformed.x = scale.refX + ((original.x - scale.refX) / scale.x);
+			transformed.x = ((original.x - scale.ref.x) / scale.x) + scale.ref.x;
 		}
 
 		if (scale.y !== null) {
-			transformed.y = scale.refX + ((original.y - scale.refY) / scale.y);
+			transformed.y = ((original.y - scale.ref.y) / scale.y) + scale.ref.y;
 		}
 
 	}
