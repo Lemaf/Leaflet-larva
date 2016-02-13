@@ -33,7 +33,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	 * @protected
 	 * @param  {String} desc
 	 * @param  {Array.<*>} doArgs
-	 * @param  {Function} undoArgs
+	 * @param  {Array.<*>} undoArgs
 	 */
 	_apply: function (desc, doArgs, undoArgs) {
 
@@ -160,6 +160,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		preview.layer.updateBounds();
 		preview.layer.redraw();
 	},
+
 	_unTransform: function () {
 		var transformed = L.point(0, 0),
 		    original,

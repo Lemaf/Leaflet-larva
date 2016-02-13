@@ -12,7 +12,7 @@
  * @extends {L.larva.handler.Polyline.Transform}
  */
 L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
-/** @lends L.larva.handler.Polyline.Transform.prototype */
+/** @lends L.larva.handler.Polyline.Rotate.prototype */
 {
 
 	options: {
@@ -138,16 +138,26 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 	/**
 	 * @param  {L.Point} original
 	 * @param  {L.Point} transformed
-	 * @param  {Number} sin
-	 * @param  {Number} cos
-	 * @param  {Number} dx
-	 * @param  {Number} dy
+	 * @param {Object} params
+	 * @param {Object} params.angle
+	 * @param {Number} params.angle.cos
+	 * @param {Number} params.angle.sin
+	 * @param {Number} params.dx
+	 * @param {Number} params.dy
+	 * @param {Number} params.dxI
+	 * @param {Number} params.dyI
 	 */
 	_transformPoint: function (original, transformed, params) {
 		transformed.x = original.x * params.angle.cos - original.y * params.angle.sin + params.dx;
 		transformed.y = original.x * params.angle.sin + original.y * params.angle.cos + params.dy;
 	},
 
+	/**
+	 * @see {@link L.larva.handler.Polyline.Rotate#_transformPoint _transformPoint}
+	 * @param {L.Point} original
+	 * @param {L.Point} transformed
+	 * @param {Object} params
+	 */
 	_unTransformPoint: function (original, transformed, params) {
 		transformed.x = original.x * params.angle.cos + original.y * params.angle.sin + params.dxI;
 		transformed.y = 0 - original.x * params.angle.sin + original.y * params.angle.cos + params.dyI;
