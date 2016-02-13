@@ -48,10 +48,18 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				newLatLng = this.getMap().layerPointToLatLng(found.point);
 
 				found.latlngs.splice(found.index, 0, newLatLng);
-
 				this._path.updateBounds();
 				this._path.redraw();
 				this._frame.redraw();
+
+				var args = [
+					newLatLng,
+					found.latlngs,
+					found.index,
+					this._frame.getHandleId(newLatLng)
+				];
+
+				this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
 			}
 		}
 	},
@@ -66,6 +74,20 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.updateHandle(handleId);
 	},
 
+	_editAddVertex: function (latlng, latlngs, index) {
+		latlngs.splice(index, 0, latlng);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_editDelVertex: function (latlngs, index) {
+		latlngs.splice(index, 1);
+		this._frame.removeHandle(arguments[3]);
+		this._path.updateBounds();
+		this._path.redraw();
+	},
+
 	_onAuraEnd: function (evt) {
 		this._frame.off('aura:end', this._onAuraEnd, this);
 		var latlng = this._frame.getLatLng(evt.id);
@@ -74,13 +96,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			evt.id,
 			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
 		];
-
-		// latlng.lat = evt.latlng.lat;
-		// latlng.lng = evt.latlng.lng;
-
-		// this._path.updateBounds();
-		// this._path.redraw();
-		// this._frame.updateHandle(evt.id);
 
 		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
 	},
@@ -167,7 +182,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	_removeLatLng: function (handleId) {
 		var latlng = this._frame.getLatLng(handleId),
 		    latlngs = this._path.getLatLngs(),
-		    index, i = 0;
+		    index, i = 0,
+		    toLatLngs, toIndex;
 
 		switch (this._path.getType()) {
 			case L.Polyline.MULTIPOLYLINE:
@@ -175,11 +191,17 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				for (; i<latlngs[i].length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
 
+
 						if (latlngs[i].length <= 2) {
 							latlngs.splice(i, 1);
+							toLatLngs = latlngs;
+							toIndex = i;
 						} else {
 							latlngs[i].splice(index, 1);
+							toLatLngs = latlngs[i];
+							toIndex = index;
 						}
+
 
 						break;
 					}
@@ -190,6 +212,8 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			default:
 				if ((index = latlngs.indexOf(latlng)) !== -1) {
 					latlngs.splice(index, 1);
+					toLatLngs = latlngs;
+					toIndex = index;
 					break;
 				}
 
@@ -199,6 +223,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._path.redraw();
 
 		this._frame.removeHandle(handleId);
+
+		var args = [toLatLngs, toIndex, latlng, handleId];
+		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelVertex, args, this._unEditDelVertex, args, true);
 	},
 
 	_searchNearestPoint: function (point) {
@@ -220,6 +247,24 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._path.redraw();
 
 		this._frame.updateHandle(handleId);
+	},
+
+	_unEditAddVertex: function () {
+		var latlngs = arguments[1],
+		    index = arguments[2];
+
+		latlngs.splice(index, 1);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_unEditDelVertex: function (latlngs, index, latlng) {
+		latlngs.splice(index, 0, latlng);
+
+		this._frame.redraw();
+		this._path.updateBounds();
+		this._path.redraw();
 	}
 });
 

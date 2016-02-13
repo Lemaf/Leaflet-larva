@@ -95,7 +95,8 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 	_removeLatLng: function (handleId) {
 		var latlng = this._frame.getLatLng(handleId),
 		    latlngs = this._path.getLatLngs(),
-		    index, i=0, p=0;
+		    index, i=0, p=0,
+		    toLatLngs, toIndex, toRemove;
 
 		switch (this._path.getType()) {
 			case L.Polygon.POLYGON:
@@ -103,10 +104,16 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 				for (; i<latlngs.length; i++) {
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
 						if (latlngs[i].length <= 3) {
+
+							toLatLngs = latlngs;
+
 							if (i === 0) {
 								// shell..
+								toIndex = 0;
+								toRemove = latlngs.length;
 								latlngs.splice(0, latlngs.length);
 							} else {
+								toIndex = index;
 								latlngs.splice(index, 1);
 							}
 						} else {

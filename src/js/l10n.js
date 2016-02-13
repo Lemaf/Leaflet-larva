@@ -8,5 +8,9 @@ L.larva.l10n = {
 
 	transformMove: 'Move',
 
-	editPolyline: 'Edit'
+	editPolyline: 'Edit',
+
+	editPolylineAddVertex: 'Edit - vertex added',
+
+	editPolylineDelVertex: 'Edit - vertex removed'
 };

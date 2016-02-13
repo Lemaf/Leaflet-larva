@@ -23,6 +23,10 @@ window.onload = function moveHandler () {
 		}
 	});
 
+	map.on('lundo:do', function (evt) {
+		console.log(evt.command.description());
+	});
+
 	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
 	map.setView([-15.80064, -47.86164], 16);
