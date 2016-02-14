@@ -23,8 +23,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 		simplifyZoom: -1
 	},
 
-	initialize: function (path) {
+	initialize: function (path, options) {
 		this._path = path;
+
+		if (options) {
+			L.setOptions(this, options);
+		}
 	},
 
 	beforeAdd: function (map) {
@@ -401,6 +405,21 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 		L.DomEvent.stop(evt);
 
+		if (this._position.lock) {
+			dx = evt.clientX - this._position.x;
+			dy = evt.clientY - this._position.y;
+
+			if (((dx * dx) + (dy * dy)) >= this.options.minDelta) {
+				try {
+					this.fire('handle:start', this._position.lock);
+				} finally {
+					delete this._position.lock;
+				}
+			} else {
+				return;
+			}
+		}
+
 		this._position.x = evt.clientX;
 		this._position.y = evt.clientY;
 
@@ -435,11 +454,16 @@ L.larva.frame.Vertices = L.Layer.extend(
 			x: sourceEvent.clientX, y: sourceEvent.clientY
 		};
 
-		this.fire('handle:start', {
+		var startEvent = {
 			id: L.stamp(evt.target),
 			sourceEvent: evt
-		});
+		};
 
+		if (this.options.minDelta) {
+			this._position.lock = startEvent;
+		} else {
+			this.fire('handle:start', startEvent);
+		}
 
 		L.DomEvent
 			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
@@ -610,10 +634,10 @@ L.larva.frame.Vertices = L.Layer.extend(
  * @memberOf L.larva.frame
  * @return {L.larva.frame.Vertices}
  */
-L.larva.frame.vertices = function (path) {
+L.larva.frame.vertices = function (path, options) {
 	if (path._verticesFrame) {
 		return path._verticesFrame;
 	}
 
-	return (path._verticesFrame = new L.larva.frame.Vertices(path));
+	return (path._verticesFrame = new L.larva.frame.Vertices(path, options));
 };

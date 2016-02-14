@@ -17,11 +17,14 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	options: {
 		aura: true,
-		maxDist: 10
+		maxDist: 10,
+		minDelta: 4
 	},
 
 	addHooks: function () {
-		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
+		this._frame = L.larva.frame.vertices(this._path, {
+			minDelta: this.options.minDelta
+		}).addTo(this.getMap());
 
 		this._frame
 			.on('handle:start', this._onHandleStart, this)
