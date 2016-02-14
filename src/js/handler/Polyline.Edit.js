@@ -81,11 +81,18 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw();
 	},
 
-	_editDelVertex: function (latlng, latlngs, index, count) {
-		latlngs.splice(index, count);
-		this._frame.removeHandle(this._frame.getHandleId(latlng));
+	_editDelItem: function (item, array, index) {
+		array.splice(index, 1);
 		this._path.updateBounds();
 		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_editDelItems: function (items, array, index) {
+		array.splice(index, items.length);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
 	},
 
 	_onAuraEnd: function (evt) {
@@ -182,20 +189,20 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	_removeLatLng: function (handleId) {
 		var latlng = this._frame.getLatLng(handleId),
 		    latlngs = this._path.getLatLngs(),
-		    index, i = 0;
+		    index, p;
 
 		switch (this._path.getType()) {
 			case L.Polyline.MULTIPOLYLINE:
 
-				for (; i<latlngs[i].length; i++) {
-					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
+				for (p=0; p < latlngs[p].length; p++) {
+					if ((index = latlngs[p].indexOf(latlng)) !== -1) {
 
 
-						if (latlngs[i].length <= 2) {
-							this._removeLatLngFrom(latlng, latlngs, index, 1);
+						if (latlngs[p].length <= 2) {
+							this._removeItem(latlng[p], latlngs, p);
 						} else {
-							this._removeLatLngFrom(latlng, latlngs[i], index, 1);
-							// latlngs[i].splice(index, 1);
+							this._removeItem(latlng, latlngs[p], index);
+							// latlngs[p].splice(index, 1);
 						}
 
 
@@ -208,16 +215,28 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 			default:
 				if ((index = latlngs.indexOf(latlng)) !== -1) {
 					// latlngs.splice(index, 1);
-					this._removeLatLngFrom(latlng, latlngs, index, 1);
+					this._removeItem(latlng, latlngs, index);
 					break;
 				}
 		}
 	},
 
-	_removeLatLngFrom: function (latlng, latlngs, index, count) {
-		this._editDelVertex(latlng, latlngs, index, count);
-		var args = [latlng, latlngs, index, count];
-		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelVertex, args, this._unEditDelVertex, args, true);
+	/**
+	 * @protected
+	 * @param  {*} item
+	 * @param  {Array.<*>} array
+	 * @param  {Number} index
+	 */
+	_removeItem: function (item, array, index) {
+		this._editDelItem(item, array, index);
+		var args = [item, array, index];
+		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelItem, args, this._unEditDelItem, args, true);
+	},
+
+	_removeItems: function (items, array, index) {
+		this._editDelItems(items, array, index);
+		var args = [items, array, index];
+		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelItems, args, this._unEditDelItems, args, true);
 	},
 
 	_searchNearestPoint: function (point) {
@@ -251,9 +270,16 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw();
 	},
 
-	_unEditDelVertex: function (latlng, latlngs, index) {
-		latlngs.splice(index, 0, latlng);
+	_unEditDelItem: function (item, array, index) {
+		array.splice(index, 0, item);
 
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_unEditDelItems: function (items, array, index) {
+		array.splice.apply(array, [index, 0].concat(items));
 		this._path.updateBounds();
 		this._path.redraw();
 		this._frame.redraw();

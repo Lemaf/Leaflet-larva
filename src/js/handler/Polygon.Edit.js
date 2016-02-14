@@ -107,14 +107,14 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 							if (i === 0) {
 								// shell..
 								// latlngs.splice(0, latlngs.length);
-								this._removeLatLngFrom(latlng, latlngs, 0, latlngs.length);
+								this._removeItems(latlngs.slice(0), latlngs, 0);
 							} else {
 								// latlngs.splice(index, 1);
-								this._removeLatLngFrom(latlng, latlngs, index, 1);
+								this._removeItem(latlngs[i], latlngs, i);
 							}
 						} else {
 							// latlngs[i].splice(index, 1);
-							this._removeLatLngFrom(latlng, latlngs[i], index, 1);
+							this._removeItem(latlng, latlngs[i], index);
 						}
 					}
 				}
@@ -131,14 +131,14 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 								if (i === 0) {
 									//shell
 									// latlngs.splice(p, 1);
-									this._removeLatLngFrom(latlng, latlngs, p, 1);
+									this._removeItem(latlngs[p], latlngs, p);
 								} else {
 									// latlngs[p].splice(i, 1);
-									this._removeLatLngFrom(latlng, latlngs[p], i, 1);
+									this._removeItem(latlngs[p][i], latlngs[p], i);
 								}
 							} else {
 								// latlngs[p][i].splice(index, 1);
-								this._removeLatLngFrom(latlng, latlngs[p][i], index, 1);
+								this._removeItem(latlng, latlngs[p][i], index);
 							}
 
 							break l;
