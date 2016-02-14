@@ -31,8 +31,13 @@ L.larva.Command = L.Class.extend(
 		this._doArgs = config.doArgs || Array.prototype;
 		this._undoFn = config.undoFn;
 		this._undoArgs = config.undoArgs || Array.prototype;
-	},
 
+		if (config.applied) {
+			this._nextState = L.larva.Command.UNAPPLY;
+		}
+	},
+	/**
+	 */
 	apply: function () {
 		if (!this._nextState || (this._nextState === L.larva.Command.APPLY)) {
 			try {
@@ -43,6 +48,18 @@ L.larva.Command = L.Class.extend(
 		}
 	},
 
+	description: function () {
+		return this._desc;
+	},
+	/**
+	 * @return {Number}
+	 */
+	nextState: function () {
+		return this._nextState;
+	},
+
+	/**
+	 */
 	unapply: function () {
 		if (!this._nextState || (this._nextState === L.larva.Command.UNAPPLY)) {
 			try {
@@ -52,12 +69,6 @@ L.larva.Command = L.Class.extend(
 			}
 		}
 	},
-	/**
-	 * @return {Number}
-	 */
-	nextState: function () {
-		return this._nextState;
-	}
 
 });
 

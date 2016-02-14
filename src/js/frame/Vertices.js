@@ -40,6 +40,16 @@ L.larva.frame.Vertices = L.Layer.extend(
 		};
 	},
 
+	getHandleId: function (latlng) {
+		if (latlng._lhandle) {
+			var id = L.stamp(latlng._lhandle);
+			if (this._handles[id]) {
+				return id;
+			}
+		}
+
+		return null;
+	},
 	/**
 	 * Returns handle L.LatLng
 	 * @param  {String}  handleId
@@ -283,7 +293,18 @@ L.larva.frame.Vertices = L.Layer.extend(
 		var i, handle, prev, handles = [], first;
 
 		for (i=0; i<latlngs.length; i++) {
-			handle = L.DomUtil.create('div', this.options.handleClassName);
+
+			if (latlngs[i]._lhandle) {
+				handle = latlngs[i]._lhandle;
+				delete handle._isPolygon;
+				delete handle._isHole;
+				delete handle._prev;
+				delete handle._next;
+				delete handle._first;
+				delete handle._last;
+			} else {
+				handle = latlngs[i]._lhandle = L.DomUtil.create('div', this.options.handleClassName);
+			}
 
 			if (isPolygon) {
 				handle._isPolygon = true;
@@ -294,7 +315,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			handle._latlng = latlngs[i];
-			handle._latlng._handle = handle;
 			handle._latlngs = latlngs;
 			handle._point = this._map.latLngToLayerPoint(handle._latlng);
 
