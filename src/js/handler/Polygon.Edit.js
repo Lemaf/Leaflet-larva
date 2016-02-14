@@ -95,8 +95,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 	_removeLatLng: function (handleId) {
 		var latlng = this._frame.getLatLng(handleId),
 		    latlngs = this._path.getLatLngs(),
-		    index, i=0, p=0,
-		    toLatLngs, toIndex, toRemove;
+		    index, i=0, p=0;
 
 		switch (this._path.getType()) {
 			case L.Polygon.POLYGON:
@@ -105,19 +104,17 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 					if ((index = latlngs[i].indexOf(latlng)) !== -1) {
 						if (latlngs[i].length <= 3) {
 
-							toLatLngs = latlngs;
-
 							if (i === 0) {
 								// shell..
-								toIndex = 0;
-								toRemove = latlngs.length;
-								latlngs.splice(0, latlngs.length);
+								// latlngs.splice(0, latlngs.length);
+								this._removeLatLngFrom(latlng, latlngs, 0, latlngs.length);
 							} else {
-								toIndex = index;
-								latlngs.splice(index, 1);
+								// latlngs.splice(index, 1);
+								this._removeLatLngFrom(latlng, latlngs, index, 1);
 							}
 						} else {
-							latlngs[i].splice(index, 1);
+							// latlngs[i].splice(index, 1);
+							this._removeLatLngFrom(latlng, latlngs[i], index, 1);
 						}
 					}
 				}
@@ -133,12 +130,15 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 							if (latlngs[p][i].length <= 3) {
 								if (i === 0) {
 									//shell
-									latlngs.splice(p, 1);
+									// latlngs.splice(p, 1);
+									this._removeLatLngFrom(latlng, latlngs, p, 1);
 								} else {
-									latlngs[p].splice(i, 1);
+									// latlngs[p].splice(i, 1);
+									this._removeLatLngFrom(latlng, latlngs[p], i, 1);
 								}
 							} else {
-								latlngs[p][i].splice(index, 1);
+								// latlngs[p][i].splice(index, 1);
+								this._removeLatLngFrom(latlng, latlngs[p][i], index, 1);
 							}
 
 							break l;
@@ -146,10 +146,6 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 					}
 				}
 		}
-
-		this._path.updateBounds();
-		this._path.redraw();
-		this._frame.redraw();
 	},
 
 	_restoreCursor: function () {

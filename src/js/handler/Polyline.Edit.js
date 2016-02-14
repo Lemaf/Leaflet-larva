@@ -81,9 +81,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw();
 	},
 
-	_editDelVertex: function (latlngs, index) {
-		latlngs.splice(index, 1);
-		this._frame.removeHandle(arguments[3]);
+	_editDelVertex: function (latlng, latlngs, index, count) {
+		latlngs.splice(index, count);
+		this._frame.removeHandle(this._frame.getHandleId(latlng));
 		this._path.updateBounds();
 		this._path.redraw();
 	},
@@ -182,8 +182,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	_removeLatLng: function (handleId) {
 		var latlng = this._frame.getLatLng(handleId),
 		    latlngs = this._path.getLatLngs(),
-		    index, i = 0,
-		    toLatLngs, toIndex;
+		    index, i = 0;
 
 		switch (this._path.getType()) {
 			case L.Polyline.MULTIPOLYLINE:
@@ -193,13 +192,10 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 
 						if (latlngs[i].length <= 2) {
-							latlngs.splice(i, 1);
-							toLatLngs = latlngs;
-							toIndex = i;
+							this._removeLatLngFrom(latlng, latlngs, index, 1);
 						} else {
-							latlngs[i].splice(index, 1);
-							toLatLngs = latlngs[i];
-							toIndex = index;
+							this._removeLatLngFrom(latlng, latlngs[i], index, 1);
+							// latlngs[i].splice(index, 1);
 						}
 
 
@@ -211,20 +207,16 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 			default:
 				if ((index = latlngs.indexOf(latlng)) !== -1) {
-					latlngs.splice(index, 1);
-					toLatLngs = latlngs;
-					toIndex = index;
+					// latlngs.splice(index, 1);
+					this._removeLatLngFrom(latlng, latlngs, index, 1);
 					break;
 				}
-
 		}
+	},
 
-		this._path.updateBounds();
-		this._path.redraw();
-
-		this._frame.removeHandle(handleId);
-
-		var args = [toLatLngs, toIndex, latlng, handleId];
+	_removeLatLngFrom: function (latlng, latlngs, index, count) {
+		this._editDelVertex(latlng, latlngs, index, count);
+		var args = [latlng, latlngs, index, count];
 		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelVertex, args, this._unEditDelVertex, args, true);
 	},
 
@@ -259,12 +251,12 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw();
 	},
 
-	_unEditDelVertex: function (latlngs, index, latlng) {
+	_unEditDelVertex: function (latlng, latlngs, index) {
 		latlngs.splice(index, 0, latlng);
 
-		this._frame.redraw();
 		this._path.updateBounds();
 		this._path.redraw();
+		this._frame.redraw();
 	}
 });
 
