@@ -23,6 +23,13 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		}
 	},
 
+	_doNewHole: function (polygon, hole) {
+		polygon.push(hole);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
 	_searchNearestPoint: function (point) {
 		var found = [],
 		    map = this.getMap(),
@@ -45,6 +52,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		if (this._shellHole) {
 			delete this._makingHole;
 			var polygons = this._path.getLatLngs();
+
 			if (this._path.getType() === L.Polygon.POLYGON) {
 				polygons = [polygons];
 			}
@@ -54,11 +62,13 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 			var index;
 			for (var p=0; p<polygons.length; p++) {
 				if ((index = polygons[p].indexOf(this._shellHole)) !== -1) {
-					polygons[p].push(evt.layer.getLatLngs()[0]);
 
-					this._path.updateBounds();
-					this._path.redraw();
-					this._frame.redraw();
+					var args = [
+						polygons[p],
+						evt.layer.getLatLngs()[0]
+					];
+
+					this._do(L.larva.l10n.editPolygonAddHole, this._doNewHole, args, this._undoNewHole, args);
 					break;
 				}
 			}
@@ -154,6 +164,16 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
 	_setHoleCursor: function () {
 
+	},
+
+	_undoNewHole: function (polygon, hole) {
+		var index = polygon.indexOf(hole);
+		if (index !== -1) {
+			polygon.splice(index, 1);
+			this._path.updateBounds();
+			this._path.redraw();
+			this._frame.redraw();
+		}
 	}
 
 });

@@ -12,5 +12,7 @@ L.larva.l10n = {
 
 	editPolylineAddVertex: 'Edit - vertex added',
 
-	editPolylineDelVertex: 'Edit - vertex removed'
+	editPolylineDelVertex: 'Edit - vertex removed',
+
+	editPolygonAddHole: 'Edit - new hole'
 };
