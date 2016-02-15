@@ -211,7 +211,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_pushLatLng: function () {
-		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, this._toAddLatLng)(this._undoPushLatLng);
+		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, [this._toAddLatLng], this._undoPushLatLng, Array.prototype);
 	},
 
 	_doPushLatLng: function (toAddLatLng) {
