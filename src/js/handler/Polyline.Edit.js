@@ -1,6 +1,7 @@
 /**
  * @requires Polyline.js
  * @requires ../frame/Vertices.js
+ * @requires ../Undoable.js
  */
 
 /**
@@ -12,32 +13,31 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 /** @lends L.larva.handler.Polyline.prototype */
 {
 
+	includes: [L.larva.Undoable],
+
 	options: {
 		aura: true,
-		maxDist: 10
+		maxDist: 10,
+		minDelta: 4
 	},
 
 	addHooks: function () {
-		this._frame = L.larva.frame.vertices(this._path).addTo(this.getMap());
-		this._frame.on('drag:start', this._onDragStart, this);
-		this._path.on('dblclick', this._onPathDblClick, this);
+		this._frame = L.larva.frame.vertices(this._path, {
+			minDelta: this.options.minDelta
+		}).addTo(this.getMap());
+
+		this._frame
+			.on('handle:start', this._onHandleStart, this)
+			.on('handle:dblclick', this._onHandleDbclick, this);
+
+		this._path.on('dblclick', this._onDblclick, this);
 	},
 
 	removeHooks: function () {
 		this.getMap().removeLayer(this._frame);
 		this._frame
-			.off('drag:start', this._onDragStart, this)
-			.off('dblclick', this._onPathDblClick, this);
-	},
-
-	_searchNearestPoint: function (point) {
-		var found = [], map = this.getMap();
-
-		this._path.forEachLine(function (latlngs) {
-			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
-		}, this);
-
-		return found;
+			.off('handle:start', this._onHandleStart, this)
+			.off('dblclick', this._onDblclick, this);
 	},
 
 	_addVertex: function (point) {
@@ -51,79 +51,242 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				newLatLng = this.getMap().layerPointToLatLng(found.point);
 
 				found.latlngs.splice(found.index, 0, newLatLng);
-
 				this._path.updateBounds();
 				this._path.redraw();
 				this._frame.redraw();
+
+				var args = [
+					newLatLng,
+					found.latlngs,
+					found.index,
+					this._frame.getHandleId(newLatLng)
+				];
+
+				this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
 			}
 		}
 	},
 
-	_onPathDblClick: function (evt) {
+	_edit: function (handleId, deltas) {
+		var latlng = this._frame.getLatLng(handleId);
+		latlng.lat += deltas.lat;
+		latlng.lng += deltas.lng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(handleId);
+	},
+
+	_editAddVertex: function (latlng, latlngs, index) {
+		latlngs.splice(index, 0, latlng);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_editDelItem: function (item, array, index) {
+		array.splice(index, 1);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_editDelItems: function (items, array, index) {
+		array.splice(index, items.length);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_onAuraEnd: function (evt) {
+		this._frame.off('aura:end', this._onAuraEnd, this);
+		var latlng = this._frame.getLatLng(evt.id);
+
+		var args = [
+			evt.id,
+			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
+		];
+
+		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+	},
+
+	_onDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
-	_onDragEnd: function () {
+	_onHandleDbclick: function (evt) {
+		var originalEvent = evt.originalEvent;
+
+		if (originalEvent.shiftKey) {
+			this._removeLatLng(evt.id);
+		}
+	},
+
+	_onHandleEnd: function () {
 		this._frame
-			.off('drag:move', this._onDragMove, this)
-			.off('drag:end', this._onDragEnd, this);
+			.off('handle:move', this._onHandleMove, this)
+			.off('handle:end', this._onHandleEnd, this);
 
-		if (this.options.aura) {
-			this._frame.stopAura(this._handleId, true);
-			this._path.updateBounds();
-			this._path.redraw();
-		}
+		var deltas = this._deltas;
+		deltas.lat = deltas.newLatLng.lat - deltas.oriLatLng.lat;
+		deltas.lng = deltas.newLatLng.lng - deltas.oriLatLng.lng;
+
+		var args = [
+			this._handleId,
+			deltas
+		];
+
+		delete deltas.newLatLng;
+		delete deltas.oriLatLng;
+
+		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args, true);
 	},
 
-	_onDragMove: function (evt) {
+	_onHandleMove: function (evt) {
 		var sourceEvent = L.larva.getSourceEvent(evt);
 
-		var dx = sourceEvent.clientX - this._startPos.x,
-		    dy = sourceEvent.clientY - this._startPos.y;
+		var dx = sourceEvent.clientX - this._origin.x,
+		    dy = sourceEvent.clientY - this._origin.y;
 
-		var newPoint = this._original.add(L.point(dx, dy));
+		var newPoint = this._originalPoint.add(L.point(dx, dy));
 
-		if (this._aura) {
-			this._frame.updateAura(this._handleId, newPoint);
-		} else {
+		var latlng = this._frame.getLatLng(this._handleId),
+			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
 
-			var latlng = this._frame.getLatLng(this._handleId),
-				 newLatLng = this.getMap().layerPointToLatLng(newPoint);
+		latlng.lat = newLatLng.lat;
+		latlng.lng = newLatLng.lng;
 
-			latlng.lat = newLatLng.lat;
-			latlng.lng = newLatLng.lng;
+		this._deltas.newLatLng = newLatLng;
 
-			this._path.updateBounds();
-			this._frame.updateHandle(this._handleId);
-			this._path.redraw();
-		}
-
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.updateHandle(this._handleId);
 	},
 
-	_onDragStart: function (evt) {
-		var sourceEvent = L.larva.getSourceEvent(evt);
+	_onHandleStart: function (evt) {
+		var sourceEvent;
 
-		this._original = this._frame.getPosition(evt.id).clone();
 		this._handleId = evt.id;
 
-		this._startPos = {
-			x: sourceEvent.clientX, y: sourceEvent.clientY
-		};
-
 		if (this.options.aura) {
-			this._aura = this._frame.createAura(evt.id);
+			this._frame.startAura(evt.id);
+			this._frame.on('aura:end', this._onAuraEnd, this);
 		} else {
-			// TODO:
-			delete this._aura;
+			sourceEvent = L.larva.getSourceEvent(evt);
+			this._origin = {
+				x: sourceEvent.clientX, y: sourceEvent.clientY
+			};
+
+			this._deltas = {
+				oriLatLng: this._frame.getLatLng(evt.id).clone()
+			};
+
+			this._originalPoint = this._frame.getPoint(evt.id).clone();
+			this._frame
+				.on('handle:move', this._onHandleMove, this)
+				.on('handle:end', this._onHandleEnd, this);
 		}
+	},
 
-		this._frame
-			.on('drag:move', this._onDragMove, this)
-			.on('drag:end', this._onDragEnd, this);
+	_removeLatLng: function (handleId) {
+		var latlng = this._frame.getLatLng(handleId),
+		    latlngs = this._path.getLatLngs(),
+		    index, p;
 
+		switch (this._path.getType()) {
+			case L.Polyline.MULTIPOLYLINE:
+
+				for (p=0; p < latlngs[p].length; p++) {
+					if ((index = latlngs[p].indexOf(latlng)) !== -1) {
+
+
+						if (latlngs[p].length <= 2) {
+							this._removeItem(latlng[p], latlngs, p);
+						} else {
+							this._removeItem(latlng, latlngs[p], index);
+							// latlngs[p].splice(index, 1);
+						}
+
+
+						break;
+					}
+				}
+
+				break;
+
+			default:
+				if ((index = latlngs.indexOf(latlng)) !== -1) {
+					// latlngs.splice(index, 1);
+					this._removeItem(latlng, latlngs, index);
+					break;
+				}
+		}
+	},
+
+	/**
+	 * @protected
+	 * @param  {*} item
+	 * @param  {Array.<*>} array
+	 * @param  {Number} index
+	 */
+	_removeItem: function (item, array, index) {
+		this._editDelItem(item, array, index);
+		var args = [item, array, index];
+		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelItem, args, this._unEditDelItem, args, true);
+	},
+
+	_removeItems: function (items, array, index) {
+		this._editDelItems(items, array, index);
+		var args = [items, array, index];
+		this._do(L.larva.l10n.editPolylineDelVertex, this._editDelItems, args, this._unEditDelItems, args, true);
+	},
+
+	_searchNearestPoint: function (point) {
+		var found = [], map = this.getMap();
+
+		this._path.forEachLine(function (latlngs) {
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
+		}, this);
+
+		return found;
+	},
+
+	_unEdit: function (handleId, deltas) {
+		var latlng = this._frame.getLatLng(handleId);
+		latlng.lat -= deltas.lat;
+		latlng.lng -= deltas.lng;
+
+		this._path.updateBounds();
+		this._path.redraw();
+
+		this._frame.updateHandle(handleId);
+	},
+
+	_unEditAddVertex: function () {
+		var latlngs = arguments[1],
+		    index = arguments[2];
+
+		latlngs.splice(index, 1);
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_unEditDelItem: function (item, array, index) {
+		array.splice(index, 0, item);
+
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
+	},
+
+	_unEditDelItems: function (items, array, index) {
+		array.splice.apply(array, [index, 0].concat(items));
+		this._path.updateBounds();
+		this._path.redraw();
+		this._frame.redraw();
 	}
-
 });
 
 /**

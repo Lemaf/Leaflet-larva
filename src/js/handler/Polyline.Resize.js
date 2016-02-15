@@ -24,59 +24,33 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._frame.on('drag:start', this._onStart, this);
 	},
 
-	/**
-	 * @param  {L.Point} original
-	 * @param  {L.Point} transformed
-	 * @param  {Number} [xscale=null]
-	 * @param  {Number} [yscale=null]
-	 */
-	transformPoint: function (original, transformed, xscale, yscale) {
+	_onEndOffTheFly: function () {
 
-		if (xscale !== null) {
-			transformed.x = this._reference.point.x + xscale * (original.x - this._reference.point.x);
-		}
+		this._stopPreview();
 
-		if (yscale !== null) {
-			transformed.y = this._reference.point.y + yscale * (original.y - this._reference.point.y);
-		}
-	},
-
-	_onEnd: function () {
 		this._frame
-			.off('drag:move', this._onMove, this)
-			.off('drag:end', this._onEnd, this);
+			.off('drag:move', this._onMoveOffTheFly, this)
+			.off('drag:end', this._onEndOffTheFly, this);
 
 		delete this._reference;
+		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
 	},
 
-	_onMove: function (evt) {
+	_onEndOnTheFly: function () {
+		this._frame
+			.off('drag:move', this._onMoveOnTheFly, this)
+			.off('drag:end', this._onEndOnTheFly, this);
 
-		var event = L.larva.getSourceEvent(evt);
+		delete this._reference;
+		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
+	},
 
-		var xscale = null, yscale = null;
+	_onMoveOffTheFly: function (evt) {
+		this._transformPreview(this._scale = this._scaleOf(evt));
+	},
 
-		if (this._reference.screenX !== undefined) {
-			xscale = (event.clientX - this._reference.screenX) / this._reference.width;
-			if (this._reference.invertX) {
-				xscale = -xscale;
-			}
-		}
-
-		if (this._reference.screenY !== undefined) {
-			yscale = (event.clientY - this._reference.screenY) / this._reference.height;
-			if (this._reference.invertY) {
-				yscale = -yscale;
-			}
-		}
-
-		if (xscale !== null && yscale !== null && event.ctrlKey) {
-			var xyscale = Math.max(Math.abs(xscale), Math.abs(yscale));
-
-			xscale = xscale >= 0 ? xyscale : -xyscale;
-			yscale = yscale >= 0 ? xyscale : -xyscale;
-		}
-
-		this.transform(xscale, yscale);
+	_onMoveOnTheFly: function (evt) {
+		this._transform(this._scale = this._scaleOf(evt));
 	},
 
 	_onStart: function (evt) {
@@ -170,11 +144,74 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 
 		this.backupLatLngs();
 
-		this._frame
-			.on('drag:move', this._onMove, this)
-			.on('drag:end', this._onEnd, this);
-	}
+		if (this.options.onTheFly) {
+			this._frame
+				.on('drag:move', this._onMoveOnTheFly, this)
+				.on('drag:end', this._onEndOnTheFly, this);
+		} else {
+			this._startPreview();
+			this._frame
+				.on('drag:move', this._onMoveOffTheFly, this)
+				.on('drag:end', this._onEndOffTheFly, this);
+		}
+	},
 
+	_scaleOf: function (evt) {
+		var event = L.larva.getSourceEvent(evt);
+
+		var x = null, y = null;
+
+		if (this._reference.screenX !== undefined) {
+			x = (event.clientX - this._reference.screenX) / this._reference.width;
+			if (this._reference.invertX) {
+				x = -x;
+			}
+		}
+
+		if (this._reference.screenY !== undefined) {
+			y = (event.clientY - this._reference.screenY) / this._reference.height;
+			if (this._reference.invertY) {
+				y = -y;
+			}
+		}
+
+		if (x !== null && y !== null && event.ctrlKey) {
+			var xyscale = Math.max(Math.abs(x), Math.abs(y));
+
+			x = x >= 0 ? xyscale : -xyscale;
+			y = y >= 0 ? xyscale : -xyscale;
+		}
+
+		return {x: x, y: y, ref: this._reference.point};
+	},
+	/**
+	 * @param  {L.Point} original
+	 * @param  {L.Point} transformed
+	 * @param  {Number} [xscale=null]
+	 * @param  {Number} [yscale=null]
+	 */
+	_transformPoint: function (original, transformed, scale) {
+
+		if (scale.x !== null) {
+			transformed.x = scale.ref.x + scale.x * (original.x - scale.ref.x);
+		}
+
+		if (scale.y !== null) {
+			transformed.y = scale.ref.y + scale.y * (original.y - scale.ref.y);
+		}
+	},
+
+	_unTransformPoint: function (original, transformed, scale) {
+
+		if (scale.x !== null) {
+			transformed.x = ((original.x - scale.ref.x) / scale.x) + scale.ref.x;
+		}
+
+		if (scale.y !== null) {
+			transformed.y = ((original.y - scale.ref.y) / scale.y) + scale.ref.y;
+		}
+
+	}
 });
 
 L.Polyline.addInitHook(function () {

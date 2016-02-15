@@ -10,6 +10,7 @@
 		"window": false,
 		"getComputedStyle": false,
 		"setTimeout": false,
+		"setInterval": false,
 		"MouseEvent": false
 	},
 

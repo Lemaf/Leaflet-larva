@@ -15,7 +15,6 @@ L.larva = {
 	CTRL_KEY: 17,
 
 	NOP: function () {},
-
 	/**
 	 * @param  {Event} event
 	 * @return {Number}
@@ -23,7 +22,6 @@ L.larva = {
 	getEventKeyCode: function (event) {
 		return event.keyCode || event.key;
 	},
-
 	/**
 	 * @param  {HTMLElement} el
 	 * @return {Number}
@@ -31,7 +29,6 @@ L.larva = {
 	getHeight: function (el) {
 		return el.offsetHeight;
 	},
-
 	/**
 	 * @param  {L.Event} evt
 	 * @return {Event}
@@ -44,7 +41,6 @@ L.larva = {
 		return !evt.touches ?
 		        evt : evt.touches[0];
 	},
-
 	/**
 	 * @param  {HTMLElement} el
 	 * @return {Number}
@@ -52,7 +48,6 @@ L.larva = {
 	getWidth: function (el) {
 		return el.offsetWidth;
 	},
-
 	/**
 	 * @param  {L.LatLng[]}  latlngs
 	 * @return {Boolean}
@@ -67,16 +62,26 @@ L.larva = {
 
 		return false;
 	},
-
+	/**
+	 * @param  {L.LatLng} latlng
+	 * @return {L.Point}
+	 */
 	project: function (latlng) {
 		var point = L.Projection.Mercator.project(latlng);
 		point.y = 0 - point.y;
 		return point;
 	},
-
+	/**
+	 * @param  {L.Point} point
+	 * @return {L.LatLng}
+	 */
 	unproject: function (point) {
 		point = point.clone();
 		point.y = 0 - point.y;
 		return L.Projection.Mercator.unproject(point);
 	}
 };
+
+L.Map.addInitHook(function () {
+	this.larva = {};
+});

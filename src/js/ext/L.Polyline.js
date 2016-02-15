@@ -7,25 +7,20 @@ if (!L.Polyline.prototype.forEachLatLng) {
 		/**
 		 * @memberOf external:"L.Polyline"
 		 * @instance
-		 * @param  {Function} fn
+		 * @param  {Function} fn (latlng {L.LatLng}, latlngs {L.LatLng[]})
 		 * @param  {Any}   context
 		 */
 		forEachLatLng: function (fn, context) {
-			var toVisit = [this.getLatLngs()],
-			    latlngs, i, l;
+			var i=0, j, latlngs = this.getLatLngs();
 
-			var call = context ? function(latlng) {
-				fn.call(context, latlng);
-			} : fn;
-
-			while (toVisit.length) {
-				latlngs = toVisit.pop();
-
-				for (i=0, l=latlngs.length; i<l; i++) {
-					if (Array.isArray(latlngs[i])) {
-						toVisit.push(latlngs[i]);
-					} else {
-						call(latlngs[i]);
+			if (L.larva.isFlat(latlngs)) {
+				for (; i<latlngs.length; i++) {
+					fn.call(context, latlngs[i], latlngs);
+				}
+			} else {
+				for (; i<latlngs.length; i++) {
+					for (j=0; j<latlngs[i].length; j++) {
+						fn.call(context, latlngs[i][j], latlngs[i]);
 					}
 				}
 			}
@@ -102,5 +97,14 @@ L.Polyline.include({
 			default:
 				throw new Error('Invalid geometry type!');
 		}
+	},
+
+	/**
+	 * @memberOf external:"L.Polyline"
+	 * @instance
+	 * @param {L.LatLngBounds} bounds
+	 */
+	setBounds: function (bounds) {
+		this._bounds = bounds;
 	}
 });

@@ -17,6 +17,14 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend(
 		this._path.forEachLatLng(function (latlng) {
 			latlng._original = latlng.clone();
 		});
+
+		var bounds = this._path.getBounds();
+
+		var latlng = bounds.getSouthWest();
+		latlng._original = latlng.clone();
+
+		latlng = bounds.getNorthEast();
+		latlng._original = latlng.clone();
 	}
 
 });

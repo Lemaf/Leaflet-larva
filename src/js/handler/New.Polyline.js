@@ -1,16 +1,28 @@
 /**
  * @requires New.js
+ * @requires ../ext/L.LatLngBounds.js
+ * @requires ../Undoable.js
+ * @requires ../l10n.js
  */
 
 /**
  * @class Polyline creator
  * @extends L.larva.handler.New
+ * @mixes L.larva.Undoable
  */
 L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 /** @lends L.larva.handler.New.Polyline.prototype */
 {
 
+	includes: [L.larva.Undoable],
+
 	options: {
+
+		allowFireOnMap: true,
+
+		maxDragCount: 5,
+
+		minSqrDistance: 100,
 
 		handleStyle: {
 			border: '1px solid #0f0',
@@ -30,6 +42,15 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		threshold: 1
 	},
 
+	/**
+	 * Invoke after enable
+	 * @param {L.LatLng} latlng
+	 */
+	addLatLng: function (latlng) {
+		this._toAddLatLng = latlng;
+		this._pushLatLng();
+	},
+
 	addHooks: function() {
 
 		this._latlngs = [];
@@ -39,6 +60,11 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		var handle = this._handle = L.DomUtil.create('div', 'llarva-new-vertex-handle', this._pane);
 		L.extend(handle.style, this.options.handleStyle);
 
+		this._halfHandleSize = new L.Point(
+			handle.offsetWidth / 2,
+			handle.offsetHeight / 2
+		);
+
 		this._newLatLng = new L.LatLng(0, 0);
 		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options, {
 			noClip: true
@@ -46,18 +72,16 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 		this._map
 			.on('mousemove', this._onMapMouseMove, this)
-			.on('movestart', this._onMapMoveStart, this);
+			.on('dragstart', this._onMapDragStart, this)
+			.on('drag', this._onMapDrag, this);
 
 		L.DomEvent
-			.on(handle, 'click', this._onClick, this)
-			.on(handle, 'dblclick', this._onDblClick, this);
-	},
+			.on(handle, 'mousedown', this._onHandleMousedown, this)
+			.on(handle, 'mouseup', this._onHandleMouseup, this)
+			.on(handle, 'dblclick', this._onHandleDblClick, this);
 
-	addLatLng: function (latlng) {
-		this._newLatLng = latlng.clone();
-		this._pushLatLng();
+		delete this._lastDown;
 	},
-
 	/**
 	 * Create an empty Polyline layer
 	 * @return {L.Polyline}
@@ -68,10 +92,14 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		}));
 	},
 
+	/**
+	 * @return {L.Map}
+	 */
+	getMap: function () {
+		return this._map;
+	},
+
 	_next: function () {
-
-		this._latlngs.pop();
-
 		if (this._latlngs.length >= this.options.threshold) {
 			try {
 
@@ -82,75 +110,82 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 					layer: this._previewLayer
 				});
 
-				this.fireOnMap('ldraw:created', {
-					handler: this,
-					layer: this._previewLayer
-				});
+				if (this.options.allowFireOnMap) {
+					this.fireOnMap('ldraw:created', {
+						handler: this,
+						layer: this._previewLayer
+					});
+				}
 
 			} finally {
 				this._lineLayer.setLatLngs([]);
 				this._latlngs = [];
 				this._previewLayer = this._lineLayer;
 				delete this._newLayer;
+				delete this._currentBounds;
 			}
 		}
 	},
 
 	removeHooks: function () {
 		L.DomEvent
-			.off(this._handle, 'click', this._onClick, this)
-			.off(this._handle, 'dblclick', this._onDblClick, this);
+			.off(this._handle, 'mousedown', this._onHandleMousedown, this)
+			.off(this._handle, 'mouseup', this._onHandleMouseup, this)
+			.off(this._handle, 'dblclick', this._onHandleDblClick, this);
 
 		this._map
 			.off('mousemove', this._onMapMouseMove, this)
-			.off('movestart', this._onMapMoveStart, this);
+			.off('dragstart', this._onMapDragStart, this)
+			.off('drag', this._onMapDrag, this);
 
 		L.DomUtil.remove(this._handle);
 
 		if (this._previewLayer) {
 			this._map.removeLayer(this._previewLayer);
 		}
+
+		this._noUndo();
 	},
 
-	_getEventLayerPoint: function (evt) {
-		var bounding = this._pane.getBoundingClientRect();
-		evt = L.larva.getSourceEvent(evt);
-
-		return new L.Point(
-			evt.clientX - bounding.left,
-			evt.clientY - bounding.top
-		);
-	},
-
-	_onClick: function (evt) {
+	_onHandleDblClick: function (evt) {
 		L.DomEvent.stop(evt);
+		this._next();
+	},
 
-		if (this._lastClick) {
-			evt = L.larva.getSourceEvent(evt);
-			var dx = evt.clientX - this._lastClick.x,
-			    dy = evt.clientY - this._lastClick.y;
+	_onHandleMousedown: function (evt) {
+		var eventPoint = this._map.mouseEventToLayerPoint(evt);
+		
+		if (this._lastDown) {
+			var dx = eventPoint.x - this._lastDown.x,
+			    dy = eventPoint.y - this._lastDown.y;
 
-			if ((dx * dx + dy * dy) < 100) {
+			if ( ((dx * dx) + (dy * dy)) <= this.options.minSqrDistance) {
 				return;
 			}
 		} else {
-			this._lastClick = {};
+			this._lastDown = {};
 		}
 
-		this._lastClick.x = evt.clientX;
-		this._lastClick.y = evt.clientY;
+		this._lastDown.x = eventPoint.x;
+		this._lastDown.y = eventPoint.y;
 
-		if (!this._moving) {
-			this._pushLatLng();
+		this._toAddLatLng = this._newLatLng;
+	},
+
+	_onHandleMouseup: function () {
+		if (this._dragCount && this._dragCount > this.options.maxDragCount) {
+			delete this._dragCount;
 		} else {
-			delete this._moving;
+			this._pushLatLng();
 		}
 	},
 
-	_onDblClick: function (evt) {
-		L.DomEvent.stop(evt);
-		this._pushLatLng();
-		this._next();
+	_onMapDrag: function () {
+		this._dragCount++;
+	},
+
+	_onMapDragStart: function () {
+		this._dragCount = 0;
 	},
 
 	_onMapMouseMove: function (evt) {
@@ -165,23 +200,34 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 		var point = this._map.latLngToLayerPoint(latlng);
 
-		L.DomUtil.setPosition(this._handle, point.subtract(new L.Point(
-			this._handle.offsetWidth / 2,
-			this._handle.offsetHeight / 2
-		)));
+		L.DomUtil.setPosition(this._handle, point.subtract(this._halfHandleSize));
 
 		if (this._latlngs.length) {
+			this._previewLayer.setBounds(this._previewBounds());
 			this._previewLayer.redraw();
 		}
 	},
 
-	_onMapMoveStart: function () {
-		this._moving = true;
+	_previewBounds: function () {
+		return this._currentBounds.clone().extend(this._newLatLng);
 	},
 
 	_pushLatLng: function () {
+		if (this._toAddLatLng) {
+			var latlng = this._toAddLatLng.clone();
+			delete this._toAddLatLng;
+			this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, [latlng], this._undoPushLatLng, Array.prototype);
+		}
+	},
 
-		this._latlngs.push(this._newLatLng.clone());
+	_doPushLatLng: function (latlng) {
+		if (this._currentBounds) {
+			this._currentBounds.extend(latlng);
+		} else {
+			this._currentBounds = L.latLngBounds(latlng.clone(), latlng.clone());
+		}
+
+		this._latlngs.push(latlng.clone());
 
 		if (this._latlngs.length === this.options.threshold) {
 			this._map.removeLayer(this._lineLayer);
@@ -195,6 +241,17 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 		this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
 		this._previewLayer.redraw();
+	},
+
+	_undoPushLatLng: function () {
+		this._latlngs.pop();
+
+		if (this._latlngs.length) {
+			this._previewLayer.setLatLngs(this._latlngs.concat(this._newLatLng));
+			this._previewLayer.redraw();
+		} else if (this._previewLayer._map) {
+			this._map.removeLayer(this._previewLayer);
+		}
 	}
 
 });

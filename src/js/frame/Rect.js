@@ -42,7 +42,6 @@ L.larva.frame.Rect = L.Layer.extend(
 			map.createPane(this.options.pane);
 		}
 	},
-
 	/**
 	 * Returns Computed CSS Style of an handler
 	 * @param  {String} id
@@ -273,16 +272,12 @@ L.larva.frame.Rect = L.Layer.extend(
 
 		var computedStyle = getComputedStyle(this._el);
 
-		if (maintainHandles && maintainHandles.length) {
-
-			if (currentPosition) {
-				for (var i=0; i<maintainHandles.length; i++) {
-					
-					handle = this._handles[maintainHandles[i]];
-					if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
-						handlePosition = handlePosition.add(currentPosition);
-						L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
-					}
+		if (maintainHandles && currentPosition && maintainHandles.length) {
+			for (var i=0; i<maintainHandles.length; i++) {
+				handle = this._handles[maintainHandles[i]];
+				if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
+					handlePosition = handlePosition.add(currentPosition);
+					L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
 				}
 			}
 		}
