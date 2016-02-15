@@ -18,7 +18,9 @@ L.larva.UndoRedo = L.Class.extend(
 
 	initialize: function (map, options) {
 		this._map = map;
-		map.on('lundo:do', this._onDo, this);
+		map
+			.on('lundo:do', this._onDo, this)
+			.on('lundo:noundo', this._onNoUndo, this);
 
 		L.setOptions(this, options);
 		this._bottom = null;
@@ -73,6 +75,10 @@ L.larva.UndoRedo = L.Class.extend(
 			this._push(evt.command);
 			this._state = L.larva.UndoRedo.REDO;
 		}
+	},
+
+	_onNoUndo: function (evt) {
+		this._removeUndoable(evt.undoable);
 	},
 
 	_pop: function () {
@@ -149,6 +155,57 @@ L.larva.UndoRedo = L.Class.extend(
 			this._top = this._current = this._bottom = command;
 			this._total = 1;
 		}
+	},
+
+	_removeCommand: function (command) {
+		if (this._current === command) {
+			this._current = command.prev || command.next || null;
+		}
+
+		if (this._top === command) {
+			this._top = command.prev || null;
+		}
+
+		if (this._bottom === command) {
+			this._bottom = command.next || null;
+		}
+
+		if (command.next) {
+			if (command.prev) {
+				command.next.prev = command.prev;
+			} else {
+				delete command.next.prev;
+			}
+
+			delete command.next;
+		}
+
+		if (command.prev) {
+			if (command.next) {
+				command.prev.next = command.next;
+			} else {
+				delete command.prev.next;
+			}
+
+			delete command.prev;
+		}
+
+		this._total--;
+	},
+
+	_removeUndoable: function (undoable) {
+		var commands = [], current;
+		current = this._top;
+		while (current) {
+			commands.push(current);
+			current = current.prev;
+		}
+
+		commands.forEach(function (command) {
+			if (command.undoable() === undoable) {
+				this._removeCommand(command);
+			}
+		}, this);
 	}
 });
 

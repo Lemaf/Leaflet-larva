@@ -70,6 +70,9 @@ L.larva.Command = L.Class.extend(
 		}
 	},
 
+	undoable: function () {
+		return this._undoable;
+	}
 });
 
 /**

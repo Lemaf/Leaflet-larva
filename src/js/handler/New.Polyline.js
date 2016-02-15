@@ -143,6 +143,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		if (this._previewLayer) {
 			this._map.removeLayer(this._previewLayer);
 		}
+
+		this._noUndo();
 	},
 
 	_onHandleDblClick: function (evt) {
