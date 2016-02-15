@@ -21,7 +21,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	includes: [L.larva.Undoable],
 
 	options: {
-		onTheFly: false,
+		onTheFly: true,
 		noUpdate: []
 	},
 
@@ -34,14 +34,15 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	 * @param  {String} desc
 	 * @param  {Array.<*>} doArgs
 	 * @param  {Array.<*>} undoArgs
+	 * @param  {Boolean} [applied]
 	 */
-	_apply: function (desc, doArgs, undoArgs) {
+	_apply: function (desc, doArgs, undoArgs, applied) {
 
 		this._path.forEachLatLng(function (latlng) {
 			delete latlng._original;
 		});
 
-		this._do(desc, this._transform, doArgs, this._unTransform, undoArgs);
+		this._do(desc, this._transform, doArgs, this._unTransform, undoArgs, !!applied);
 	},
 	/**
 	 * @protected

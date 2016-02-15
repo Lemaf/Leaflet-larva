@@ -74,7 +74,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 			.off('drag:move', this._onMoveOnTheFly, this)
 			.off('drag:end', this._onEndOnTheFly);
 
-		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
+		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta], true);
 	},
 
 	_onMoveOnTheFly: function (evt) {

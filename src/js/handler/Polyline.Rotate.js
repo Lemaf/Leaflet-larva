@@ -91,7 +91,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 			.off('drag:move', this._onMoveOnTheFly, this)
 			.off('drag:end', this._onEndOnTheFly, this);
 
-		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
+		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params], true);
 	},
 
 	_onMoveOffTheFly: function (evt) {
