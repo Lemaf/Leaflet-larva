@@ -47,7 +47,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	 * @param {L.LatLng} latlng
 	 */
 	addLatLng: function (latlng) {
-		this._toAddLatLng = latlng.clone();
+		this._toAddLatLng = latlng;
 		this._pushLatLng();
 	},
 
@@ -143,6 +143,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		if (this._previewLayer) {
 			this._map.removeLayer(this._previewLayer);
 		}
+
+		this._noUndo();
 	},
 
 	_onHandleDblClick: function (evt) {
@@ -167,7 +169,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		this._lastDown.x = eventPoint.x;
 		this._lastDown.y = eventPoint.y;
 
-		this._toAddLatLng = this._newLatLng.clone();
+		this._toAddLatLng = this._newLatLng;
 	},
 
 	_onHandleMouseup: function () {
@@ -211,17 +213,21 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	},
 
 	_pushLatLng: function () {
-		this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, [this._toAddLatLng], this._undoPushLatLng, Array.prototype);
+		if (this._toAddLatLng) {
+			var latlng = this._toAddLatLng.clone();
+			delete this._toAddLatLng;
+			this._do(L.larva.l10n.newPolylinePushLatLng, this._doPushLatLng, [latlng], this._undoPushLatLng, Array.prototype);
+		}
 	},
 
-	_doPushLatLng: function (toAddLatLng) {
+	_doPushLatLng: function (latlng) {
 		if (this._currentBounds) {
-			this._currentBounds.extend(toAddLatLng);
+			this._currentBounds.extend(latlng);
 		} else {
-			this._currentBounds = L.latLngBounds(toAddLatLng.clone(), toAddLatLng.clone());
+			this._currentBounds = L.latLngBounds(latlng.clone(), latlng.clone());
 		}
 
-		this._latlngs.push(toAddLatLng.clone());
+		this._latlngs.push(latlng.clone());
 
 		if (this._latlngs.length === this.options.threshold) {
 			this._map.removeLayer(this._lineLayer);

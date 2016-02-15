@@ -36,5 +36,15 @@ L.larva.Undoable = {
 		} else if (!applied) {
 			doFn.apply(this, doArgs);
 		}
+	},
+
+	/**
+	 * @protected
+	 */
+	_noUndo: function () {
+		var map = this.getMap();
+		if (map.options.allowUndo) {
+			map.fire('lundo:noundo', {undoable: this});
+		}
 	}
 };
