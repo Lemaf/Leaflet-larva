@@ -96,8 +96,8 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 				}, this);
 
 				clazz = L.Polyline;
-
 				break;
+
 			case L.Polyline.MULTIPOLYLINE:
 				this._path.forEachLine(function (latlngs) {
 					previewLatLngs.push(this._simplifyToPreview(latlngs));
@@ -190,7 +190,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		var args = [null, transformed];
 		args.push.apply(args, arguments);
 
-		function calc (latlng) {
+		preview.layer.forEachLatLng(function (latlng) {
 
 			original = args[0] = L.larva.project(latlng._original);
 			transformed.x = original.x;
@@ -202,16 +202,15 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 			latlng.lat = newLatLng.lat;
 			latlng.lng = newLatLng.lng;
-		}
-
-		preview.layer.forEachLatLng(calc);
-		
+		});
 
 		preview.layer.updateBounds();
 		preview.layer.redraw();
 		this._frame.updateBounds.apply(this._frame, [preview.layer.getBounds()].concat(this.options.noUpdate));
 	},
-
+	/**
+	 * @param {...*} args
+	 */
 	_unTransform: function () {
 		var transformed = L.point(0, 0),
 		    original,
