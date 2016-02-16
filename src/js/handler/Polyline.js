@@ -25,22 +25,6 @@ L.larva.handler.Polyline = L.larva.handler.Path.extend(
 
 		latlng = bounds.getNorthEast();
 		latlng._original = latlng.clone();
-	},
-	/**
-	 * @protected
-	 * @param  {L.Point} point
-	 * @return {L.LatLng}
-	 */
-	_layerPointToLatLng: function (point) {
-		return this.getMap().layerPointToLatLng(point);
-	},
-	/**
-	 * @protected
-	 * @param  {L.LatLng} latlng
-	 * @return {L.Point}
-	 */
-	_latLngToLayerPoint: function (latlng) {
-		return this.getMap().latLngToLayerPoint(latlng);
 	}
 
 });
