@@ -63,12 +63,6 @@ L.larva.frame.Rect = L.Layer.extend(
 		};
 	},
 	/**
-	 * @return {L.Draggable}
-	 */
-	getDraggable: function () {
-		return this._draggable;
-	},
-	/**
 	 * @return {DOMRect}
 	 */
 	getFrameClientRect: function () {
@@ -116,27 +110,23 @@ L.larva.frame.Rect = L.Layer.extend(
 
 		}, this);
 
-		this._draggable = new L.Draggable(el);
 		this._draggables = {};
 		this._updateFrame(false);
 		this._updateHandles();
 	},
 
 	onRemove: function() {
-		var id;
-
-		if (this._draggable) {
-			this._draggable.disable();
-		}
+		var id, eventTypes = L.Draggable.START.join(' ');
 
 		for (id in this._draggables) {
 			this._draggables[id].disable();
 		}
 
-		L.DomEvent.off(this._el, 'mousedown click', L.DomEvent.stop);
+		// L.DomEvent.off(this._el, 'mousedown click', L.DomEvent.stop);
+		L.DomEvent.off(this._el, eventTypes, this._onStart, this);
 
 		for (id in this._handles) {
-			L.DomEvent.off(this._handles[id], 'mousedown click', L.DomEvent.stop);
+			L.DomEvent.off(this._handles[id], eventTypes, this._onStart, this);
 		}
 
 		L.DomUtil.remove(this._el);
@@ -144,7 +134,6 @@ L.larva.frame.Rect = L.Layer.extend(
 
 		delete this._el;
 	},
-
 	/**
 	 * @param {Object} styles
 	 * @param {HTMLElement} element
@@ -160,7 +149,6 @@ L.larva.frame.Rect = L.Layer.extend(
 			}
 		}
 	},
-
 	/**
 	 * @param {L.larva.frame.RECT_STYLE} style
 	 */
@@ -175,12 +163,6 @@ L.larva.frame.Rect = L.Layer.extend(
 				this._draggables[id].disable();
 				delete this._draggables[id];
 			}
-
-			// if (oldStyle) {
-			// 	L.DomUtil.removeClass(el, oldStyle.className + '-' + id);
-			// }
-
-			// L.DomUtil.addClass(el, style.className + '-' + id);
 
 			if (style[id]) {
 				if (style[id].hide) {
@@ -260,6 +242,42 @@ L.larva.frame.Rect = L.Layer.extend(
 		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
+	_setHandlePosition: function (handle, bWidth) {
+		var id = handle._id, style = {};
+
+		switch (id[0]) {
+			case 't':
+				style.top = (L.larva.getHeight(handle) / -2 - bWidth.top) + 'px';
+				break;
+
+			case 'm':
+				style.top = '50%';
+				style.marginTop = (L.larva.getHeight(handle) / -2) + 'px';
+				break;
+
+			case 'b':
+				style.bottom = (L.larva.getHeight(handle) / -2 - bWidth.bottom) + 'px';
+				break;
+		}
+
+		switch (id[1]) {
+			case 'l':
+				style.left = (L.larva.getWidth(handle) / -2 - bWidth.left) + 'px';
+				break;
+
+			case 'm':
+				style.marginLeft = (L.larva.getWidth(handle) / -2) + 'px';
+				style.left = '50%';
+				break;
+
+			case 'r':
+				style.right = (L.larva.getWidth(handle) / -2 - bWidth.right) + 'px';
+				break;
+		}
+
+		L.extend(handle.style, style);
+	},
+
 	_updateDraggable: function (id) {
 		var el = this._handles[id];
 		var left = el.offsetLeft,
@@ -337,8 +355,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	_updateHandles: function () {
-		var el, computedStyle, right, bottom, left, top;
-		var widthOf = L.larva.getWidth, heightOf = L.larva.getHeight;
+		var id, computedStyle;
 
 		computedStyle = getComputedStyle(this._el);
 
@@ -349,90 +366,13 @@ L.larva.frame.Rect = L.Layer.extend(
 			top: 'borderTopWidth'
 		};
 
-		for (var id in borderWidth) {
+		for (id in borderWidth) {
 			borderWidth[id] = parseInt(computedStyle[borderWidth[id]]) / 2;
 		}
 
-		el = this._handles.br;
-
-		right = (- (widthOf(el) / 2) - borderWidth.right) + 'px';
-		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
-
-		L.extend(el.style, {
-			right: right,
-			bottom: bottom
-		});
-
-		el = this._handles.bm;
-		left = (-(widthOf(el) / 2)) + 'px';
-		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
-
-		L.extend(el.style, {
-			left: '50%',
-			'margin-left': left,
-			bottom: bottom
-		});
-
-		el = this._handles.bl;
-		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
-		bottom = (- (heightOf(el) / 2) - borderWidth.bottom) + 'px';
-		L.extend(el.style, {
-			left: left,
-			bottom: bottom
-		});
-
-		el = this._handles.mm;
-		left = -(widthOf(el) / 2) + 'px';
-		top = -(heightOf(el) / 2) + 'px';
-		L.extend(el.style, {
-			top: '50%',
-			left: '50%',
-			'margin-left': left,
-			'margin-top': top
-		});
-
-		el = this._handles.ml;
-		top = -(heightOf(el) / 2) + 'px';
-		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
-		L.extend(el.style, {
-			top: '50%',
-			'margin-top': top,
-			left: left
-		});
-
-		el = this._handles.mr;
-		right = (- (widthOf(el) / 2) - borderWidth.right) + 'px';
-		top = -(heightOf(el) / 2) + 'px';
-		L.extend(el.style, {
-			right: right,
-			top: '50%',
-			'margin-top': top
-		});
-
-		el = this._handles.tr;
-		right = (-(widthOf(el) / 2) - borderWidth.right) + 'px';
-		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
-		L.extend(el.style, {
-			right: right,
-			top: top
-		});
-
-		el = this._handles.tm;
-		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
-		left = -(widthOf(el) / 2) + 'px';
-		L.extend(el.style, {
-			left: '50%',
-			'margin-left': left,
-			top: top
-		});
-
-		el = this._handles.tl;
-		top = (-(heightOf(el) / 2) - borderWidth.top) + 'px';
-		left = (-(widthOf(el) / 2) - borderWidth.left) + 'px';
-		L.extend(el.style, {
-			left: left,
-			top: top
-		});
+		for (id in this._handles) {
+			this._setHandlePosition(this._handles[id], borderWidth);
+		}
 	}
 });
 
