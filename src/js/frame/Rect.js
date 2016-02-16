@@ -62,19 +62,29 @@ L.larva.frame.Rect = L.Layer.extend(
 			zoom: this._onMapZoom
 		};
 	},
-
+	/**
+	 * @return {L.Draggable}
+	 */
 	getDraggable: function () {
 		return this._draggable;
 	},
-
+	/**
+	 * @return {DOMRect}
+	 */
 	getFrameClientRect: function () {
 		return this._el.getBoundingClientRect();
 	},
-
+	/**
+	 * @param  {String} id
+	 * @return {HTMLElement}
+	 */
 	getHandle: function (id) {
 		return this._handles[id];
 	},
-
+	/**
+	 * @param  {String} id
+	 * @return {L.Point}
+	 */
 	getPosition: function(id) {
 		if (id) {
 			return L.DomUtil.getPosition(this._handles[id]);
@@ -82,7 +92,8 @@ L.larva.frame.Rect = L.Layer.extend(
 			return L.DomUtil.getPosition(this._el);
 		}
 	},
-
+	/**
+	 */
 	hideHandle: function() {
 		for (var i = 0; i < arguments.length; i++) {
 			if (this._handles[arguments[i]]) {
@@ -150,6 +161,9 @@ L.larva.frame.Rect = L.Layer.extend(
 		}
 	},
 
+	/**
+	 * @param {L.larva.frame.RECT_STYLE} style
+	 */
 	setStyle: function (style) {
 		var id, el, oldStyle = this._style;
 
