@@ -33,7 +33,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 	_searchNearestPoint: function (point) {
 		var found = [],
 		    map = this.getMap(),
-		    maxDist = this.options.maxDist;
+		    maxDist = this.options.maxNewVertexDistance;
 
 		var search = L.larva.handler.Polyline.Edit.searchNearestPointIn;
 

@@ -17,13 +17,13 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	options: {
 		aura: true,
-		maxDist: 10,
-		minDelta: 4
+		maxNewVertexDistance: 10,
+		minSqrEditVertexDistance: 10
 	},
 
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path, {
-			minDelta: this.options.minDelta
+			minSqrEditVertexDistance: this.options.minSqrEditVertexDistance
 		}).addTo(this.getMap());
 
 		this._frame
@@ -200,14 +200,12 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				for (p=0; p < latlngs[p].length; p++) {
 					if ((index = latlngs[p].indexOf(latlng)) !== -1) {
 
-
 						if (latlngs[p].length <= 2) {
 							this._removeItem(latlng[p], latlngs, p);
 						} else {
 							this._removeItem(latlng, latlngs[p], index);
 							// latlngs[p].splice(index, 1);
 						}
-
 
 						break;
 					}
@@ -246,7 +244,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		var found = [], map = this.getMap();
 
 		this._path.forEachLine(function (latlngs) {
-			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxNewVertexDistance, latlngs, map));
 		}, this);
 
 		return found;
@@ -275,7 +273,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 	_unEditDelItem: function (item, array, index) {
 		array.splice(index, 0, item);
-
 		this._path.updateBounds();
 		this._path.redraw();
 		this._frame.redraw();
@@ -291,8 +288,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 /**
  * @memberOf L.larva.handler.Polyline.Edit
+ * @static
  * @param  {L.Point} point
- * @param  {Number} maxDist
+ * @param  {Number} maxNewVertexDistance
  * @param  {LatLng[]} latlngs
  * @param  {L.Map} map
  * @param  {Boolean} closed
