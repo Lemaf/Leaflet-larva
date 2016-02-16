@@ -42,7 +42,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 			.off('drag:end', this._onEndOnTheFly, this);
 
 		delete this._reference;
-		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
+		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale], true);
 	},
 
 	_onMoveOffTheFly: function (evt) {

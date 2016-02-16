@@ -27,7 +27,7 @@ L.larva.handler.Path = L.Handler.extend(
 	 * @return {L.Map}
 	 */
 	getMap: function () {
-		return this._path._map;
+		return this._path._map || this._map;
 	},
 
 	/**
@@ -37,6 +37,17 @@ L.larva.handler.Path = L.Handler.extend(
 	 */
 	layerPointToWorldPoint: function (a, b) {
 		return L.larva.project(this.unproject(a, b));
+	},
+
+	/**
+	 * @param {L.Map} map
+	 */
+	setMap: function (map) {
+		if (map) {
+			this._map = map;
+		} else {
+			delete this._map;
+		}
 	},
 
 	/**

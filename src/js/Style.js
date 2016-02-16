@@ -57,9 +57,19 @@ L.larva.Style = L.Class.extend(
 	 * @param  {Object} style
 	 * @return {L.larva.Style} this
 	 */
-	subtract: function (styles) {
+	multiplyBy: function(styles) {
 		return this._transform(styles, function (cV, d) {
-			return cV - d;
+			return cV * d;
+		});
+	},
+
+	/**
+	 * @param  {Object} styles
+	 * @return {L.larva.Style} this
+	 */
+	plusBy: function (styles) {
+		return this._transform(styles, function (cV, d) {
+			return cV + d;
 		});
 	},
 
@@ -67,9 +77,9 @@ L.larva.Style = L.Class.extend(
 	 * @param  {Object} style
 	 * @return {L.larva.Style} this
 	 */
-	multiplyBy: function(styles) {
+	subtractBy: function (styles) {
 		return this._transform(styles, function (cV, d) {
-			return cV * d;
+			return cV - d;
 		});
 	},
 
@@ -150,4 +160,25 @@ L.larva.Style.convertColorComponent = function (component) {
 
 L.larva.style = function (source) {
 	return new L.larva.Style(source);
+};
+
+L.larva.style = function (source, deltas) {
+	var style = new L.larva.Style(source);
+
+	if (deltas) {
+		
+		if (deltas.multiply) {
+			style.multiplyBy(deltas.multiply);
+		}
+
+		if (deltas.subtract) {
+			style.subtractBy(deltas.subtract);
+		}
+
+		if (deltas.plus) {
+			style.plusBy(deltas.plus);
+		}
+	}
+
+	return style;
 };

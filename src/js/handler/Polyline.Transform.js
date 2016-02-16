@@ -21,8 +21,17 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	includes: [L.larva.Undoable],
 
 	options: {
-		onTheFly: false,
-		noUpdate: []
+		onTheFly: true,
+		noUpdate: [],
+		preview: {
+			multiply: {
+				fillOpacity: 0.5,
+				fillColor: [1.5, 1.7, 0],
+				opacity: 0.5,
+				color: [1.5, 1.7, 0.1]
+			}
+		},
+		previewTolerance: 5
 	},
 
 	initialize: function (path, frameStyle, options) {
@@ -34,41 +43,83 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	 * @param  {String} desc
 	 * @param  {Array.<*>} doArgs
 	 * @param  {Array.<*>} undoArgs
+	 * @param  {Boolean} [applied]
 	 */
-	_apply: function (desc, doArgs, undoArgs) {
+	_apply: function (desc, doArgs, undoArgs, applied) {
 
 		this._path.forEachLatLng(function (latlng) {
 			delete latlng._original;
 		});
 
-		this._do(desc, this._transform, doArgs, this._unTransform, undoArgs);
+		this._do(desc, this._transform, doArgs, this._unTransform, undoArgs, !!applied);
+	},
+	/**
+	 * @protected
+	 * @param  {L.LatLng[]} latlngs
+	 * @return {L.LatLng[]}
+	 */
+	_simplifyToPreview: function (latlngs) {
+		var points = latlngs.map(function (latlng) {
+			var point = this._latLngToLayerPoint(latlng);
+			point._latlng = latlng;
+			return point;
+		}, this);
+
+		points = L.LineUtil.simplify(points, this.options.previewTolerance);
+
+		return points.map(function (point) {
+			var latlng = point._latlng.clone();
+			latlng._original = point._latlng;
+			return latlng;
+		}, this);
 	},
 	/**
 	 * @protected
 	 */
 	_startPreview: function () {
-		var bounds = this._path.getBounds();
-		var southWest = bounds.getSouthWest().clone(),
-		    northEast = bounds.getNorthEast().clone();
+		var previewLatLngs = [], polygon;
 
 		if (this._preview) {
 			this.getMap().removeLayer(this._preview.layer);
 		}
 
 		var preview = this._preview = {
-			latlngs: [
-				southWest,
-				new L.LatLng(southWest.lat, northEast.lng),
-				northEast,
-				new L.LatLng(northEast.lat, southWest.lng)
-			]
+			latlngs: previewLatLngs
 		};
 
-		preview.latlngs.forEach(function (latlng) {
-			latlng._original = latlng.clone();
-		});
+		var clazz;
 
-		preview.layer = L.polygon(preview.latlngs, this._path.options).addTo(this.getMap());
+		switch (this._path.getType()) {
+			case L.Polyline.POLYLINE:
+				this._path.forEachLine(function (latlngs) {
+					previewLatLngs.push.apply(previewLatLngs, this._simplifyToPreview(latlngs));
+				}, this);
+
+				clazz = L.Polyline;
+
+				break;
+			case L.Polyline.MULTIPOLYLINE:
+				this._path.forEachLine(function (latlngs) {
+					previewLatLngs.push(this._simplifyToPreview(latlngs));
+				}, this);
+
+				clazz = L.Polyline;
+				break;
+
+			default:
+				this._path.forEachPolygon(function (shell, holes) {
+					polygon = [this._simplifyToPreview(shell)];
+					polygon.push.apply(polygon, holes.map(this._simplifyToPreview, this));
+					previewLatLngs.push(polygon);
+				}, this);
+
+				clazz = L.Polygon;
+		}
+
+		this.setMap(this.getMap());
+		this.getMap().removeLayer(this._path);
+		preview.layer = new clazz(preview.latlngs, L.larva.style(this._path, this.options.preview))
+		                	.addTo(this.getMap());
 	},
 	/**
 	 * @protected
@@ -76,6 +127,8 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	_stopPreview: function () {
 		if (this._preview) {
 			this.getMap().removeLayer(this._preview.layer);
+			this._path.addTo(this.getMap());
+			this.setMap(null);
 		}
 	},
 	/**
@@ -107,7 +160,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		this._path.updateBounds();
 
-		this._frame.updateBounds.apply(this._frame, this.options.noUpdate);
+		this._frame.updateBounds.apply(this._frame, [null].concat(this.options.noUpdate));
 		this._path.redraw();
 	},
 	/**
@@ -151,14 +204,12 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 			latlng.lng = newLatLng.lng;
 		}
 
-		calc(preview.latlngs[0]);
-		calc(preview.latlngs[1]);
-		calc(preview.latlngs[2]);
-		calc(preview.latlngs[3]);
+		preview.layer.forEachLatLng(calc);
 		
 
 		preview.layer.updateBounds();
 		preview.layer.redraw();
+		this._frame.updateBounds.apply(this._frame, [preview.layer.getBounds()].concat(this.options.noUpdate));
 	},
 
 	_unTransform: function () {
@@ -186,7 +237,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		this._path.updateBounds();
 
-		this._frame.updateBounds.apply(this._frame, this.options.noUpdate);
+		this._frame.updateBounds.apply(this._frame, [null].concat(this.options.noUpdate));
 		this._path.redraw();
 	},
 	/**
