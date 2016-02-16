@@ -116,20 +116,20 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * @param  {String} handleId
-	 * @returns {Boolean} Does the aura was created?
+	 * @returns {Boolean} Does the ghost was created?
 	 */
-	startAura: function (handleId) {
+	startGhost: function (handleId) {
 		var handle = this._handles[handleId];
 
 		if (!handle) {
 			return false;
 		}
 
-		if (!this._aura) {
-			this._aura = {};
+		if (!this._ghosts) {
+			this._ghosts = {};
 		}
 
-		if (!this._aura[handleId]) {
+		if (!this._ghosts[handleId]) {
 
 			var polyline;
 
@@ -179,7 +179,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				noClip: true
 			})).addTo(this._map);
 
-			this._aura[handleId] = {
+			this._ghosts[handleId] = {
 				isPolygon: !!handle._isPolygon,
 				point: handle._point.clone(),
 				polyline: polyline,
@@ -203,18 +203,17 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * @param  {String} handleId
-	 *
-	 * @returns {L.LatLng} Aura's L.LatLng
+	 * @returns {L.LatLng} Ghost's L.LatLng
 	 */
-	stopAura: function (handleId) {
-		var aura, handle;
-		if (this._aura && (aura = this._aura[handleId])) {
-			this._map.removeLayer(this._aura[handleId].polyline);
-			delete this._aura[handleId];
+	stopGhost: function (handleId) {
+		var ghost, handle;
+		if (this._ghosts && (ghost = this._ghosts[handleId])) {
+			this._map.removeLayer(this._ghosts[handleId].polyline);
+			delete this._ghosts[handleId];
 
 			handle = this._handles[handleId];
-			handle._point = this._map.latLngToLayerPoint(aura.latlng);
-			return aura.latlng;
+			handle._point = this._map.latLngToLayerPoint(ghost.latlng);
+			return ghost.latlng;
 		}
 	},
 
@@ -296,7 +295,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_onEnd: function (evt) {
-		var id, aura;
+		var id, ghost;
 
 		L.DomEvent.stop(evt);
 
@@ -309,15 +308,15 @@ L.larva.frame.Vertices = L.Layer.extend(
 		L.DomUtil.removeClass(document.body, 'leaflet-dragging');
 
 		try {
-			for (id in this._aura) {
-				aura = this._aura[id];
-				delete this._aura[id];
+			for (id in this._ghosts) {
+				ghost = this._ghosts[id];
+				delete this._ghosts[id];
 
-				this._map.removeLayer(aura.polyline);
+				this._map.removeLayer(ghost.polyline);
 
-				this.fire('aura:end', {
+				this.fire('ghost:end', {
 					id: id,
-					latlng: aura.latlng
+					latlng: ghost.latlng
 				});
 			}
 		} finally {
@@ -363,7 +362,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_onMove: function (evt) {
-		var aura, handle, id, dx, dy, newPoint, newLatLng;
+		var ghost, handle, id, dx, dy, newPoint, newLatLng;
 
 		L.DomEvent.stop(evt);
 
@@ -385,20 +384,20 @@ L.larva.frame.Vertices = L.Layer.extend(
 		this._position.x = evt.clientX;
 		this._position.y = evt.clientY;
 
-		for (id in this._aura) {
-			aura = this._aura[id];
+		for (id in this._ghosts) {
+			ghost = this._ghosts[id];
 			handle = this._handles[id];
 
-			dx = this._position.x - aura.x;
-			dy = this._position.y - aura.y;
+			dx = this._position.x - ghost.x;
+			dy = this._position.y - ghost.y;
 
-			newPoint = aura.point.add(L.point(dx, dy));
+			newPoint = ghost.point.add(L.point(dx, dy));
 			newLatLng = this._map.layerPointToLatLng(newPoint);
-			aura.latlng.lat = newLatLng.lat;
-			aura.latlng.lng = newLatLng.lng;
+			ghost.latlng.lat = newLatLng.lat;
+			ghost.latlng.lng = newLatLng.lng;
 
-			aura.polyline.updateBounds();
-			aura.polyline.redraw();
+			ghost.polyline.updateBounds();
+			ghost.polyline.redraw();
 
 			this._updateHandlePosition(handle, newPoint);
 		}

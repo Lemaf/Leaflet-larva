@@ -16,7 +16,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	includes: [L.larva.Undoable],
 
 	options: {
-		aura: true,
+		ghost: true,
 		maxNewVertexDistance: 10,
 		minSqrEditVertexDistance: 10
 	},
@@ -98,8 +98,13 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw();
 	},
 
-	_onAuraEnd: function (evt) {
-		this._frame.off('aura:end', this._onAuraEnd, this);
+	_onDblclick: function (evt) {
+		L.DomEvent.stop(evt);
+		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
+	},
+
+	_onGhostEnd: function (evt) {
+		this._frame.off('ghost:end', this._onGhostEnd, this);
 		var latlng = this._frame.getLatLng(evt.id);
 
 		var args = [
@@ -108,11 +113,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		];
 
 		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
-	},
-
-	_onDblclick: function (evt) {
-		L.DomEvent.stop(evt);
-		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
 	_onHandleDbclick: function (evt) {
@@ -169,9 +169,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 		this._handleId = evt.id;
 
-		if (this.options.aura) {
-			this._frame.startAura(evt.id);
-			this._frame.on('aura:end', this._onAuraEnd, this);
+		if (this.options.ghost) {
+			this._frame.startGhost(evt.id);
+			this._frame.on('ghost:end', this._onGhostEnd, this);
 		} else {
 			sourceEvent = L.larva.getSourceEvent(evt);
 			this._origin = {

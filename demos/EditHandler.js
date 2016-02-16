@@ -69,7 +69,7 @@ window.onload = function moveHandler () {
 	mct.larva.move.enable();
 
 	L.setOptions(mct.larva.edit, {
-		aura: false
+		ghost: false
 	});
 
 
