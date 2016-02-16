@@ -134,6 +134,10 @@ L.larva.frame.Rect = L.Layer.extend(
 		delete this._el;
 	},
 
+	/**
+	 * @param {Object} styles
+	 * @param {HTMLElement} element
+	 */
 	setElementStyle: function (styles, element) {
 		if (!element) {
 			L.extend(this._el.style, styles);
@@ -191,9 +195,12 @@ L.larva.frame.Rect = L.Layer.extend(
 			this._updateDraggable(id);
 		}
 	},
-
-	updateBounds: function () {
-		this._updateFrame(false, Array.prototype.slice.call(arguments, 0));
+	/**
+	 * @param {L.LatLngBounds} [bounds]
+	 * @param {...String} [maintainHandles]
+	 */
+	updateBounds: function (bounds) {
+		this._updateFrame(false, Array.prototype.slice.call(arguments, 1), bounds);
 	},
 
 	_onEnd: function (evt) {
@@ -259,13 +266,13 @@ L.larva.frame.Rect = L.Layer.extend(
 		L.DomUtil.setPosition(el, L.point(left, top));
 	},
 
-	_updateFrame: function (zoomChanged, maintainHandles) {
+	_updateFrame: function (zoomChanged, maintainHandles, userBounds) {
 		var id,
 		    currentPosition = L.DomUtil.getPosition(this._el),
 		    handle,
 		    handlePosition;
 
-		var bounds = this._path.getBounds();
+		var bounds = userBounds || this._path.getBounds();
 
 		var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()),
 		northWestPoint = this._map.latLngToLayerPoint(bounds.getNorthWest());
