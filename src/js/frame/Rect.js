@@ -72,8 +72,8 @@ L.larva.frame.Rect = L.Layer.extend(
 	 * @param  {String} id
 	 * @return {HTMLElement}
 	 */
-	getHandle: function (id) {
-		return this._handles[id];
+	getHandle: function (handleId) {
+		return this._handles[handleId];
 	},
 	/**
 	 * @param  {String} id
@@ -84,15 +84,6 @@ L.larva.frame.Rect = L.Layer.extend(
 			return L.DomUtil.getPosition(this._handles[id]);
 		} else {
 			return L.DomUtil.getPosition(this._el);
-		}
-	},
-	/**
-	 */
-	hideHandle: function() {
-		for (var i = 0; i < arguments.length; i++) {
-			if (this._handles[arguments[i]]) {
-				this._handles[arguments[i]].style.display = 'none';
-			}
 		}
 	},
 
