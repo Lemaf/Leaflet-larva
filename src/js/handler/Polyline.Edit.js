@@ -10,7 +10,7 @@
  * @extends {L.larva.handler.Polyline}
  */
 L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
-/** @lends L.larva.handler.Polyline.prototype */
+/** @lends L.larva.handler.Polyline.Edit.prototype */
 {
 
 	includes: [L.larva.Undoable],
