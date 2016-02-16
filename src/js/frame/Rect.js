@@ -242,12 +242,12 @@ L.larva.frame.Rect = L.Layer.extend(
 		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
-	_setHandlePosition: function (handle, bWidth) {
+	_setHandlePosition: function (handle, borders) {
 		var id = handle._id, style = {};
 
 		switch (id[0]) {
 			case 't':
-				style.top = (L.larva.getHeight(handle) / -2 - bWidth.top) + 'px';
+				style.top = (L.larva.getHeight(handle) / -2 - borders.top) + 'px';
 				break;
 
 			case 'm':
@@ -256,13 +256,13 @@ L.larva.frame.Rect = L.Layer.extend(
 				break;
 
 			case 'b':
-				style.bottom = (L.larva.getHeight(handle) / -2 - bWidth.bottom) + 'px';
+				style.bottom = (L.larva.getHeight(handle) / -2 - borders.bottom) + 'px';
 				break;
 		}
 
 		switch (id[1]) {
 			case 'l':
-				style.left = (L.larva.getWidth(handle) / -2 - bWidth.left) + 'px';
+				style.left = (L.larva.getWidth(handle) / -2 - borders.left) + 'px';
 				break;
 
 			case 'm':
@@ -271,7 +271,7 @@ L.larva.frame.Rect = L.Layer.extend(
 				break;
 
 			case 'r':
-				style.right = (L.larva.getWidth(handle) / -2 - bWidth.right) + 'px';
+				style.right = (L.larva.getWidth(handle) / -2 - borders.right) + 'px';
 				break;
 		}
 
@@ -359,19 +359,19 @@ L.larva.frame.Rect = L.Layer.extend(
 
 		computedStyle = getComputedStyle(this._el);
 
-		var borderWidth = {
+		var borders = {
 			bottom: 'borderBottomWidth',
 			left: 'borderLeftWidth',
 			right: 'borderRightWidth',
 			top: 'borderTopWidth'
 		};
 
-		for (id in borderWidth) {
-			borderWidth[id] = parseInt(computedStyle[borderWidth[id]]) / 2;
+		for (id in borders) {
+			borders[id] = parseInt(computedStyle[borders[id]]) / 2;
 		}
 
 		for (id in this._handles) {
-			this._setHandlePosition(this._handles[id], borderWidth);
+			this._setHandlePosition(this._handles[id], borders);
 		}
 	}
 });
