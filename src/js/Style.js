@@ -14,7 +14,7 @@
  * 
  * 	var style = L.larva.style(polygon);
  *
- * 	style.multiplyBy({
+ * 	style.multiply({
  * 		fillColor: [1, 0.5, 2],
   * 	}).subtract({
   * 		fillOpacity: 0.2
@@ -57,7 +57,7 @@ L.larva.Style = L.Class.extend(
 	 * @param  {Object} style
 	 * @return {L.larva.Style} this
 	 */
-	multiplyBy: function(styles) {
+	multiply: function(styles) {
 		return this._transform(styles, function (cV, d) {
 			return cV * d;
 		});
@@ -67,19 +67,9 @@ L.larva.Style = L.Class.extend(
 	 * @param  {Object} styles
 	 * @return {L.larva.Style} this
 	 */
-	plusBy: function (styles) {
+	plus: function (styles) {
 		return this._transform(styles, function (cV, d) {
 			return cV + d;
-		});
-	},
-
-	/**
-	 * @param  {Object} style
-	 * @return {L.larva.Style} this
-	 */
-	subtractBy: function (styles) {
-		return this._transform(styles, function (cV, d) {
-			return cV - d;
 		});
 	},
 
@@ -132,9 +122,9 @@ L.larva.Style.getRGB = function (color) {
 	var r,g,b;
 
 	if (color.length === 4) {
-		r = parseInt(color[1], 16);
-		g = parseInt(color[2], 16);
-		b = parseInt(color[3], 16);
+		r = parseInt(color[1], 16) * 16;
+		g = parseInt(color[2], 16) * 16;
+		b = parseInt(color[3], 16) * 16;
 	} else if (color.length === 7) {
 		r = parseInt(color.substr(1, 2), 16);
 		g = parseInt(color.substr(3, 2), 16);
@@ -166,17 +156,10 @@ L.larva.style = function (source, deltas) {
 	var style = new L.larva.Style(source);
 
 	if (deltas) {
-		
-		if (deltas.multiply) {
-			style.multiplyBy(deltas.multiply);
-		}
-
-		if (deltas.subtract) {
-			style.subtractBy(deltas.subtract);
-		}
-
-		if (deltas.plus) {
-			style.plusBy(deltas.plus);
+		for (var method in deltas) {
+			if (style[method] instanceof Function) {
+				style[method].call(style, deltas[method]);
+			}
 		}
 	}
 

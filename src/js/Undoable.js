@@ -37,7 +37,6 @@ L.larva.Undoable = {
 			doFn.apply(this, doArgs);
 		}
 	},
-
 	/**
 	 * @protected
 	 */
