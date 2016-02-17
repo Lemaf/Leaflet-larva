@@ -27,7 +27,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		polygon.push(hole);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_searchNearestPoint: function (point) {
@@ -68,7 +68,9 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 						evt.layer.getLatLngs()[0]
 					];
 
-					this._do(L.larva.l10n.editPolygonAddHole, this._doNewHole, args, this._undoNewHole, args);
+					this._doNewHole.apply(this, args);
+
+					this._do(L.larva.l10n.editPolygonAddHole, this._doNewHole, args, this._undoNewHole, args, true);
 					break;
 				}
 			}
@@ -172,7 +174,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 			polygon.splice(index, 1);
 			this._path.updateBounds();
 			this._path.redraw();
-			this._frame.redraw();
+			this._frame.redraw(true);
 		}
 	}
 

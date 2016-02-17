@@ -50,17 +50,14 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				found = founds[0];
 				newLatLng = this.getMap().layerPointToLatLng(found.point);
 
-				found.latlngs.splice(found.index, 0, newLatLng);
-				this._path.updateBounds();
-				this._path.redraw();
-				this._frame.redraw();
-
 				var args = [
 					newLatLng,
 					found.latlngs,
 					found.index,
 					this._frame.getHandleId(newLatLng)
 				];
+
+				this._editAddVertex.apply(this, args);
 
 				this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
 			}
@@ -81,21 +78,21 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlngs.splice(index, 0, latlng);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_editDelItem: function (item, array, index) {
 		array.splice(index, 1);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_editDelItems: function (items, array, index) {
 		array.splice(index, items.length);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_onDblclick: function (evt) {
@@ -270,21 +267,21 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlngs.splice(index, 1);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_unEditDelItem: function (item, array, index) {
 		array.splice(index, 0, item);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_unEditDelItems: function (items, array, index) {
 		array.splice.apply(array, [index, 0].concat(items));
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	}
 });
 
