@@ -44,7 +44,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 			zoomend: this._onZoomEnd
 		};
 	},
-
+	/**
+	 * @param  {L.LatLng} latlng
+	 * @return {String}
+	 */
 	getHandleId: function (latlng) {
 		if (latlng._lhandle) {
 			var id = L.stamp(latlng._lhandle);
@@ -105,6 +108,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			delete this._handles;
+			delete this._lines;
 		}
 
 		for (id in L.Draggable.MOVE) {
@@ -138,28 +142,15 @@ L.larva.frame.Vertices = L.Layer.extend(
 			    style = L.larva.style(this._path).multiply({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
-			    }),
-			    latlng0;
+			    });
 
 			if (handle._isPolygon) {
 
-				if (handle._prev) {
-					latlng0 = handle._prev._latlng;
-				} else {
-					latlng0 = handle._last._latlng;
-				}
-
-				latlngs.push(latlng0.clone());
+				latlngs.push((handle._prev ? handle._prev._latlng : handle._last._latlng).clone());
 
 				latlngs.push(latlng);
 
-				if (handle._next) {
-					latlng0 = handle._next._latlng;
-				} else {
-					latlng0 = handle._first._latlng;
-				}
-
-				latlngs.push(latlng0.clone());
+				latlngs.push((handle._next ? handle._next._latlng : handle._first._latlng).clone());
 
 			} else {
 
@@ -172,7 +163,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 				if (handle._next) {
 					latlngs.push(handle._next._latlng.clone());
 				}
-
 			}
 
 			polyline = L.polyline(latlngs, L.extend({}, style, {
@@ -180,7 +170,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 			})).addTo(this._map);
 
 			this._ghosts[handleId] = {
-				isPolygon: !!handle._isPolygon,
 				point: handle._point.clone(),
 				polyline: polyline,
 				latlng: latlng,
@@ -315,7 +304,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				this._map.removeLayer(ghost.polyline);
 
 				this.fire('ghost:end', {
-					id: id,
+					id: +id,
 					latlng: ghost.latlng
 				});
 			}

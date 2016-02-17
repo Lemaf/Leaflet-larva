@@ -104,15 +104,17 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	},
 
 	_onGhostEnd: function (evt) {
-		this._frame.off('ghost:end', this._onGhostEnd, this);
-		var latlng = this._frame.getLatLng(evt.id);
+		if (evt.id === this._handleId) {
+			this._frame.off('ghost:end', this._onGhostEnd, this);
+			var latlng = this._frame.getLatLng(evt.id);
 
-		var args = [
-			evt.id,
-			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
-		];
+			var args = [
+				evt.id,
+				{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
+			];
 
-		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+			this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+		}
 	},
 
 	_onHandleDbclick: function (evt) {
