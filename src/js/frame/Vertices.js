@@ -18,9 +18,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 		colorFactor: [0.8, 1.3, 0.8],
 		handleClassName: 'llarva-vertex',
 		opacityFactor: 0.8,
+		sqrEditResistance: 4,
 		pane: 'llarva-frame',
 		tolerance: 10,
-		simplifyZoom: -1
+		simplifyZoom: -1,
 	},
 
 	initialize: function (path, options) {
@@ -43,7 +44,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 			zoomend: this._onZoomEnd
 		};
 	},
-
+	/**
+	 * @param  {L.LatLng} latlng
+	 * @return {String}
+	 */
 	getHandleId: function (latlng) {
 		if (latlng._lhandle) {
 			var id = L.stamp(latlng._lhandle);
@@ -104,6 +108,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			delete this._handles;
+			delete this._lines;
 		}
 
 		for (id in L.Draggable.MOVE) {
@@ -115,114 +120,37 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * @param  {String} handleId
+	 * @returns {Boolean} Does the ghost was created?
 	 */
-	removeHandle: function (handleId) {
-		if (this._handles && this._handles[handleId]) {
-			var handle = this._handles[handleId];
-
-			L.Draggable.START.forEach(function (evtName) {
-				L.DomEvent.off(handle, evtName, this._onStart, this);
-			}, this);
-
-			L.DomEvent.off(handle, 'dblclick', this._onHandleDblclick, this);
-
-			if (handle.offsetParent) {
-				L.DomUtil.remove(handle);
-			}
-
-			var prev = handle._prev, next = handle._next;
-
-			if (prev && next) {
-
-				prev._next = next;
-				next._prev = prev;
-
-			} else if (prev !== next) {
-				if (prev) {
-					// handle is last
-					delete prev._next;
-
-					if (handle._isPolygon) {
-						prev._first._last = prev;
-					}
-				} else {
-					// handle is first
-					delete next._prev;
-
-					if (handle._isPolygon) {
-						var first = next;
-						do  {
-							next._first = first;
-						} while ((next = next._next));
-					}
-				}
-			}
-
-			for (var i=0, index; i<this._lines.length; i++) {
-				if ((index = this._lines[i].handles.indexOf(handle)) >= 0) {
-					this._lines[i].handles.splice(index, 1);
-					if (this._lines[i].handles.length === 0) {
-						this._lines.splice(i, 1);
-					}
-					break;
-				}
-			}
-
-			delete this._handles[handleId];
-
-			if (this._aura && this._aura[handleId]) {
-				this._map.removeLayer(this._aura[handleId].polyline);
-				delete this._aura[handleId];
-			}
-		}
-	},
-
-	/**
-	 * @param  {String} handleId
-	 * @returns {Boolean} Does the aura was created?
-	 */
-	startAura: function (handleId) {
+	startGhost: function (handleId) {
 		var handle = this._handles[handleId];
 
 		if (!handle) {
 			return false;
 		}
 
-		if (!this._aura) {
-			this._aura = {};
+		if (!this._ghosts) {
+			this._ghosts = {};
 		}
 
-		if (!this._aura[handleId]) {
+		if (!this._ghosts[handleId]) {
 
 			var polyline;
 
 			var latlngs = [],
 			    latlng = handle._latlng.clone(),
-			    style = L.larva.style(this._path).multiplyBy({
+			    style = L.larva.style(this._path).multiply({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
-			    }),
-			    latlng0;
+			    });
 
 			if (handle._isPolygon) {
 
-				if (handle._prev) {
-					latlng0 = handle._prev._latlng;
-				} else {
-					latlng0 = handle._last._latlng;
-				}
-
-				latlngs.push(latlng0.clone());
+				latlngs.push((handle._prev ? handle._prev._latlng : handle._last._latlng).clone());
 
 				latlngs.push(latlng);
 
-				if (handle._next) {
-					latlng0 = handle._next._latlng;
-				} else {
-					latlng0 = handle._first._latlng;
-				}
-
-				latlngs.push(latlng0.clone());
+				latlngs.push((handle._next ? handle._next._latlng : handle._first._latlng).clone());
 
 			} else {
 
@@ -235,15 +163,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 				if (handle._next) {
 					latlngs.push(handle._next._latlng.clone());
 				}
-
 			}
 
 			polyline = L.polyline(latlngs, L.extend({}, style, {
 				noClip: true
 			})).addTo(this._map);
 
-			this._aura[handleId] = {
-				isPolygon: !!handle._isPolygon,
+			this._ghosts[handleId] = {
 				point: handle._point.clone(),
 				polyline: polyline,
 				latlng: latlng,
@@ -256,31 +182,31 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * 
+	 * @param {Boolean} [updateHandles]
 	 */
-	redraw: function () {
-		this._updateHandles();
+	redraw: function (updateHandles) {
+		if (updateHandles) {
+			this._updateHandles();
+		}
+
 		this._updateView();
 		return this;
 	},
-
 	/**
 	 * @param  {String} handleId
-	 *
-	 * @returns {L.LatLng} Aura's L.LatLng
+	 * @returns {L.LatLng} Ghost's L.LatLng
 	 */
-	stopAura: function (handleId) {
-		var aura, handle;
-		if (this._aura && (aura = this._aura[handleId])) {
-			this._map.removeLayer(this._aura[handleId].polyline);
-			delete this._aura[handleId];
+	stopGhost: function (handleId) {
+		var ghost, handle;
+		if (this._ghosts && (ghost = this._ghosts[handleId])) {
+			this._map.removeLayer(this._ghosts[handleId].polyline);
+			delete this._ghosts[handleId];
 
 			handle = this._handles[handleId];
-			handle._point = this._map.latLngToLayerPoint(aura.latlng);
-			return aura.latlng;
+			handle._point = this._map.latLngToLayerPoint(ghost.latlng);
+			return ghost.latlng;
 		}
 	},
-
 	/**
 	 * @param  {String} handleId
 	 */
@@ -292,11 +218,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 	},
 
-	_createHandles: function (latlngs, isPolygon, isHole) {
-
+	_createOrUpdateHandles: function (latlngs, isPolygon, isHole) {
 		var i, handle, prev, handles = [], first;
 
-		for (i=0; i<latlngs.length; i++) {
+		for (i = 0; i < latlngs.length; i++) {
 
 			if (latlngs[i]._lhandle) {
 				handle = latlngs[i]._lhandle;
@@ -308,6 +233,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 				delete handle._last;
 			} else {
 				handle = latlngs[i]._lhandle = L.DomUtil.create('div', this.options.handleClassName);
+				L.DomEvent
+					.on(handle, L.Draggable.START.join(' '), this._onHandleDown, this)
+					.on(handle, 'dblclick', this._onHandleDblclick, this);
 			}
 
 			if (isPolygon) {
@@ -319,12 +247,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			}
 
 			handle._latlng = latlngs[i];
-			handle._latlngs = latlngs;
 			handle._point = this._map.latLngToLayerPoint(handle._latlng);
-
-			L.DomEvent
-				.on(handle, L.Draggable.START.join(' '), this._onStart, this)
-				.on(handle, 'dblclick', this._onHandleDblclick, this);
 
 			this._handles[L.stamp(handle)] = handle;
 
@@ -359,17 +282,8 @@ L.larva.frame.Vertices = L.Layer.extend(
 		return handles;
 	},
 
-	_onHandleDblclick: function (evt) {
-		L.DomEvent.stop(evt);
-
-		this.fire('handle:dblclick', {
-			id: L.stamp(evt.target),
-			originalEvent: evt
-		});
-	},
-
 	_onEnd: function (evt) {
-		var id, aura;
+		var id, ghost;
 
 		L.DomEvent.stop(evt);
 
@@ -382,26 +296,67 @@ L.larva.frame.Vertices = L.Layer.extend(
 		L.DomUtil.removeClass(document.body, 'leaflet-dragging');
 
 		try {
-			for (id in this._aura) {
-				aura = this._aura[id];
-				delete this._aura[id];
-
-				this._map.removeLayer(aura.polyline);
-
-				this.fire('aura:end', {
-					id: id,
-					latlng: aura.latlng
-				});
+			if (this._ghosts) {
+				for (id in this._ghosts) {
+					ghost = this._ghosts[id];
+					this.fire('ghost:end', {
+						id: +id,
+						latlng: ghost.latlng
+					});
+				}
 			}
 		} finally {
+			if (this._ghosts) {
+				for (id in this._ghosts) {
+					ghost = this._ghosts[id];
+					this._map.removeLayer(ghost.polyline);
+				}
+
+				delete this._ghosts;
+			}
 			this.fire('handle:end', {
 				sourceEvent: evt
 			});
 		}
 	},
 
+	_onHandleDblclick: function (evt) {
+		L.DomEvent.stop(evt);
+
+		this.fire('handle:dblclick', {
+			id: L.stamp(evt.target),
+			originalEvent: evt
+		});
+	},
+
+	_onHandleDown: function (evt) {
+		L.DomEvent.stop(evt);
+		var sourceEvent = L.larva.getSourceEvent(evt);
+
+		this._position = {
+			x: sourceEvent.clientX, y: sourceEvent.clientY
+		};
+
+		var startEvent = {
+			id: L.stamp(evt.target),
+			sourceEvent: evt
+		};
+
+		if (this.options.sqrEditResistance) {
+			this._position.lock = startEvent;
+		} else {
+			this.fire('handle:start', startEvent);
+		}
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
+			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
+	},
+
 	_onMove: function (evt) {
-		var aura, handle, id, dx, dy, newPoint, newLatLng;
+		var ghost, handle, id, dx, dy, newPoint, newLatLng;
 
 		L.DomEvent.stop(evt);
 
@@ -409,7 +364,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			dx = evt.clientX - this._position.x;
 			dy = evt.clientY - this._position.y;
 
-			if (((dx * dx) + (dy * dy)) >= this.options.minDelta) {
+			if (((dx * dx) + (dy * dy)) > this.options.sqrEditResistance) {
 				try {
 					this.fire('handle:start', this._position.lock);
 				} finally {
@@ -423,20 +378,20 @@ L.larva.frame.Vertices = L.Layer.extend(
 		this._position.x = evt.clientX;
 		this._position.y = evt.clientY;
 
-		for (id in this._aura) {
-			aura = this._aura[id];
+		for (id in this._ghosts) {
+			ghost = this._ghosts[id];
 			handle = this._handles[id];
 
-			dx = this._position.x - aura.x;
-			dy = this._position.y - aura.y;
+			dx = this._position.x - ghost.x;
+			dy = this._position.y - ghost.y;
 
-			newPoint = aura.point.add(L.point(dx, dy));
+			newPoint = ghost.point.add(L.point(dx, dy));
 			newLatLng = this._map.layerPointToLatLng(newPoint);
-			aura.latlng.lat = newLatLng.lat;
-			aura.latlng.lng = newLatLng.lng;
+			ghost.latlng.lat = newLatLng.lat;
+			ghost.latlng.lng = newLatLng.lng;
 
-			aura.polyline.updateBounds();
-			aura.polyline.redraw();
+			ghost.polyline.updateBounds();
+			ghost.polyline.redraw();
 
 			this._updateHandlePosition(handle, newPoint);
 		}
@@ -446,106 +401,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 		});
 	},
 
-	_onStart: function (evt) {
-		L.DomEvent.stop(evt);
-		var sourceEvent = L.larva.getSourceEvent(evt);
-
-		this._position = {
-			x: sourceEvent.clientX, y: sourceEvent.clientY
-		};
-
-		var startEvent = {
-			id: L.stamp(evt.target),
-			sourceEvent: evt
-		};
-
-		if (this.options.minDelta) {
-			this._position.lock = startEvent;
-		} else {
-			this.fire('handle:start', startEvent);
-		}
-
-		L.DomEvent
-			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
-			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
-
-		L.DomUtil.addClass(document.body, 'leaflet-dragging');
-	},
-
 	_onZoomEnd: function () {
-
 		var id, handle;
 
 		for (id in this._handles) {
 			handle = this._handles[id];
 			handle._point = this._map.latLngToLayerPoint(handle._latlng);
 		}
-	},
-
-	_updateHandles: function () {
-		var id, handle;
-
-		if (this._handles) {
-			for (id in this._handles) {
-				handle = this._handles[id];
-
-				L.DomUtil.remove(handle);
-			}
-		}
-
-		this._handles = {};
-		this._lines = [];
-
-		switch (this.getPathType()) {
-			case L.Polyline.POLYLINE:
-			case L.Polyline.MULTIPOLYLINE:
-
-				this._path.forEachLine(function (line) {
-					this._createHandles(line);
-				}, this);
-
-				break;
-
-			case L.Polygon.POLYGON:
-			case L.Polygon.MULTIPOLYGON:
-
-				this._path.forEachPolygon(function (shell, holes) {
-
-					this._createHandles(shell, true);
-
-					holes.forEach(function (latlngs) {
-						this._createHandles(latlngs, true, true);
-					}, this);
-
-				}, this);
-
-				break;
-
-			default:
-				throw new Error('Invalid geometry type - ' + this.getPathType());
-		}
-	},
-
-	_updateHandlePosition: function (handle, target) {
-		var point;
-
-		if (target) {
-			point = target.clone();
-		} else if (handle._point) {
-			point = handle._point.clone();
-		} else {
-			handle._point = this._map.latLngToLayerPoint(handle._latlng);
-			point = handle._point.clone();
-		}
-
-		if (handle.offsetParent) {
-			point._subtract({
-				x: L.larva.getWidth(handle) / 2,
-				y: L.larva.getHeight(handle) / 2
-			});
-		}
-
-		L.DomUtil.setPosition(handle, point);
 	},
 
 	_showHandles: function (handles, isPolygon) {
@@ -610,6 +472,77 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 			this._updateHandlePosition(point._handle);
 		}, this);
+	},
+
+	_updateHandles: function () {
+		var id, handle;
+
+		if (this._handles) {
+			for (id in this._handles) {
+				handle = this._handles[id];
+				delete this._handles[id];
+				L.DomUtil.remove(handle);
+			}
+		} else {
+			this._handles = {};
+		}
+
+		if (!this._lines) {
+			this._lines = [];
+		} else {
+			this._lines.splice(0, this._lines.length);
+		}
+
+		switch (this.getPathType()) {
+			case L.Polyline.POLYLINE:
+			case L.Polyline.MULTIPOLYLINE:
+
+				this._path.forEachLine(function (line) {
+					this._createOrUpdateHandles(line);
+				}, this);
+
+				break;
+
+			case L.Polygon.POLYGON:
+			case L.Polygon.MULTIPOLYGON:
+
+				this._path.forEachPolygon(function (shell, holes) {
+
+					this._createOrUpdateHandles(shell, true);
+
+					holes.forEach(function (latlngs) {
+						this._createOrUpdateHandles(latlngs, true, true);
+					}, this);
+
+				}, this);
+
+				break;
+
+			default:
+				throw new Error('Invalid geometry type - ' + this.getPathType());
+		}
+	},
+
+	_updateHandlePosition: function (handle, target) {
+		var point;
+
+		if (target) {
+			point = target;
+		} else if (handle._point) {
+			point = handle._point;
+		} else {
+			handle._point = this._map.latLngToLayerPoint(handle._latlng);
+			point = handle._point;
+		}
+
+		if (handle.offsetParent) {
+			point = point.clone()._subtract({
+				x: L.larva.getWidth(handle) / 2,
+				y: L.larva.getHeight(handle) / 2
+			});
+		}
+
+		L.DomUtil.setPosition(handle, point);
 	},
 
 	_updateView: function () {

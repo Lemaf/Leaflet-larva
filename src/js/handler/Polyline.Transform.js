@@ -12,7 +12,6 @@
  * @param {L.Path} path Layer to transform
  * @param {L.larva.frame.Style} frameStyle, @see {L.larva.frame}
  * @param {Object} options
- *
  */
 L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 /** @lends L.larva.handler.Polyline.Transform.prototype */
@@ -119,7 +118,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		this.setMap(this.getMap());
 		this.getMap().removeLayer(this._path);
 		preview.layer = new clazz(preview.latlngs, L.larva.style(this._path, this.options.preview))
-		                	.addTo(this.getMap());
+		                    	.addTo(this.getMap());
 	},
 	/**
 	 * @protected

@@ -16,14 +16,14 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	includes: [L.larva.Undoable],
 
 	options: {
-		aura: true,
-		maxDist: 10,
-		minDelta: 4
+		ghost: true,
+		maxNewVertexDistance: 10,
+		minSqrEditVertexDistance: 10
 	},
 
 	addHooks: function () {
 		this._frame = L.larva.frame.vertices(this._path, {
-			minDelta: this.options.minDelta
+			minSqrEditVertexDistance: this.options.minSqrEditVertexDistance
 		}).addTo(this.getMap());
 
 		this._frame
@@ -50,17 +50,14 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				found = founds[0];
 				newLatLng = this.getMap().layerPointToLatLng(found.point);
 
-				found.latlngs.splice(found.index, 0, newLatLng);
-				this._path.updateBounds();
-				this._path.redraw();
-				this._frame.redraw();
-
 				var args = [
 					newLatLng,
 					found.latlngs,
 					found.index,
 					this._frame.getHandleId(newLatLng)
 				];
+
+				this._editAddVertex.apply(this, args);
 
 				this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
 			}
@@ -81,38 +78,40 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlngs.splice(index, 0, latlng);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_editDelItem: function (item, array, index) {
 		array.splice(index, 1);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_editDelItems: function (items, array, index) {
 		array.splice(index, items.length);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
-	},
-
-	_onAuraEnd: function (evt) {
-		this._frame.off('aura:end', this._onAuraEnd, this);
-		var latlng = this._frame.getLatLng(evt.id);
-
-		var args = [
-			evt.id,
-			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
-		];
-
-		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+		this._frame.redraw(true);
 	},
 
 	_onDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
+	},
+
+	_onGhostEnd: function (evt) {
+		if (evt.id === this._handleId) {
+			this._frame.off('ghost:end', this._onGhostEnd, this);
+			var latlng = this._frame.getLatLng(evt.id);
+
+			var args = [
+				evt.id,
+				{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
+			];
+
+			this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
+		}
 	},
 
 	_onHandleDbclick: function (evt) {
@@ -169,9 +168,9 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 		this._handleId = evt.id;
 
-		if (this.options.aura) {
-			this._frame.startAura(evt.id);
-			this._frame.on('aura:end', this._onAuraEnd, this);
+		if (this.options.ghost) {
+			this._frame.startGhost(evt.id);
+			this._frame.on('ghost:end', this._onGhostEnd, this);
 		} else {
 			sourceEvent = L.larva.getSourceEvent(evt);
 			this._origin = {
@@ -200,14 +199,12 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 				for (p=0; p < latlngs[p].length; p++) {
 					if ((index = latlngs[p].indexOf(latlng)) !== -1) {
 
-
 						if (latlngs[p].length <= 2) {
 							this._removeItem(latlng[p], latlngs, p);
 						} else {
 							this._removeItem(latlng, latlngs[p], index);
 							// latlngs[p].splice(index, 1);
 						}
-
 
 						break;
 					}
@@ -246,7 +243,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		var found = [], map = this.getMap();
 
 		this._path.forEachLine(function (latlngs) {
-			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxDist, latlngs, map));
+			found = found.concat(L.larva.handler.Polyline.Edit.searchNearestPointIn(point, this.options.maxNewVertexDistance, latlngs, map));
 		}, this);
 
 		return found;
@@ -270,29 +267,29 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlngs.splice(index, 1);
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_unEditDelItem: function (item, array, index) {
 		array.splice(index, 0, item);
-
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	},
 
 	_unEditDelItems: function (items, array, index) {
 		array.splice.apply(array, [index, 0].concat(items));
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
+		this._frame.redraw(true);
 	}
 });
 
 /**
  * @memberOf L.larva.handler.Polyline.Edit
+ * @static
  * @param  {L.Point} point
- * @param  {Number} maxDist
+ * @param  {Number} maxNewVertexDistance
  * @param  {LatLng[]} latlngs
  * @param  {L.Map} map
  * @param  {Boolean} closed
