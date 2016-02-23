@@ -3,6 +3,7 @@
  */
 
 /**
+ * @class
  * @extends {L.Evented}
  */
 L.larva.frame.Handle = L.Evented.extend(
@@ -53,15 +54,14 @@ L.larva.frame.Handle = L.Evented.extend(
 			this.options.shadowPane.appendChild(this.shadowEl);
 		}
 
-		target = target.clone()._subtract({
+		L.DomUtil.setPosition(this.el, target.clone()._subtract({
 			x: L.larva.getWidth(this.el) / 2,
 			y: L.larva.getHeight(this.el) / 2
-		});
+		}));
 
-		L.DomUtil.setPosition(this.el, target);
 		L.DomUtil.setPosition(this.shadowEl, target.clone()._add({
-			x: this.options.shadowOffset.x,
-			y: this.options.shadowOffset.y
+			x: this.options.shadowOffset.x - L.larva.getWidth(this.shadowEl) / 2,
+			y: this.options.shadowOffset.y - L.larva.getHeight(this.shadowEl) / 2
 		}));
 	},
 
@@ -79,6 +79,11 @@ L.larva.frame.Handle = L.Evented.extend(
 
 });
 
+/**
+ * @param  {L.LatLng} latlng
+ * @param  {Object} options
+ * @return {L.larva.frame.Handle}
+ */
 L.larva.frame.handle = function (latlng, options) {
 	return new L.larva.frame.Handle(latlng, options);
 };
