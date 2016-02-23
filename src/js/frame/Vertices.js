@@ -1,5 +1,6 @@
 /**
  * @requires package.js
+ * @requires Vertex.js
  *
  * @requires ../ext/L.Polygon.js
  * @requires ../Style.js
@@ -21,6 +22,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		sqrEditResistance: 4,
 		pane: 'llarva-frame',
 		tolerance: 10,
+		shadowPane: 'shadowPane',
 		simplifyZoom: -1,
 	},
 
@@ -33,6 +35,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	beforeAdd: function (map) {
+		if (!map.getPane(this.options.shadowPane)) {
+			map.createPane(this.options.shadowPane);
+		}
 		if (!map.getPane(this.options.pane)) {
 			map.createPane(this.options.pane);
 		}
@@ -49,9 +54,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 	 * @return {String}
 	 */
 	getHandleId: function (latlng) {
-		if (latlng._lhandle) {
-			var id = L.stamp(latlng._lhandle);
-			if (this._handles[id]) {
+		if (latlng._vertex) {
+			var id = L.stamp(latlng._vertex);
+			if (this._vertices[id]) {
 				return id;
 			}
 		}
@@ -60,12 +65,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 	/**
 	 * Returns handle L.LatLng
-	 * @param  {String}  handleId
+	 * @param  {String}  vertexId
 	 * @return {L.LatLng}
 	 */
-	getLatLng: function (handleId) {
-		if (this._handles && this._handles[handleId]) {
-			return this._handles[handleId]._latlng;
+	getLatLng: function (vertexId) {
+		if (this._vertices && this._vertices[vertexId]) {
+			return this._vertices[vertexId].latlng;
 		}
 	},
 	/**
@@ -79,35 +84,32 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * Returns handle layer point
-	 * @param  {String} handleId
+	 * @param  {String} vertexId
 	 * @return {L.Point}
 	 */
-	getPoint: function (handleId) {
-		if (this._handles && this._handles[handleId]) {
-			return this._handles[handleId]._point;
+	getPoint: function (vertexId) {
+		if (this._vertices && this._vertices[vertexId]) {
+			return this._vertices[vertexId].point;
 		}
 	},
 
 	onAdd: function () {
-		this._container = this.getPane();
-		this._updateHandles();
+		this._pane = this.getPane();
+		this._shadowPane = this.getPane(this.options.shadowPane);
+		this._updateVertices();
 		this._updateView();
 	},
 
 	onRemove: function () {
-		var id, handle;
+		var id;
 
-		if (this._handles) {
+		if (this._vertices) {
 
-			for (id in this._handles) {
-				handle = this._handles[id];
-
-				if (handle.offsetParent) {
-					L.DomUtil.remove(handle);
-				}
+			for (id in this._vertices) {
+				this._vertices[id].remove();
 			}
 
-			delete this._handles;
+			delete this._vertices;
 			delete this._lines;
 		}
 
@@ -119,13 +121,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * @param  {String} handleId
+	 * @param  {String} vertexId
 	 * @returns {Boolean} Does the ghost was created?
 	 */
-	startGhost: function (handleId) {
-		var handle = this._handles[handleId];
+	startGhost: function (vertexId) {
+		var vertex = this._vertices[vertexId];
 
-		if (!handle) {
+		if (!vertex) {
 			return false;
 		}
 
@@ -133,35 +135,35 @@ L.larva.frame.Vertices = L.Layer.extend(
 			this._ghosts = {};
 		}
 
-		if (!this._ghosts[handleId]) {
+		if (!this._ghosts[vertexId]) {
 
 			var polyline;
 
 			var latlngs = [],
-			    latlng = handle._latlng.clone(),
+			    latlng = vertex.latlng.clone(),
 			    style = L.larva.style(this._path).multiply({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
 			    });
 
-			if (handle._isPolygon) {
+			if (vertex.isPolygon) {
 
-				latlngs.push((handle._prev ? handle._prev._latlng : handle._last._latlng).clone());
+				latlngs.push((vertex.prev ? vertex.prev.latlng : vertex.last.latlng).clone());
 
 				latlngs.push(latlng);
 
-				latlngs.push((handle._next ? handle._next._latlng : handle._first._latlng).clone());
+				latlngs.push((vertex.next ? vertex.next.latlng : vertex.first.latlng).clone());
 
 			} else {
 
-				if (handle._prev) {
-					latlngs.push(handle._prev._latlng.clone());
+				if (vertex.prev) {
+					latlngs.push(vertex.prev.latlng.clone());
 				}
 
 				latlngs.push(latlng);
 
-				if (handle._next) {
-					latlngs.push(handle._next._latlng.clone());
+				if (vertex.next) {
+					latlngs.push(vertex.next.latlng.clone());
 				}
 			}
 
@@ -169,8 +171,8 @@ L.larva.frame.Vertices = L.Layer.extend(
 				noClip: true
 			})).addTo(this._map);
 
-			this._ghosts[handleId] = {
-				point: handle._point.clone(),
+			this._ghosts[vertexId] = {
+				point: vertex.point.clone(),
 				polyline: polyline,
 				latlng: latlng,
 				x: this._position.x,
@@ -182,28 +184,28 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * @param {Boolean} [updateHandles]
+	 * @param {Boolean} [updateVertices]
 	 */
-	redraw: function (updateHandles) {
-		if (updateHandles) {
-			this._updateHandles();
+	redraw: function (updateVertices) {
+		if (updateVertices) {
+			this._updateVertices();
 		}
 
 		this._updateView();
 		return this;
 	},
 	/**
-	 * @param  {String} handleId
+	 * @param  {String} vertexId
 	 * @returns {L.LatLng} Ghost's L.LatLng
 	 */
-	stopGhost: function (handleId) {
-		var ghost, handle;
-		if (this._ghosts && (ghost = this._ghosts[handleId])) {
-			this._map.removeLayer(this._ghosts[handleId].polyline);
-			delete this._ghosts[handleId];
+	stopGhost: function (vertexId) {
+		var ghost, vertex;
+		if (this._ghosts && (ghost = this._ghosts[vertexId])) {
+			this._map.removeLayer(this._ghosts[vertexId].polyline);
+			delete this._ghosts[vertexId];
 
-			handle = this._handles[handleId];
-			handle._point = this._map.latLngToLayerPoint(ghost.latlng);
+			vertex = this._vertices[vertexId];
+			vertex.point = this._map.latLngToLayerPoint(ghost.latlng);
 			return ghost.latlng;
 		}
 	},
@@ -211,75 +213,80 @@ L.larva.frame.Vertices = L.Layer.extend(
 	 * @param  {String} handleId
 	 */
 	updateHandle: function (handleId) {
-		var handle = this._handles[handleId];
-		if (handle) {
-			delete handle._point;
-			this._updateHandlePosition(handle);
+		var vertex = this._vertices[handleId];
+		if (vertex) {
+			delete vertex.point;
+			vertex.update(this._map);
 		}
 	},
 
-	_createOrUpdateHandles: function (latlngs, isPolygon, isHole) {
-		var i, handle, prev, handles = [], first;
+	_createOrUpdateVertices: function (latlngs, isPolygon, isHole) {
+		var i, vertex, prev, vertices = [], first,
+		    vertexOptions = {
+		    	pane: this._pane,
+		    	shadowPane: this._shadowPane
+		    };
 
 		for (i = 0; i < latlngs.length; i++) {
 
-			if (latlngs[i]._lhandle) {
-				handle = latlngs[i]._lhandle;
-				delete handle._isPolygon;
-				delete handle._isHole;
-				delete handle._prev;
-				delete handle._next;
-				delete handle._first;
-				delete handle._last;
+			if (latlngs[i]._vertex) {
+				vertex = latlngs[i]._vertex;
+				delete vertex.isPolygon;
+				delete vertex.isHole;
+				delete vertex.prev;
+				delete vertex.next;
+				delete vertex.first;
+				delete vertex.last;
 			} else {
-				handle = latlngs[i]._lhandle = L.DomUtil.create('div', this.options.handleClassName);
-				L.DomEvent
-					.on(handle, L.Draggable.START.join(' '), this._onHandleDown, this)
-					.on(handle, 'dblclick', this._onHandleDblclick, this);
+				// vertex = latlngs[i]._vertex = L.DomUtil.create('div', this.options.handleClassName);
+				vertex = L.larva.frame.vertex(latlngs[i], vertexOptions);
+
+				vertex
+					.on('drag:start', this._onVertexDragStart, this)
+					.on('dblclick', this._onVertexDblClick, this);
 			}
 
 			if (isPolygon) {
-				handle._isPolygon = true;
+				vertex.isPolygon = true;
 			}
 
 			if (isHole) {
-				handle._isHole = true;
+				vertex.isHole = true;
 			}
 
-			handle._latlng = latlngs[i];
-			handle._point = this._map.latLngToLayerPoint(handle._latlng);
+			vertex.point = this._map.latLngToLayerPoint(vertex.latlng);
 
-			this._handles[L.stamp(handle)] = handle;
+			this._vertices[L.stamp(vertex)] = vertex;
 
 			if (prev) {
-				prev._next = handle;
-				handle._prev = prev;
-				prev = handle;
+				prev.next = vertex;
+				vertex.prev = prev;
+				prev = vertex;
 
 				if (isPolygon && first) {
-					handle._first = first;
+					vertex.first = first;
 				}
 
 			} else {
-				first = handle;
-				prev = handle;
-				handle._first = handle;
+				first = vertex;
+				prev = vertex;
+				//vertex.first = vertex;
 			}
 
-			handles.push(handle);
+			vertices.push(vertex);
 		}
 
 		if (isPolygon && first) {
-			first._last = handle;
+			first.last = vertex;
 		}
 
 		this._lines.push({
-			handles: handles,
+			vertices: vertices,
 			isHole: !!isHole,
 			isPolygon: !!isPolygon
 		});
 
-		return handles;
+		return vertices;
 	},
 
 	_onEnd: function (evt) {
@@ -315,48 +322,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 				delete this._ghosts;
 			}
 			this.fire('handle:end', {
-				sourceEvent: evt
+				originalEvent: evt.originalEvent
 			});
 		}
 	},
 
-	_onHandleDblclick: function (evt) {
-		L.DomEvent.stop(evt);
-
-		this.fire('handle:dblclick', {
-			id: L.stamp(evt.target),
-			originalEvent: evt
-		});
-	},
-
-	_onHandleDown: function (evt) {
-		L.DomEvent.stop(evt);
-		var sourceEvent = L.larva.getSourceEvent(evt);
-
-		this._position = {
-			x: sourceEvent.clientX, y: sourceEvent.clientY
-		};
-
-		var startEvent = {
-			id: L.stamp(evt.target),
-			sourceEvent: evt
-		};
-
-		if (this.options.sqrEditResistance) {
-			this._position.lock = startEvent;
-		} else {
-			this.fire('handle:start', startEvent);
-		}
-
-		L.DomEvent
-			.on(document, L.Draggable.MOVE[evt.type], this._onMove, this)
-			.on(document, L.Draggable.END[evt.type], this._onEnd, this);
-
-		L.DomUtil.addClass(document.body, 'leaflet-dragging');
-	},
-
 	_onMove: function (evt) {
-		var ghost, handle, id, dx, dy, newPoint, newLatLng;
+		var ghost, vertex, id, dx, dy, newPoint, newLatLng;
 
 		L.DomEvent.stop(evt);
 
@@ -380,7 +352,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 		for (id in this._ghosts) {
 			ghost = this._ghosts[id];
-			handle = this._handles[id];
+			vertex = this._vertices[id];
 
 			dx = this._position.x - ghost.x;
 			dy = this._position.y - ghost.y;
@@ -393,39 +365,75 @@ L.larva.frame.Vertices = L.Layer.extend(
 			ghost.polyline.updateBounds();
 			ghost.polyline.redraw();
 
-			this._updateHandlePosition(handle, newPoint);
+			vertex.update(newPoint);
 		}
 
 		this.fire('handle:move', {
-			sourceEvent: evt
+			originalEvent: evt
 		});
 	},
 
-	_onZoomEnd: function () {
-		var id, handle;
+	_onVertexDblClick: function (evt) {
+		evt = L.larva.getSourceEvent(evt);
+		L.DomEvent.stop(evt);
 
-		for (id in this._handles) {
-			handle = this._handles[id];
-			handle._point = this._map.latLngToLayerPoint(handle._latlng);
+		this.fire('handle:dblclick', {
+			id: L.stamp(evt.target),
+			originalEvent: evt.originalEvent
+		});
+	},
+
+	_onVertexDragStart: function (evt) {
+		var originalEvent = L.larva.getSourceEvent(evt);
+		L.DomEvent.stop(originalEvent);
+
+		this._position = {
+			x: originalEvent.clientX, y: originalEvent.clientY
+		};
+
+		var startEvent = {
+			id: L.stamp(evt.target),
+			originalEvent: originalEvent
+		};
+
+		if (this.options.sqrEditResistance) {
+			this._position.lock = startEvent;
+		} else {
+			this.fire('handle:start', startEvent);
+		}
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[originalEvent.type], this._onMove, this)
+			.on(document, L.Draggable.END[originalEvent.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
+	},
+
+	_onZoomEnd: function () {
+		var id;
+
+		for (id in this._vertices) {
+			delete this._vertices[id].point;
+			this._vertices[id].update(this._map);
 		}
 	},
 
-	_showHandles: function (handles, isPolygon) {
+	_showVertices: function (vertices, isPolygon) {
 		var pointsToShow;
 
 		var bounds = this._map.getPixelBounds(),
 		    pixelOrigin = this._map.getPixelOrigin();
 
-		var points = handles.map(function (handle) {
-			var point = handle._point.add(pixelOrigin);
-			point._handle = handle;
+		var points = vertices.map(function (vertex) {
+			var point = vertex.point.add(pixelOrigin);
+			point._vertex = vertex;
 			return point;
 		});
 
 		if (isPolygon) {
 
 			pointsToShow = L.PolyUtil.clipPolygon(points, bounds).filter(function (point) {
-				return !!point._handle;
+				return !!point._vertex;
 			});
 
 		} else {
@@ -437,11 +445,11 @@ L.larva.frame.Vertices = L.Layer.extend(
 			for (i=0, l = points.length - 1; i<l; i++) {
 				lineClip = L.LineUtil.clipSegment(points[i], points[i + 1], bounds);
 				if (lineClip) {
-					if (lineClip[0]._handle) {
+					if (lineClip[0]._vertex) {
 						pointsToShow.push(lineClip[0]);
 					}
 
-					if (lineClip[1]._handle) {
+					if (lineClip[1]._vertex) {
 						pointsToShow.push(lineClip[1]);
 					}
 				}
@@ -465,32 +473,26 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 
 		pointsToShow.forEach(function (point) {
-
-			if (!point.offsetParent) {
-				this._container.appendChild(point._handle);
-			}
-
-			this._updateHandlePosition(point._handle);
+			point._vertex.update();
 		}, this);
 	},
 
-	_updateHandles: function () {
-		var id, handle;
+	_updateVertices: function () {
+		var id;
 
-		if (this._handles) {
-			for (id in this._handles) {
-				handle = this._handles[id];
-				delete this._handles[id];
-				L.DomUtil.remove(handle);
+		if (this._vertices) {
+			for (id in this._vertices) {
+				this._vertices[id].remove();
+				delete this._vertices[id];
 			}
 		} else {
-			this._handles = {};
+			this._vertices = {};
 		}
 
-		if (!this._lines) {
-			this._lines = [];
-		} else {
+		if (this._lines) {
 			this._lines.splice(0, this._lines.length);
+		} else {
+			this._lines = [];
 		}
 
 		switch (this.getPathType()) {
@@ -498,7 +500,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			case L.Polyline.MULTIPOLYLINE:
 
 				this._path.forEachLine(function (line) {
-					this._createOrUpdateHandles(line);
+					this._createOrUpdateVertices(line);
 				}, this);
 
 				break;
@@ -508,10 +510,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 				this._path.forEachPolygon(function (shell, holes) {
 
-					this._createOrUpdateHandles(shell, true);
+					this._createOrUpdateVertices(shell, true);
 
 					holes.forEach(function (latlngs) {
-						this._createOrUpdateHandles(latlngs, true, true);
+						this._createOrUpdateVertices(latlngs, true, true);
 					}, this);
 
 				}, this);
@@ -523,41 +525,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 	},
 
-	_updateHandlePosition: function (handle, target) {
-		var point;
-
-		if (target) {
-			point = target;
-		} else if (handle._point) {
-			point = handle._point;
-		} else {
-			handle._point = this._map.latLngToLayerPoint(handle._latlng);
-			point = handle._point;
-		}
-
-		if (handle.offsetParent) {
-			point = point.clone()._subtract({
-				x: L.larva.getWidth(handle) / 2,
-				y: L.larva.getHeight(handle) / 2
-			});
-		}
-
-		L.DomUtil.setPosition(handle, point);
-	},
-
 	_updateView: function () {
-		var id, handle;
-
-		for (id in this._handles) {
-			handle = this._handles[id];
-
-			if (handle.offsetParent) {
-				L.DomUtil.remove(handle);
-			}
+		for (var id in this._vertices) {
+			this._vertices[id].remove();
 		}
 
 		this._lines.forEach(function (line) {
-			this._showHandles(line.handles, line.isPolygon, line.isHole);
+			this._showVertices(line.vertices, line.isPolygon, line.isHole);
 		}, this);
 	}
 });
