@@ -1,6 +1,6 @@
 /**
  * @requires package.js
- * @requires Vertex.js
+ * @requires Handle.js
  *
  * @requires ../ext/L.Polygon.js
  * @requires ../Style.js
@@ -53,9 +53,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 	 * @return {String}
 	 */
 	getHandleId: function (latlng) {
-		if (latlng._vertex) {
-			var id = L.stamp(latlng._vertex);
-			if (this._vertices[id]) {
+		if (latlng._handle) {
+			var id = L.stamp(latlng._handle);
+			if (this._handles[id]) {
 				return id;
 			}
 		}
@@ -64,12 +64,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 	/**
 	 * Returns handle L.LatLng
-	 * @param  {String}  vertexId
+	 * @param  {String}  handleId
 	 * @return {L.LatLng}
 	 */
-	getLatLng: function (vertexId) {
-		if (this._vertices && this._vertices[vertexId]) {
-			return this._vertices[vertexId].latlng;
+	getLatLng: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			return this._handles[handleId].latlng;
 		}
 	},
 	/**
@@ -83,32 +83,32 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	/**
 	 * Returns handle layer point
-	 * @param  {String} vertexId
+	 * @param  {String} handleId
 	 * @return {L.Point}
 	 */
-	getPoint: function (vertexId) {
-		if (this._vertices && this._vertices[vertexId]) {
-			return this._vertices[vertexId].point;
+	getPoint: function (handleId) {
+		if (this._handles && this._handles[handleId]) {
+			return this._handles[handleId].point;
 		}
 	},
 
 	onAdd: function () {
 		this._pane = this.getPane();
 		this._shadowPane = this.getPane(this.options.shadowPane);
-		this._updateVertices();
+		this._updateHandles();
 		this._updateView();
 	},
 
 	onRemove: function () {
 		var id;
 
-		if (this._vertices) {
+		if (this._handles) {
 
-			for (id in this._vertices) {
-				this._vertices[id].remove();
+			for (id in this._handles) {
+				this._handles[id].remove();
 			}
 
-			delete this._vertices;
+			delete this._handles;
 			delete this._lines;
 		}
 
@@ -120,13 +120,13 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * @param  {String} vertexId
+	 * @param  {String} handleId
 	 * @returns {Boolean} Does the ghost was created?
 	 */
-	startGhost: function (vertexId) {
-		var vertex = this._vertices[vertexId];
+	startGhost: function (handleId) {
+		var handle = this._handles[handleId];
 
-		if (!vertex) {
+		if (!handle) {
 			return false;
 		}
 
@@ -134,35 +134,35 @@ L.larva.frame.Vertices = L.Layer.extend(
 			this._ghosts = {};
 		}
 
-		if (!this._ghosts[vertexId]) {
+		if (!this._ghosts[handleId]) {
 
 			var polyline;
 
 			var latlngs = [],
-			    latlng = vertex.latlng.clone(),
+			    latlng = handle.latlng.clone(),
 			    style = L.larva.style(this._path).multiply({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
 			    });
 
-			if (vertex.isPolygon) {
+			if (handle.isPolygon) {
 
-				latlngs.push((vertex.prev ? vertex.prev.latlng : vertex.last.latlng).clone());
+				latlngs.push((handle.prev ? handle.prev.latlng : handle.last.latlng).clone());
 
 				latlngs.push(latlng);
 
-				latlngs.push((vertex.next ? vertex.next.latlng : vertex.first.latlng).clone());
+				latlngs.push((handle.next ? handle.next.latlng : handle.first.latlng).clone());
 
 			} else {
 
-				if (vertex.prev) {
-					latlngs.push(vertex.prev.latlng.clone());
+				if (handle.prev) {
+					latlngs.push(handle.prev.latlng.clone());
 				}
 
 				latlngs.push(latlng);
 
-				if (vertex.next) {
-					latlngs.push(vertex.next.latlng.clone());
+				if (handle.next) {
+					latlngs.push(handle.next.latlng.clone());
 				}
 			}
 
@@ -170,8 +170,8 @@ L.larva.frame.Vertices = L.Layer.extend(
 				noClip: true
 			})).addTo(this._map);
 
-			this._ghosts[vertexId] = {
-				point: vertex.point.clone(),
+			this._ghosts[handleId] = {
+				point: handle.point.clone(),
 				polyline: polyline,
 				latlng: latlng,
 				x: this._position.x,
@@ -183,28 +183,28 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	/**
-	 * @param {Boolean} [updateVertices]
+	 * @param {Boolean} [updateHandles]
 	 */
-	redraw: function (updateVertices) {
-		if (updateVertices) {
-			this._updateVertices();
+	redraw: function (updateHandles) {
+		if (updateHandles) {
+			this._updateHandles();
 		}
 
 		this._updateView();
 		return this;
 	},
 	/**
-	 * @param  {String} vertexId
+	 * @param  {String} handleId
 	 * @returns {L.LatLng} Ghost's L.LatLng
 	 */
-	stopGhost: function (vertexId) {
-		var ghost, vertex;
-		if (this._ghosts && (ghost = this._ghosts[vertexId])) {
-			this._map.removeLayer(this._ghosts[vertexId].polyline);
-			delete this._ghosts[vertexId];
+	stopGhost: function (handleId) {
+		var ghost, handle;
+		if (this._ghosts && (ghost = this._ghosts[handleId])) {
+			this._map.removeLayer(this._ghosts[handleId].polyline);
+			delete this._ghosts[handleId];
 
-			vertex = this._vertices[vertexId];
-			vertex.point = this._map.latLngToLayerPoint(ghost.latlng);
+			handle = this._handles[handleId];
+			handle.point = this._map.latLngToLayerPoint(ghost.latlng);
 			return ghost.latlng;
 		}
 	},
@@ -212,15 +212,15 @@ L.larva.frame.Vertices = L.Layer.extend(
 	 * @param  {String} handleId
 	 */
 	updateHandle: function (handleId) {
-		var vertex = this._vertices[handleId];
-		if (vertex) {
-			delete vertex.point;
-			vertex.update(this._map);
+		var handle = this._handles[handleId];
+		if (handle) {
+			delete handle.point;
+			handle.update(this._map);
 		}
 	},
 
-	_createOrUpdateVertices: function (latlngs, isPolygon, isHole) {
-		var i, vertex, prev, vertices = [], first,
+	_createOrUpdateHandles: function (latlngs, isPolygon, isHole) {
+		var i, handle, prev, handles = [], first,
 		    vertexOptions = {
 		    	pane: this._pane,
 		    	shadowPane: this._shadowPane
@@ -228,64 +228,64 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 		for (i = 0; i < latlngs.length; i++) {
 
-			if (latlngs[i]._vertex) {
-				vertex = latlngs[i]._vertex;
-				delete vertex.isPolygon;
-				delete vertex.isHole;
-				delete vertex.prev;
-				delete vertex.next;
-				delete vertex.first;
-				delete vertex.last;
+			if (latlngs[i]._handle) {
+				handle = latlngs[i]._handle;
+				delete handle.isPolygon;
+				delete handle.isHole;
+				delete handle.prev;
+				delete handle.next;
+				delete handle.first;
+				delete handle.last;
 			} else {
-				// vertex = latlngs[i]._vertex = L.DomUtil.create('div', this.options.handleClassName);
-				vertex = L.larva.frame.vertex(latlngs[i], vertexOptions);
+				// handle = latlngs[i]._handle = L.DomUtil.create('div', this.options.handleClassName);
+				handle = L.larva.frame.handle(latlngs[i], vertexOptions);
 
-				vertex
-					.on('drag:start', this._onVertexDragStart, this)
-					.on('dblclick', this._onVertexDblClick, this);
+				handle
+					.on('drag:start', this._onHandleDragStart, this)
+					.on('dblclick', this._onHandleDbclick, this);
 			}
 
 			if (isPolygon) {
-				vertex.isPolygon = true;
+				handle.isPolygon = true;
 			}
 
 			if (isHole) {
-				vertex.isHole = true;
+				handle.isHole = true;
 			}
 
-			vertex.point = this._map.latLngToLayerPoint(vertex.latlng);
+			handle.point = this._map.latLngToLayerPoint(handle.latlng);
 
-			this._vertices[L.stamp(vertex)] = vertex;
+			this._handles[L.stamp(handle)] = handle;
 
 			if (prev) {
-				prev.next = vertex;
-				vertex.prev = prev;
-				prev = vertex;
+				prev.next = handle;
+				handle.prev = prev;
+				prev = handle;
 
 				if (isPolygon && first) {
-					vertex.first = first;
+					handle.first = first;
 				}
 
 			} else {
-				first = vertex;
-				prev = vertex;
-				//vertex.first = vertex;
+				first = handle;
+				prev = handle;
+				//handle.first = handle;
 			}
 
-			vertices.push(vertex);
+			handles.push(handle);
 		}
 
 		if (isPolygon && first) {
-			first.last = vertex;
+			first.last = handle;
 		}
 
 		this._lines.push({
-			vertices: vertices,
+			handles: handles,
 			isHole: !!isHole,
 			isPolygon: !!isPolygon
 		});
 
-		return vertices;
+		return handles;
 	},
 
 	_onEnd: function (evt) {
@@ -327,7 +327,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_onMove: function (evt) {
-		var ghost, vertex, id, dx, dy, newPoint, newLatLng;
+		var ghost, handle, id, dx, dy, newPoint, newLatLng;
 
 		L.DomEvent.stop(evt);
 
@@ -351,7 +351,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 		for (id in this._ghosts) {
 			ghost = this._ghosts[id];
-			vertex = this._vertices[id];
+			handle = this._handles[id];
 
 			dx = this._position.x - ghost.x;
 			dy = this._position.y - ghost.y;
@@ -364,7 +364,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			ghost.polyline.updateBounds();
 			ghost.polyline.redraw();
 
-			vertex.update(newPoint);
+			handle.update(newPoint);
 		}
 
 		this.fire('handle:move', {
@@ -372,7 +372,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		});
 	},
 
-	_onVertexDblClick: function (evt) {
+	_onHandleDbclick: function (evt) {
 		evt = L.larva.getSourceEvent(evt);
 		L.DomEvent.stop(evt);
 
@@ -382,7 +382,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		});
 	},
 
-	_onVertexDragStart: function (evt) {
+	_onHandleDragStart: function (evt) {
 		var originalEvent = L.larva.getSourceEvent(evt);
 		L.DomEvent.stop(originalEvent);
 
@@ -411,28 +411,28 @@ L.larva.frame.Vertices = L.Layer.extend(
 	_onZoomEnd: function () {
 		var id;
 
-		for (id in this._vertices) {
-			delete this._vertices[id].point;
-			this._vertices[id].update(this._map);
+		for (id in this._handles) {
+			delete this._handles[id].point;
+			this._handles[id].update(this._map);
 		}
 	},
 
-	_showVertices: function (vertices, isPolygon) {
+	_showHandles: function (handles, isPolygon) {
 		var pointsToShow;
 
 		var bounds = this._map.getPixelBounds(),
 		    pixelOrigin = this._map.getPixelOrigin();
 
-		var points = vertices.map(function (vertex) {
+		var points = handles.map(function (vertex) {
 			var point = vertex.point.add(pixelOrigin);
-			point._vertex = vertex;
+			point._handle = vertex;
 			return point;
 		});
 
 		if (isPolygon) {
 
 			pointsToShow = L.PolyUtil.clipPolygon(points, bounds).filter(function (point) {
-				return !!point._vertex;
+				return !!point._handle;
 			});
 
 		} else {
@@ -444,11 +444,11 @@ L.larva.frame.Vertices = L.Layer.extend(
 			for (i=0, l = points.length - 1; i<l; i++) {
 				lineClip = L.LineUtil.clipSegment(points[i], points[i + 1], bounds);
 				if (lineClip) {
-					if (lineClip[0]._vertex) {
+					if (lineClip[0]._handle) {
 						pointsToShow.push(lineClip[0]);
 					}
 
-					if (lineClip[1]._vertex) {
+					if (lineClip[1]._handle) {
 						pointsToShow.push(lineClip[1]);
 					}
 				}
@@ -472,20 +472,20 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 
 		pointsToShow.forEach(function (point) {
-			point._vertex.update();
+			point._handle.update();
 		}, this);
 	},
 
-	_updateVertices: function () {
+	_updateHandles: function () {
 		var id;
 
-		if (this._vertices) {
-			for (id in this._vertices) {
-				this._vertices[id].remove();
-				delete this._vertices[id];
+		if (this._handles) {
+			for (id in this._handles) {
+				this._handles[id].remove();
+				delete this._handles[id];
 			}
 		} else {
-			this._vertices = {};
+			this._handles = {};
 		}
 
 		if (this._lines) {
@@ -499,7 +499,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			case L.Polyline.MULTIPOLYLINE:
 
 				this._path.forEachLine(function (line) {
-					this._createOrUpdateVertices(line);
+					this._createOrUpdateHandles(line);
 				}, this);
 
 				break;
@@ -509,10 +509,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 				this._path.forEachPolygon(function (shell, holes) {
 
-					this._createOrUpdateVertices(shell, true);
+					this._createOrUpdateHandles(shell, true);
 
 					holes.forEach(function (latlngs) {
-						this._createOrUpdateVertices(latlngs, true, true);
+						this._createOrUpdateHandles(latlngs, true, true);
 					}, this);
 
 				}, this);
@@ -525,12 +525,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_updateView: function () {
-		for (var id in this._vertices) {
-			this._vertices[id].remove();
+		for (var id in this._handles) {
+			this._handles[id].remove();
 		}
 
 		this._lines.forEach(function (line) {
-			this._showVertices(line.vertices, line.isPolygon, line.isHole);
+			this._showHandles(line.handles, line.isPolygon, line.isHole);
 		}, this);
 	}
 });

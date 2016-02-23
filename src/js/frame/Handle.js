@@ -5,8 +5,8 @@
 /**
  * @extends {L.Evented}
  */
-L.larva.frame.Vertex = L.Evented.extend(
-/** @lends L.larva.frame.Vertex.prototype */
+L.larva.frame.Handle = L.Evented.extend(
+/** @lends L.larva.frame.Handle.prototype */
 {
 	options: {
 		css: 'llarva-verticesframe-handle',
@@ -19,7 +19,7 @@ L.larva.frame.Vertex = L.Evented.extend(
 
 	initialize: function (latlng, options) {
 		this.latlng = latlng;
-		latlng._vertex = this;
+		latlng._handle = this;
 
 		L.setOptions(this, options);
 		this.el = L.DomUtil.create('div', this.options.css, this.options.pane);
@@ -79,6 +79,6 @@ L.larva.frame.Vertex = L.Evented.extend(
 
 });
 
-L.larva.frame.vertex = function (latlng, options) {
-	return new L.larva.frame.Vertex(latlng, options);
+L.larva.frame.handle = function (latlng, options) {
+	return new L.larva.frame.Handle(latlng, options);
 };
