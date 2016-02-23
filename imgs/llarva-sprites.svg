@@ -82,7 +82,7 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.656854"
-     inkscape:cx="21.991776"
+     inkscape:cx="40.91774"
      inkscape:cy="702.57732"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
@@ -152,9 +152,9 @@
        height="24"
        x="-9.5367432e-07"
        y="1.9073486e-06"
-       inkscape:export-filename="leaflet-larva-shadow.png"
-       inkscape:export-xdpi="90"
-       inkscape:export-ydpi="90" />
+       inkscape:export-filename="leaflet-larva-2x-shadow.png"
+       inkscape:export-xdpi="180"
+       inkscape:export-ydpi="180" />
   </g>
   <g
      inkscape:groupmode="layer"
