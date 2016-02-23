@@ -9,11 +9,11 @@ L.larva.frame.Vertex = L.Evented.extend(
 /** @lends L.larva.frame.Vertex.prototype */
 {
 	options: {
-		css: 'llarva-frame-vertex',
-		shadowCss: 'llarva-frame-shadow-vertex',
+		css: 'llarva-verticesframe-handle',
+		shadowCss: 'llarva-verticesframe-handle-shadow',
 		shadowOffset: {
-			x: 1,
-			y: 1
+			x: 0,
+			y: 0
 		}
 	},
 

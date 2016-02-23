@@ -157,8 +157,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		}, this);
 
-		this._path.updateBounds();
-
+		// this._path.updateBounds();
 		this._frame.updateBounds.apply(this._frame, [null].concat(this.options.noUpdate));
 		this._path.redraw();
 	},

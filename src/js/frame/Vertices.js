@@ -17,10 +17,9 @@ L.larva.frame.Vertices = L.Layer.extend(
 {
 	options: {
 		colorFactor: [0.8, 1.3, 0.8],
-		handleClassName: 'llarva-vertex',
 		opacityFactor: 0.8,
 		sqrEditResistance: 4,
-		pane: 'llarva-frame',
+		pane: 'llarva-vertex',
 		tolerance: 10,
 		shadowPane: 'shadowPane',
 		simplifyZoom: -1,
