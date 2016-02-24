@@ -81,11 +81,11 @@
      borderopacity="1"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.656854"
-     inkscape:cx="40.91774"
-     inkscape:cy="702.57732"
+     inkscape:zoom="7.9999996"
+     inkscape:cx="49.334201"
+     inkscape:cy="707.26258"
      inkscape:document-units="px"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:snap-page="false"
      inkscape:window-width="1366"
@@ -160,8 +160,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Shadow"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <ellipse
        ry="5.9999952"
        rx="6"
@@ -201,8 +200,7 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-332.36216)"
-     style="display:none"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        style="display:inline;opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4172"
