@@ -102,10 +102,25 @@
 	}
 }
 
-.llarva-vertex {
-	background: @vertex-background;
-	border: @vertex-border;
-	height: @vertex-height;
-	width: @vertex-width;
+.llarva-verticesframe-handle {
+	background: @verticesframe-handle-background;
+	border: @verticesframe-handle-border;
+	height: @verticesframe-handle-height;
+	width: @verticesframe-handle-width;
 	position: absolute;
+}
+
+.llarva-verticesframe-handle-shadow {
+	background: @verticesframe-handle-shadow-background;
+	height: @verticesframe-handle-shadow-height;
+	position: absolute;
+	width: @verticesframe-handle-shadow-width;
+}
+
+.leaflet-llarva-rect-pane {
+	z-index: 600;
+}
+
+.leaflet-llarva-vertex-pane {
+	z-index: 700;
 }

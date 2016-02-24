@@ -30,7 +30,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	options: {
-		pane: 'llarva-frame'
+		pane: 'llarva-rect'
 	},
 
 	initialize: function (path) {

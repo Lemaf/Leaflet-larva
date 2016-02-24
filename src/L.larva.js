@@ -34,7 +34,9 @@ L.larva = {
 	 * @return {Event}
 	 */
 	getSourceEvent: function (evt) {
-		if (evt.sourceEvent) {
+		if (evt.originalEvent) {
+			evt = evt.originalEvent;
+		} else if (evt.sourceEvent) {
 			evt = evt.sourceEvent;
 		}
 
