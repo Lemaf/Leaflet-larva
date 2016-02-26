@@ -219,7 +219,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 				delete handle.first;
 				delete handle.last;
 			} else {
-				// handle = latlngs[i]._handle = L.DomUtil.create('div', this.options.handleClassName);
 				handle = L.larva.frame.vertexHandle(latlngs[i], this._pane, this._shadowPane);
 
 				handle
