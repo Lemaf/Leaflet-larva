@@ -1,6 +1,6 @@
 /**
  * @requires package.js
- * @requires Handle.js
+ * @requires VertexHandle.js
  *
  * @requires ../ext/L.Polygon.js
  * @requires ../Style.js
@@ -220,11 +220,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_createOrUpdateHandles: function (latlngs, isPolygon, isHole) {
-		var i, handle, prev, handles = [], first,
-		    vertexOptions = {
-		    	pane: this._pane,
-		    	shadowPane: this._shadowPane
-		    };
+		var i, handle, prev, handles = [], first;
 
 		for (i = 0; i < latlngs.length; i++) {
 
@@ -238,7 +234,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				delete handle.last;
 			} else {
 				// handle = latlngs[i]._handle = L.DomUtil.create('div', this.options.handleClassName);
-				handle = L.larva.frame.handle(latlngs[i], vertexOptions);
+				handle = L.larva.frame.vertexHandle(latlngs[i], this._pane, this._shadowPane);
 
 				handle
 					.on('drag:start', this._onHandleDragStart, this)
@@ -252,8 +248,6 @@ L.larva.frame.Vertices = L.Layer.extend(
 			if (isHole) {
 				handle.isHole = true;
 			}
-
-			handle.point = this._map.latLngToLayerPoint(handle.latlng);
 
 			this._handles[L.stamp(handle)] = handle;
 
@@ -423,11 +417,11 @@ L.larva.frame.Vertices = L.Layer.extend(
 		var bounds = this._map.getPixelBounds(),
 		    pixelOrigin = this._map.getPixelOrigin();
 
-		var points = handles.map(function (vertex) {
-			var point = vertex.point.add(pixelOrigin);
-			point._handle = vertex;
+		var points = handles.map(function (handle) {
+			var point = this._map.latLngToLayerPoint(handle.getLatLng()).add(pixelOrigin);
+			point._handle = handle;
 			return point;
-		});
+		}, this);
 
 		if (isPolygon) {
 
@@ -472,7 +466,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 
 		pointsToShow.forEach(function (point) {
-			point._handle.update();
+			point._handle.update(this._map);
 		}, this);
 	},
 

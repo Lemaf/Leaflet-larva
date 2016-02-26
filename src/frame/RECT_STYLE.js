@@ -15,6 +15,9 @@
  */
 L.larva.frame.RECT_STYLE = {};
 
+/**
+ * @type {Object}
+ */
 L.larva.frame.RECT_STYLE.RESIZE = {
 	className: 'llarva-pathframe-resize',
 	mm: {
@@ -22,6 +25,9 @@ L.larva.frame.RECT_STYLE.RESIZE = {
 	}
 };
 
+/**
+ * @type {Object}
+ */
 L.larva.frame.RECT_STYLE.ROTATE = {
 	className: 'llarva-pathframe-rotate',
 	tm: {

@@ -4,86 +4,116 @@
 
 /**
  * @class
+ * 
+ * @param {HTMLElement} handlePane
+ * @param {HTMLElement} [shadowPane]
+ * @param {Object} [options]
+ * 
  * @extends {L.Evented}
  */
 L.larva.frame.Handle = L.Evented.extend(
 /** @lends L.larva.frame.Handle.prototype */
 {
 	options: {
-		css: 'llarva-verticesframe-handle',
-		shadowCss: 'llarva-verticesframe-handle-shadow',
+		cssClass: null,
+		shaodowCssClass: null,
 		shadowOffset: {
-			x: 0,
-			y: 0
+			x: 2,
+			y: 2
 		}
 	},
 
-	initialize: function (latlng, options) {
-		this.latlng = latlng;
-		latlng._handle = this;
-
+	initialize: function (handlePane, shadowPane, options) {
 		L.setOptions(this, options);
-		this.el = L.DomUtil.create('div', this.options.css, this.options.pane);
-		this.shadowEl = L.DomUtil.create('div', this.options.shadowCss, this.options.shadowPane);
+		this._handlePane = handlePane;
+		this._shadowPane = shadowPane;
 
-		L.DomEvent
-			.on(this.el, L.Draggable.START.join(' '), this._onDragStart, this)
-			.on(this.el, 'dblclick', this._onDblClick, this);
+		this._handle = L.DomUtil.create('div', this.options.cssClass, handlePane);
+
+		L.extend(this._handle.style, {
+			position: 'absolute'
+		});
+
+		if (shadowPane && this.options.shaodowCssClass) {
+			this._shadow = L.DomUtil.create('div', this.options.shaodowCssClass, shadowPane);
+			L.extend(this._shadow.style, {
+				marginTop: this.options.shadowOffset.x + 'px',
+				marginLeft: this.options.shadowOffset.y + 'px'
+			});
+		}
+	},
+
+	/**
+	 * @param {String} type
+	 * @param {Function} fn
+	 * @param {*} [context]
+	 * @return {L.larva.frame.Handle} this
+	 */
+	off: function (type, fn, context) {
+		L.Evented.prototype.off.call(type, fn, context);
+
+		if (!this.listens(type)) {
+			L.DomEvent.off(this._handle, type, this._onEvent, this);
+		}
+	},
+
+	/**
+	 * @param  {String}   type
+	 * @param  {Function} fn
+	 * @param  {*}   [context]
+	 * @return {L.larva.frame.Handle} this
+	 */
+	on: function (type, fn, context) {
+		var toAddListener = !this.listens(type);
+		L.Evented.prototype.on.call(this, type, fn, context);
+
+		if (toAddListener) {
+			L.DomEvent.on(this._handle, type, this._onEvent, this);
+		}
+
+		return this;
 	},
 
 	/**
 	 */
 	remove: function () {
-		if (this.el.offsetParent) {
-			L.DomUtil.remove(this.el);
-			L.DomUtil.remove(this.shadowEl);
+		if (this._handle.offsetParent) {
+			L.DomUtil.remove(this._handle);
+
+			if (this._shadow) {
+				L.DomUtil.remove(this._shadow);
+			}
 		}
 	},
 
 	/**
+	 * @abstract
 	 * @param  {L.Map} map
 	 * @param  {L.Point} [target]
 	 */
-	update: function (map, target) {
-		if (!target) {
-			target = this.point || (this.point = map.latLngToLayerPoint(this.latlng));
-		}
-
-		if (!this.el.offsetParent) {
-			this.options.pane.appendChild(this.el);
-			this.options.shadowPane.appendChild(this.shadowEl);
-		}
-
-		L.DomUtil.setPosition(this.el, target.clone()._subtract({
-			x: L.larva.getWidth(this.el) / 2,
-			y: L.larva.getHeight(this.el) / 2
-		}));
-
-		L.DomUtil.setPosition(this.shadowEl, target.clone()._add({
-			x: this.options.shadowOffset.x - L.larva.getWidth(this.shadowEl) / 2,
-			y: this.options.shadowOffset.y - L.larva.getHeight(this.shadowEl) / 2
-		}));
+	update: function () {
 	},
 
-	_onDblClick: function (evt) {
-		this.fire('dblclick', {
-			originalEvent: evt
-		});
-	},
-
-	_onDragStart: function (evt) {
-		this.fire('drag:start', {
-			originalEvent: evt
+	_onEvent: function (event) {
+		this.fire(event.type, {
+			originalEvent: event
 		});
 	}
-
 });
 
 /**
- * @param  {L.LatLng} latlng
- * @param  {Object} options
- * @return {L.larva.frame.Handle}
+ * @class
  */
-L.larva.frame.handle = function (latlng, options) {
-	return new L.larva.frame.Handle(latlng, options);
-};
+L.larva.frame.RectHandle = L.larva.frame.Handle.extend({
+	options: {
+		css: 'llarva-verticesframe-handle',
+		shadowCss: 'llarva-verticesframe-handle-shadow'
+	}
+});
+
+L.larva.frame.rectHandle = L.larva.frame.Handle.extend({
+	options: {
+		css: 'llarva-pathframe-handle',
+		shadowCss: 'llarva-verticesframe-handle-shadow'
+	}
+});
