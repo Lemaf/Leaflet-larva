@@ -69,7 +69,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 	 */
 	getLatLng: function (handleId) {
 		if (this._handles && this._handles[handleId]) {
-			return this._handles[handleId].latlng;
+			return this._handles[handleId].getLatLng();
 		}
 	},
 	/**
@@ -139,7 +139,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 			var polyline;
 
 			var latlngs = [],
-			    latlng = handle.latlng.clone(),
+			    latlng = handle.getLatLng().clone(),
 			    style = L.larva.style(this._path).multiply({
 			    	color: this.options.colorFactor,
 			    	opacity: this.options.opacityFactor
@@ -147,22 +147,22 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 			if (handle.isPolygon) {
 
-				latlngs.push((handle.prev ? handle.prev.latlng : handle.last.latlng).clone());
+				latlngs.push((handle.prev ? handle.prev.getLatLng() : handle.last.getLatLng()).clone());
 
 				latlngs.push(latlng);
 
-				latlngs.push((handle.next ? handle.next.latlng : handle.first.latlng).clone());
+				latlngs.push((handle.next ? handle.next.getLatLng() : handle.first.getLatLng()).clone());
 
 			} else {
 
 				if (handle.prev) {
-					latlngs.push(handle.prev.latlng.clone());
+					latlngs.push(handle.prev.getLatLng().clone());
 				}
 
 				latlngs.push(latlng);
 
 				if (handle.next) {
-					latlngs.push(handle.next.latlng.clone());
+					latlngs.push(handle.next.getLatLng().clone());
 				}
 			}
 
@@ -193,21 +193,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		this._updateView();
 		return this;
 	},
-	/**
-	 * @param  {String} handleId
-	 * @returns {L.LatLng} Ghost's L.LatLng
-	 */
-	stopGhost: function (handleId) {
-		var ghost, handle;
-		if (this._ghosts && (ghost = this._ghosts[handleId])) {
-			this._map.removeLayer(this._ghosts[handleId].polyline);
-			delete this._ghosts[handleId];
 
-			handle = this._handles[handleId];
-			handle.point = this._map.latLngToLayerPoint(ghost.latlng);
-			return ghost.latlng;
-		}
-	},
 	/**
 	 * @param  {String} handleId
 	 */
@@ -237,7 +223,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 				handle = L.larva.frame.vertexHandle(latlngs[i], this._pane, this._shadowPane);
 
 				handle
-					.on('drag:start', this._onHandleDragStart, this)
+					.on(L.Draggable.START.join(' '), this._onHandleDragStart, this)
 					.on('dblclick', this._onHandleDbclick, this);
 			}
 
@@ -320,6 +306,43 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 	},
 
+	_onHandleDbclick: function (evt) {
+		var handleId = L.stamp(evt.target);
+		evt = L.larva.getSourceEvent(evt);
+		L.DomEvent.stop(evt);
+
+		this.fire('handle:dblclick', {
+			id: handleId,
+			originalEvent: evt
+		});
+	},
+
+	_onHandleDragStart: function (evt) {
+		var originalEvent = L.larva.getSourceEvent(evt);
+		L.DomEvent.stop(originalEvent);
+
+		this._position = {
+			x: originalEvent.clientX, y: originalEvent.clientY
+		};
+
+		var startEvent = {
+			id: L.stamp(evt.target),
+			originalEvent: originalEvent
+		};
+
+		if (this.options.sqrEditResistance) {
+			this._position.lock = startEvent;
+		} else {
+			this.fire('handle:start', startEvent);
+		}
+
+		L.DomEvent
+			.on(document, L.Draggable.MOVE[originalEvent.type], this._onMove, this)
+			.on(document, L.Draggable.END[originalEvent.type], this._onEnd, this);
+
+		L.DomUtil.addClass(document.body, 'leaflet-dragging');
+	},
+
 	_onMove: function (evt) {
 		var ghost, handle, id, dx, dy, newPoint, newLatLng;
 
@@ -358,48 +381,12 @@ L.larva.frame.Vertices = L.Layer.extend(
 			ghost.polyline.updateBounds();
 			ghost.polyline.redraw();
 
-			handle.update(newPoint);
+			handle.update(this._map, newPoint);
 		}
 
 		this.fire('handle:move', {
 			originalEvent: evt
 		});
-	},
-
-	_onHandleDbclick: function (evt) {
-		evt = L.larva.getSourceEvent(evt);
-		L.DomEvent.stop(evt);
-
-		this.fire('handle:dblclick', {
-			id: L.stamp(evt.target),
-			originalEvent: evt.originalEvent
-		});
-	},
-
-	_onHandleDragStart: function (evt) {
-		var originalEvent = L.larva.getSourceEvent(evt);
-		L.DomEvent.stop(originalEvent);
-
-		this._position = {
-			x: originalEvent.clientX, y: originalEvent.clientY
-		};
-
-		var startEvent = {
-			id: L.stamp(evt.target),
-			originalEvent: originalEvent
-		};
-
-		if (this.options.sqrEditResistance) {
-			this._position.lock = startEvent;
-		} else {
-			this.fire('handle:start', startEvent);
-		}
-
-		L.DomEvent
-			.on(document, L.Draggable.MOVE[originalEvent.type], this._onMove, this)
-			.on(document, L.Draggable.END[originalEvent.type], this._onEnd, this);
-
-		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
 	_onZoomEnd: function () {

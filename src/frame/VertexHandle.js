@@ -49,6 +49,8 @@ L.larva.frame.VertexHandle = L.larva.frame.Handle.extend(
 			this._shadowPane.appendChild(this._shadow);
 		}
 
+		this.point = point.clone();
+
 		point._subtract({
 			x: L.larva.getWidth(this._handle) / 2,
 			y: L.larva.getHeight(this._handle) / 2
@@ -60,7 +62,6 @@ L.larva.frame.VertexHandle = L.larva.frame.Handle.extend(
 			L.DomUtil.setPosition(this._shadow, point);
 		}
 
-		this.point = point;
 	}
 });
 

@@ -196,7 +196,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		switch (this._path.getType()) {
 			case L.Polyline.MULTIPOLYLINE:
 
-				for (p=0; p < latlngs[p].length; p++) {
+				for (p=0; p < latlngs.length; p++) {
 					if ((index = latlngs[p].indexOf(latlng)) !== -1) {
 
 						if (latlngs[p].length <= 2) {
