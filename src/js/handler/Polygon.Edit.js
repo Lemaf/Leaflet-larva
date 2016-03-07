@@ -99,7 +99,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 				})).on('ldraw:created', this._onNewHole, this);
 
 				this._newPolygonHole.enable();
-				this._newPolygonHole.addLatLng(evt.latlng);
+				this._newPolygonHole.addLatLng(evt.latlng, true);
 			}
 		}
 	},

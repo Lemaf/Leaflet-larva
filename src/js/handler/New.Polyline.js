@@ -45,9 +45,16 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 	/**
 	 * Invoke after enable
 	 * @param {L.LatLng} latlng
+	 * @param {Boolean} [nextEquals]
 	 */
-	addLatLng: function (latlng) {
+	addLatLng: function (latlng, nextEquals) {
 		this._toAddLatLng = latlng;
+
+		if (nextEquals) {
+			this._newLatLng.lat = latlng.lat;
+			this._newLatLng.lng = latlng.lng;
+		}
+
 		this._pushLatLng();
 	},
 
