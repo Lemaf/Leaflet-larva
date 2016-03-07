@@ -80,7 +80,6 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 	_onPathClickHole: function (evt) {
 
 		if (!this._makingHole && evt.originalEvent.ctrlKey) {
-			this._makingHole = true;
 
 			var point = evt.layerPoint, points, found = [];
 
@@ -100,6 +99,7 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 
 				this._newPolygonHole.enable();
 				this._newPolygonHole.addLatLng(evt.latlng, true);
+				this._makingHole = true;
 			}
 		}
 	},
