@@ -100,20 +100,3 @@ L.larva.frame.Handle = L.Evented.extend(
 		});
 	}
 });
-
-/**
- * @class
- */
-L.larva.frame.RectHandle = L.larva.frame.Handle.extend({
-	options: {
-		css: 'llarva-verticesframe-handle',
-		shadowCss: 'llarva-verticesframe-handle-shadow'
-	}
-});
-
-L.larva.frame.rectHandle = L.larva.frame.Handle.extend({
-	options: {
-		css: 'llarva-pathframe-handle',
-		shadowCss: 'llarva-verticesframe-handle-shadow'
-	}
-});
