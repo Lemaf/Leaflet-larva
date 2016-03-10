@@ -18,7 +18,7 @@ gulp.task('lint:javascript', function () {
 
 	var jshint = require('gulp-jshint');
 
-	return gulp.src('src/js/**/*.js')
+	return gulp.src('src/**/*.js')
 		.pipe(jshint())
 		.pipe(jshint.reporter('default', {verbose: true}))
 		.pipe(jshint.reporter('fail'));
@@ -58,7 +58,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 	wrapJS = require('gulp-wrap-js'),
 	path = require('path');
 
-	return gulp.src(SOURCES.JS, {cwd: 'src/js', base: 'src/js'})
+	return gulp.src(SOURCES.JS, {cwd: 'src', base: 'src'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
 		.pipe(concat('leaflet-larva.js'))
@@ -69,7 +69,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 				style: '\t',
 			}
 		}))
-		.pipe(sourcemaps.write('./', {sourceRoot: 'l.larva'}))
+		.pipe(sourcemaps.write('./', {sourceRoot: 'L.larva'}))
 		.pipe(gulp.dest('dist/'));
 });
 
@@ -98,9 +98,9 @@ gulp.task('less:less', function () {
 	var less = require('gulp-less'),
 	path = require('path');
 
-	return gulp.src('*.less', {cwd: 'src/less'})
+	return gulp.src('*.less', {cwd: 'less'})
 		.pipe(less({
-			paths: [path.join(__dirname, 'src', 'less', 'includes')]
+			paths: [path.join(__dirname, 'less', 'includes')]
 		}))
 		.pipe(gulp.dest('dist/'));
 });
@@ -163,8 +163,8 @@ gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images', 'bower'], f
 	connectJade = require('connect-jade'),
 	url = require('url');
 
-	gulp.watch(['src/js/**/*.js'], ['concat:javascript']);
-	gulp.watch(['src/less/**/*.less'], ['less:less']);
+	gulp.watch(['src/**/*.js'], ['concat:javascript']);
+	gulp.watch(['less/**/*.less'], ['less:less']);
 
 	return connect.server({
 		root: ['demos/', 'dist', 'bower_components'],

@@ -1,45 +1,23 @@
 @import (reference) "includes/mixins.less";
 @import  "includes/theme.less";
 
-.llarva-pathframe {
-	background: @pathframe-background;
-	border: @pathframe-border;
+.llarva-rectframe {
+	background: @rectframe-background;
+	border: @rectframe-border;
 	position: absolute;
 }
 
-.llarva-pathframe {
+.llarva-rectframe {
 
-	.llarva-tl,
-	.llarva-tm,
-	.llarva-tr,
-	.llarva-ml,
-	.llarva-mm,
-	.llarva-mr,
-	.llarva-bl,
-	.llarva-bm,
-	.llarva-br {
-		position: absolute;
+	.llarva-rectframe-handle {
 		height: @handle-height;
 		width: @handle-width;
 	}
 }
 
-.llarva-pathframe-resize {
+.llarva-rectframe-resize {
 
 	cursor: default;
-
-	.llarva-tl,
-	.llarva-tm,
-	.llarva-tr,
-	.llarva-ml,
-	.llarva-mm,
-	.llarva-mr,
-	.llarva-bl,
-	.llarva-bm,
-	.llarva-br {
-		background: url(leaflet-larva.png);
-		background-position: -3px -3px;
-	}
 
 	.llarva-tl {
 		cursor: nw-resize;
@@ -74,7 +52,7 @@
 	}
 }
 
-.llarva-pathframe-rotate {
+.llarva-rectframe-rotate {
 
 	cursor: default;
 

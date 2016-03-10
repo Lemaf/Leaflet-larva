@@ -1,5 +1,6 @@
 /**
  * @requires package.js
+ * @requires RectHandle.js
  *
  */
 
@@ -30,7 +31,8 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	options: {
-		pane: 'llarva-rect'
+		pane: 'llarva-rect',
+		shadowPane: 'shadowPane'
 	},
 
 	initialize: function (path) {
@@ -53,7 +55,7 @@ L.larva.frame.Rect = L.Layer.extend(
 				return getComputedStyle(this._handles[id]);
 			}
 		} else {
-			return getComputedStyle(this._el);
+			return getComputedStyle(this._frameEl);
 		}
 	},
 
@@ -66,7 +68,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	 * @return {DOMRect}
 	 */
 	getFrameClientRect: function () {
-		return this._el.getBoundingClientRect();
+		return this._frameEl.getBoundingClientRect();
 	},
 	/**
 	 * @param  {String} id
@@ -83,27 +85,27 @@ L.larva.frame.Rect = L.Layer.extend(
 		if (id) {
 			return L.DomUtil.getPosition(this._handles[id]);
 		} else {
-			return L.DomUtil.getPosition(this._el);
+			return L.DomUtil.getPosition(this._frameEl);
 		}
 	},
 
 	onAdd: function () {
-		var el = this._el = L.DomUtil.create('div', 'llarva-pathframe', this.getPane());
+		var el = this._frameEl = L.DomUtil.create('div', 'llarva-rectframe', this.getPane());
 		L.DomEvent.on(el, L.Draggable.START.join(' '), this._onStart, this);
 
 		this._handles = {};
 
+		var shadowPane = this.getPane(this.options.shadowPane);
+
 		['tl','tm','tr','ml','mm','mr','bl','bm','br'].forEach(function (id) {
 
-			this._handles[id] = L.DomUtil.create('div', 'llarva-' + id, el);
-			this._handles[id]._id = id;
-			L.DomEvent.on(this._handles[id], L.Draggable.START.join(' '), this._onStart, this);
+			(this._handles[id] = L.larva.frame.rectHandle(id, el, shadowPane))
+				.on(L.Draggable.START.join(' '), this._onStart, this);
 
 		}, this);
 
-		this._draggables = {};
-		this._updateFrame(false);
-		this._updateHandles();
+		this._update(true);
+		//this._updateHandles();
 	},
 
 	onRemove: function() {
@@ -113,17 +115,17 @@ L.larva.frame.Rect = L.Layer.extend(
 			this._draggables[id].disable();
 		}
 
-		// L.DomEvent.off(this._el, 'mousedown click', L.DomEvent.stop);
-		L.DomEvent.off(this._el, eventTypes, this._onStart, this);
+		// L.DomEvent.off(this._frameEl, 'mousedown click', L.DomEvent.stop);
+		L.DomEvent.off(this._frameEl, eventTypes, this._onStart, this);
 
 		for (id in this._handles) {
 			L.DomEvent.off(this._handles[id], eventTypes, this._onStart, this);
 		}
 
-		L.DomUtil.remove(this._el);
-		L.DomUtil.empty(this._el);
+		L.DomUtil.remove(this._frameEl);
+		L.DomUtil.empty(this._frameEl);
 
-		delete this._el;
+		delete this._frameEl;
 	},
 	/**
 	 * @param {Object} styles
@@ -131,7 +133,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	 */
 	setElementStyle: function (styles, element) {
 		if (!element) {
-			L.extend(this._el.style, styles);
+			L.extend(this._frameEl.style, styles);
 		} else {
 			element = this._handles[element];
 
@@ -140,54 +142,37 @@ L.larva.frame.Rect = L.Layer.extend(
 			}
 		}
 	},
+
 	/**
 	 * @param {L.larva.frame.RECT_STYLE} style
 	 */
 	setStyle: function (style) {
-		var id, el, oldStyle = this._style;
-
-		for (id in this._handles) {
-			el = this._handles[id];
-			el.style.display = 'block';
-
-			if (this._draggables[id]) {
-				this._draggables[id].disable();
-				delete this._draggables[id];
-			}
-
-			if (style[id]) {
-				if (style[id].hide) {
-					el.style.display = 'none';
-				}
-
-				if (style[id].draggable) {
-					this._draggables[id] = new L.Draggable(el);
-					this._draggables[id].enable();
-					L.DomEvent.off(el, 'mousedown click', L.DomEvent.stop);
-				}
-			}
-		}
+		var id, oldStyle = this._style;
 
 		if (oldStyle) {
-			L.DomUtil.removeClass(this._el, oldStyle.className);
+			L.DomUtil.removeClass(this._frameEl, oldStyle.className);
 		}
 
-		L.DomUtil.addClass(this._el, style.className);
+		L.DomUtil.addClass(this._frameEl, style.className);
+
+		this._frameEl.style.position = 'absolute';
+
+		for (id in this._handles) {
+			if (style[id]) {
+				this._handles[id].setStyle(style[id]);
+			} else {
+				// TODO: Hide handle?
+			}
+		}
 
 		this._style = style;
-
-		this._updateHandles();
-
-		for (id in this._draggables) {
-			this._updateDraggable(id);
-		}
 	},
 	/**
 	 * @param {L.LatLngBounds} [bounds]
 	 * @param {...String} [maintainHandles]
 	 */
 	updateBounds: function (bounds) {
-		this._updateFrame(false, Array.prototype.slice.call(arguments, 1), bounds);
+		this._update(false, Array.prototype.slice.call(arguments, 1), bounds);
 	},
 
 	_onEnd: function (evt) {
@@ -207,7 +192,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	_onMapZoom: function () {
-		this._updateFrame(true);
+		this._update(true);
 	},
 
 	_onMove: function (evt) {
@@ -233,137 +218,29 @@ L.larva.frame.Rect = L.Layer.extend(
 		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
-	_setHandlePosition: function (handle, borders) {
-		var id = handle._id, style = {};
+	_update: function (zoomChanged, bounds) {
+		var id;
 
-		switch (id[0]) {
-			case 't':
-				style.top = (L.larva.getHeight(handle) / -2 - borders.top) + 'px';
-				break;
-
-			case 'm':
-				style.top = '50%';
-				style.marginTop = (L.larva.getHeight(handle) / -2) + 'px';
-				break;
-
-			case 'b':
-				style.bottom = (L.larva.getHeight(handle) / -2 - borders.bottom) + 'px';
-				break;
+		if (!bounds) {
+			bounds = this._path.getBounds();
 		}
 
-		switch (id[1]) {
-			case 'l':
-				style.left = (L.larva.getWidth(handle) / -2 - borders.left) + 'px';
-				break;
+		if (zoomChanged)  {
+			var minPoint = this._map.latLngToLayerPoint(bounds.getSouthWest());
+			var maxPoint = this._map.latLngToLayerPoint(bounds.getNorthEast());
 
-			case 'm':
-				style.marginLeft = (L.larva.getWidth(handle) / -2) + 'px';
-				style.left = '50%';
-				break;
-
-			case 'r':
-				style.right = (L.larva.getWidth(handle) / -2 - borders.right) + 'px';
-				break;
-		}
-
-		L.extend(handle.style, style);
-	},
-
-	_updateDraggable: function (id) {
-		var el = this._handles[id];
-		var left = el.offsetLeft,
-		top = el.offsetTop;
-
-		if (el.style.marginLeft) {
-			left -= parseInt(el.style.marginLeft);
-		}
-
-		if (el.style.marginTop) {
-			top -= parseInt(el.style.marginTop);
-		}
-
-		L.extend(el.style, {
-			left: '0px', top: '0px'
-		});
-
-		L.DomUtil.setPosition(el, L.point(left, top));
-	},
-
-	_updateFrame: function (zoomChanged, maintainHandles, userBounds) {
-		var id,
-		    currentPosition = L.DomUtil.getPosition(this._el),
-		    handle,
-		    handlePosition;
-
-		var bounds = userBounds || this._path.getBounds();
-
-		var southEastPoint = this._map.latLngToLayerPoint(bounds.getSouthEast()),
-		northWestPoint = this._map.latLngToLayerPoint(bounds.getNorthWest());
-
-		var computedStyle = getComputedStyle(this._el);
-
-		if (maintainHandles && currentPosition && maintainHandles.length) {
-			for (var i=0; i<maintainHandles.length; i++) {
-				handle = this._handles[maintainHandles[i]];
-				if (handle && (handlePosition = L.DomUtil.getPosition(handle))) {
-					handlePosition = handlePosition.add(currentPosition);
-					L.DomUtil.setPosition(handle, handlePosition.subtract(northWestPoint));
-				}
-			}
-		}
-
-		L.DomUtil.setPosition(this._el, northWestPoint);
-
-		var x = parseInt(computedStyle.borderLeftWidth) + parseInt(computedStyle.borderRightWidth),
-		y = parseInt(computedStyle.borderTopWidth) + parseInt(computedStyle.borderBottomWidth);
-
-		var oldWidth, oldHeight;
-		if (zoomChanged) {
-			oldWidth = L.larva.getWidth(this._el);
-			oldHeight = L.larva.getHeight(this._el);
-		}
-
-		this._el.style.width = (southEastPoint.x - northWestPoint.x - x) + 'px';
-		this._el.style.height = (southEastPoint.y - northWestPoint.y - y) + 'px';
-
-		if (zoomChanged) {
+			L.extend(this._frameEl.style, {
+				width: (maxPoint.x - minPoint.x) + 'px',
+				height: (minPoint.y - maxPoint.y) + 'px',
+				left: minPoint.x + 'px',
+				top: maxPoint.y + 'px'
+			});
 
 			for (id in this._handles) {
-				handle = this._handles[id];
-				handlePosition = L.DomUtil.getPosition(handle);
-
-				if (handlePosition) {
-					L.DomUtil.setPosition(handle, handlePosition.scaleBy(L.point(
-						L.larva.getWidth(this._el) / oldWidth, 
-						L.larva.getHeight(this._el) / oldHeight
-					)));
-				}
+				this._handles[id].update(this._map, bounds);
 			}
 		}
 
-		this.southEastPoint = southEastPoint;
-		this.northWestPoint = northWestPoint;
-	},
-
-	_updateHandles: function () {
-		var id, computedStyle;
-
-		computedStyle = getComputedStyle(this._el);
-
-		var borders = {
-			bottom: 'borderBottomWidth',
-			left: 'borderLeftWidth',
-			right: 'borderRightWidth',
-			top: 'borderTopWidth'
-		};
-
-		for (id in borders) {
-			borders[id] = parseInt(computedStyle[borders[id]]) / 2;
-		}
-
-		for (id in this._handles) {
-			this._setHandlePosition(this._handles[id], borders);
-		}
 	}
 });
 

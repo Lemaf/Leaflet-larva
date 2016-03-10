@@ -15,15 +15,21 @@
  */
 L.larva.frame.RECT_STYLE = {};
 
+/**
+ * @type {Object}
+ */
 L.larva.frame.RECT_STYLE.RESIZE = {
-	className: 'llarva-pathframe-resize',
+	className: 'llarva-rectframe-resize',
 	mm: {
 		hide: true
 	}
 };
 
+/**
+ * @type {Object}
+ */
 L.larva.frame.RECT_STYLE.ROTATE = {
-	className: 'llarva-pathframe-rotate',
+	className: 'llarva-rectframe-rotate',
 	tm: {
 		hide: true
 	},
