@@ -1,5 +1,4 @@
-var gulp = require('gulp'),
-    notify = require('gulp-notify');
+var gulp = require('gulp');
 
 var SOURCES = {
 	JS: [
@@ -17,18 +16,14 @@ var SOURCES = {
 
 gulp.task('lint:javascript', function () {
 
-	var jshint = require('gulp-jshint');
+	var jshint = require('gulp-jshint'),
+	    notifier = require('gulp-notify-linter-reporters');
 
-	return gulp.src('src/js/**/*.js')
+	return gulp.src('src/**/*.js')
 		.pipe(jshint())
 		.pipe(jshint.reporter('default', {verbose: true}))
-		.pipe(jshint.reporter('fail'))
-		.on("error", notify.onError(function (error) {
-			return {
-				wait: false,
-				message: error.message
-			}
-		}));
+		.pipe(notifier())
+		.pipe(jshint.reporter('fail'));
 });
 
 gulp.task('clean:javascript', function () {
@@ -59,21 +54,15 @@ gulp.task('copy:images', function () {
 
 gulp.task('concat:javascript', ['lint:javascript'], function () {
 
-	var cached = require('gulp-cached'),
-	concat = require('gulp-concat'),
-	remember = require('gulp-remember'),
+	var concat = require('gulp-concat'),
 	resolveDeps = require('gulp-resolve-dependencies'),
 	sourcemaps = require('gulp-sourcemaps'),
 	wrapJS = require('gulp-wrap-js'),
 	path = require('path');
 
-	var baseDir = path.join(process.cwd(), 'src', 'js');
-
-	return gulp.src(SOURCES.JS, {cwd: 'src/js', base: 'src/js'})
+	return gulp.src(SOURCES.JS, {cwd: 'src/', 'base': 'src'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
-		.pipe(cached('js'))
-		.pipe(remember('js'))
 		.pipe(concat('leaflet-larva.js'))
 		.pipe(wrapJS('(function () {%= body %})();', {
 			newline: '\n',
@@ -111,9 +100,9 @@ gulp.task('less:less', function () {
 	var less = require('gulp-less'),
 	path = require('path');
 
-	return gulp.src('*.less', {cwd: 'src/less'})
+	return gulp.src('*.less', {cwd: 'less'})
 		.pipe(less({
-			paths: [path.join(__dirname, 'src', 'less', 'includes')]
+			paths: [path.join(__dirname,'less', 'includes')]
 		}))
 		.pipe(gulp.dest('dist/'));
 });
@@ -122,7 +111,7 @@ gulp.task('jsdoc', ['clean:jsdoc'], function (cb) {
 
 	var jsdoc = require('gulp-jsdoc3');
 
-	gulp.src('src/js/**/*.js')
+	gulp.src('src/**/*.js')
 		.pipe(jsdoc({
 
 			tags: {
@@ -164,25 +153,20 @@ gulp.task('jsdoc', ['clean:jsdoc'], function (cb) {
 
 });
 
-gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images'], function () {
+gulp.task('bower', function () {
+	var bower = require('gulp-bower');
+
+	return bower();
+});
+
+gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images', 'bower'], function () {
 
 	var connect = require('gulp-connect'),
 	connectJade = require('connect-jade'),
-	remember = require('gulp-remember'),
 	url = require('url');
 
-	var watcher = gulp.watch(['src/js/**/*.js'], ['concat:javascript']);
-
-	var cached = require('gulp-cached');
-
-	watcher.on('change', function (evt) {
-		if (evt.type === 'deleted') {
-			delete cached.caches.js[evt.path];
-			remember.forget('js', evt.path);
-		}
-	});
-
-	gulp.watch(['src/less/**/*.less'], ['less:less']);
+	gulp.watch(['src/**/*.js'], ['concat:javascript']);
+	gulp.watch(['less/**/*.less'], ['less:less']);
 
 	return connect.server({
 		root: ['demos/', 'dist', 'bower_components'],
@@ -196,7 +180,7 @@ gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images'], function (
 				function (req, res, next) {
 					var path = url.parse(req.url).pathname;
 
-					if (path.lastIndexOf(".jade") === path.length - 5)
+					if (path.lastIndexOf(".jade"	) === path.length - 5)
 						res.render(path.substring(1, path.length -5));
 					else
 						next();
@@ -207,4 +191,4 @@ gulp.task('serve', ['concat:javascript', 'less:less', 'copy:images'], function (
 
 });
 
-gulp.task('build', ['test:javascript', 'uglify:javascript']);
+gulp.task('build', ['test:javascript', 'uglify:javascript', 'less:less']);

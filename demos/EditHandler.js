@@ -93,5 +93,11 @@ window.onload = function moveHandler () {
 		fillColor: '#E65300',
 		fillOpacity: 1,
 		interactive: true
-	}).addTo(map).larva.edit.enable();
+	}).addTo(map);
+
+	face.larva.edit.enable();
+
+	L.setOptions(face.larva.edit, {
+		ghost: false
+	});
 }

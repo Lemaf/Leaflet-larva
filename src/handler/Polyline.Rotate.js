@@ -19,17 +19,21 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 		noUpdate: [L.larva.frame.Rect.MIDDLE_MIDDLE]
 	},
 
+	initialize: function (path, options) {
+		L.larva.handler.Polyline.Transform.prototype.initialize.call(this, path, L.larva.frame.RECT_STYLE.ROTATE, options);
+	},
+
 	addHooks: function () {
 		this._frame = L.larva.frame.rect(this._path);
 		this._frame.addTo(this.getMap());
 
 		this._frame.setStyle(this._frameStyle);
 
-		this._frame.on('drag:start', this._onStart, this);
+		this._frame.on('handle:dragstart', this._onDragStart, this);
 	},
 
 	_angleOf: function (evt) {
-		var position = L.larva.getSourceEvent(evt),
+		var position = L.larva.getOriginalEvent(evt),
 		    center = this._getCenterElement();
 
 		var i = position.clientX - center.x,
@@ -77,43 +81,45 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 		);
 	},
 
-	_onEndOffTheFly: function () {
+	_onDragEndOffTheFly: function () {
 		this._stopPreview();
 		this._frame
-			.off('drag:move', this._onMoveOffTheFly, this)
-			.off('drag:end', this._onEndOffTheFly, this);
+			.off('drag', this._onDragOffTheFly, this)
+			.off('dragend', this._onDragEndOffTheFly, this);
 
 		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
 	},
 
-	_onEndOnTheFly: function () {
+	_onDragEndOnTheFly: function () {
 		this._frame
-			.off('drag:move', this._onMoveOnTheFly, this)
-			.off('drag:end', this._onEndOnTheFly, this);
+			.off('drag', this._onDragOnTheFly, this)
+			.off('dragend', this._onDragEndOnTheFly, this);
 
 		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params], true);
 	},
 
-	_onMoveOffTheFly: function (evt) {
+	_onDragOffTheFly: function (evt) {
 		this._transformPreview(this._params = this._calculateParams(evt));
 	},
 
-	_onMoveOnTheFly: function (evt) {
+	_onDragOnTheFly: function (evt) {
 		this._transform(this._params = this._calculateParams(evt));
 	},
 
-	_onStart: function (evt) {
-		if (!evt.handle || evt.handle === L.larva.frame.Rect.MIDDLE_MIDDLE) {
+	_onDragStart: function (evt) {
+		if (evt.handle.getPosition() === L.larva.frame.RectHandle.MIDDLE_MIDDLE) {
 			return;
 		}
 
-		var centerElement = this._centerElement = this._frame.getHandle(L.larva.frame.Rect.MIDDLE_MIDDLE);
+		var middleMiddle = this._frame.getHandle(L.larva.frame.RectHandle.MIDDLE_MIDDLE);
+
+		var centerElement = this._centerElement = middleMiddle.getEl();
 
 		var centerBounding = centerElement.getBoundingClientRect();
 
 		var vector = this._vector = {
-			i: evt.sourceEvent.pageX - (centerBounding.left + centerBounding.width / 2),
-			j: evt.sourceEvent.pageY - (centerBounding.top + centerBounding.height / 2)
+			i: evt.originalEvent.pageX - (centerBounding.left + centerBounding.width / 2),
+			j: evt.originalEvent.pageY - (centerBounding.top + centerBounding.height / 2)
 		};
 
 		vector.length = Math.sqrt(vector.i * vector.i + vector.j * vector.j);
@@ -126,13 +132,13 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 
 		if (this.options.onTheFly) {
 			this._frame
-				.on('drag:move', this._onMoveOnTheFly, this)
-				.on('drag:end', this._onEndOnTheFly, this);
+				.on('drag', this._onDragOnTheFly, this)
+				.on('dragend', this._onDragEndOnTheFly, this);
 		} else {
 			this._startPreview();
 			this._frame
-				.on('drag:move', this._onMoveOffTheFly, this)
-				.on('drag:end', this._onEndOffTheFly, this);
+				.on('drag', this._onDragOffTheFly, this)
+				.on('dragend', this._onDragEndOffTheFly, this);
 		}
 	},
 	/**
@@ -165,5 +171,5 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 });
 
 L.Polyline.addInitHook(function () {
-	this.larva.rotate = new L.larva.handler.Polyline.Rotate(this, L.larva.frame.RECT_STYLE.ROTATE);
+	this.larva.rotate = new L.larva.handler.Polyline.Rotate(this);
 });

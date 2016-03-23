@@ -33,9 +33,9 @@ L.larva = {
 	 * @param  {L.Event} evt
 	 * @return {Event}
 	 */
-	getSourceEvent: function (evt) {
-		if (evt.sourceEvent) {
-			evt = evt.sourceEvent;
+	getOriginalEvent: function (evt) {
+		if (evt.originalEvent) {
+			evt = evt.originalEvent;
 		}
 
 		return !evt.touches ?

@@ -20,7 +20,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 	includes: [L.larva.Undoable],
 
 	options: {
-		onTheFly: true,
+		onTheFly: false,
 		noUpdate: [],
 		preview: {
 			multiply: {
@@ -72,6 +72,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 			return latlng;
 		}, this);
 	},
+
 	/**
 	 * @protected
 	 */
@@ -118,7 +119,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		this.setMap(this.getMap());
 		this.getMap().removeLayer(this._path);
 		preview.layer = new clazz(preview.latlngs, L.larva.style(this._path, this.options.preview))
-		                    	.addTo(this.getMap());
+		                         .addTo(this.getMap());
 	},
 	/**
 	 * @protected
@@ -158,9 +159,8 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		}, this);
 
 		this._path.updateBounds();
-
-		this._frame.updateBounds.apply(this._frame, [null].concat(this.options.noUpdate));
 		this._path.redraw();
+		this._frame.redraw();
 	},
 	/**
 	 * @abstract
@@ -205,7 +205,7 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		preview.layer.updateBounds();
 		preview.layer.redraw();
-		this._frame.updateBounds.apply(this._frame, [preview.layer.getBounds()].concat(this.options.noUpdate));
+		this._frame.updateToBounds(preview.layer.getBounds());
 	},
 	/**
 	 * @param {...*} args

@@ -15,7 +15,7 @@ L.larva.Undoable = {
 	 * @param {Array.<*>} [doArgs]
 	 * @param {Function} undoFn
 	 * @param {Array.<*>} undoArgs
-	 * @param {Boolean} [applied]
+	 * @param {Boolean} [applied=false]
 	 */
 	_do: function (desc, doFn, doArgs, undoFn, undoArgs, applied) {
 
@@ -39,6 +39,7 @@ L.larva.Undoable = {
 	},
 	/**
 	 * @protected
+	 * @instance
 	 */
 	_noUndo: function () {
 		var map = this.getMap();

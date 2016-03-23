@@ -18,26 +18,30 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 	options: {
 		ghost: true,
 		maxNewVertexDistance: 10,
-		minSqrEditVertexDistance: 10
+		// L.frame.Vertices options
+		frame: {
+			minSqrEditVertexDistance: 10
+		}
 	},
 
 	addHooks: function () {
-		this._frame = L.larva.frame.vertices(this._path, {
-			minSqrEditVertexDistance: this.options.minSqrEditVertexDistance
-		}).addTo(this.getMap());
+		this._frame = L.larva.frame.vertices(this._path, this.options.frame).addTo(this.getMap());
 
 		this._frame
-			.on('handle:start', this._onHandleStart, this)
+			.on('handle:dragstart', this._onHandleDragStart, this)
 			.on('handle:dblclick', this._onHandleDbclick, this);
 
-		this._path.on('dblclick', this._onDblclick, this);
+		this._path.on('dblclick', this._onPathDblclick, this);
 	},
 
 	removeHooks: function () {
 		this.getMap().removeLayer(this._frame);
 		this._frame
-			.off('handle:start', this._onHandleStart, this)
-			.off('dblclick', this._onDblclick, this);
+			.off('handle:dragstart', this._onHandleDragStart, this)
+			.off('handle:dblclick', this._onHandleDbclick, this);
+
+		this._path
+			.off('dblclick', this._onPathDblclick, this);
 	},
 
 	_addVertex: function (point) {
@@ -45,33 +49,29 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 
 		founds = this._searchNearestPoint(point);
 
-		if (founds.length) {
-			if (founds.length === 1) {
-				found = founds[0];
-				newLatLng = this.getMap().layerPointToLatLng(found.point);
+		if (founds.length === 1) {
+			found = founds[0];
+			newLatLng = this.getMap().layerPointToLatLng(found.point);
 
-				var args = [
-					newLatLng,
-					found.latlngs,
-					found.index,
-					this._frame.getHandleId(newLatLng)
-				];
+			var args = [
+				newLatLng,
+				found.latlngs,
+				found.index
+			];
 
-				this._editAddVertex.apply(this, args);
+			this._editAddVertex.apply(this, args);
 
-				this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
-			}
+			this._do(L.larva.l10n.editPolylineAddVertex, this._editAddVertex, args, this._unEditAddVertex, args, true);
 		}
 	},
 
-	_edit: function (handleId, deltas) {
-		var latlng = this._frame.getLatLng(handleId);
+	_edit: function (handle, deltas) {
+		var latlng = handle.getLatLng();
 		latlng.lat += deltas.lat;
 		latlng.lng += deltas.lng;
-
-		this._path.updateBounds();
+		handle.update(this.getMap());
+		this._frame.redraw();
 		this._path.redraw();
-		this._frame.updateHandle(handleId);
 	},
 
 	_editAddVertex: function (latlng, latlngs, index) {
@@ -95,101 +95,91 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		this._frame.redraw(true);
 	},
 
-	_onDblclick: function (evt) {
+	_onPathDblclick: function (evt) {
 		L.DomEvent.stop(evt);
 		this._addVertex(this.getMap().mouseEventToLayerPoint(evt.originalEvent));
 	},
 
 	_onGhostEnd: function (evt) {
-		if (evt.id === this._handleId) {
-			this._frame.off('ghost:end', this._onGhostEnd, this);
-			var latlng = this._frame.getLatLng(evt.id);
+		this._frame.off('ghost:end', this._onGhostEnd, this);
+		var latlng = evt.handle.getLatLng();
+		var args = [
+			evt.handle,
+			{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
+		];
 
-			var args = [
-				evt.id,
-				{lat: evt.latlng.lat - latlng.lat, lng: evt.latlng.lng - latlng.lng}
-			];
-
-			this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
-		}
+		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args);
 	},
 
 	_onHandleDbclick: function (evt) {
 		var originalEvent = evt.originalEvent;
 
 		if (originalEvent.shiftKey) {
-			this._removeLatLng(evt.id);
+			this._removeLatLng(evt.handle);
 		}
 	},
 
-	_onHandleEnd: function () {
+	_onHandleDragEnd: function () {
 		this._frame
-			.off('handle:move', this._onHandleMove, this)
-			.off('handle:end', this._onHandleEnd, this);
+			.off('handle:move', this._onHandleDrag, this)
+			.off('handle:dragend', this._onHandleDragEnd, this);
 
-		var deltas = this._deltas;
-		deltas.lat = deltas.newLatLng.lat - deltas.oriLatLng.lat;
-		deltas.lng = deltas.newLatLng.lng - deltas.oriLatLng.lng;
+		var deltas = {
+			lat: this._handle.getLatLng().lat - this._deltas.latLngOrigin.lat,
+			lng: this._handle.getLatLng().lng - this._deltas.latLngOrigin.lng
+		};
 
 		var args = [
-			this._handleId,
+			this._handle,
 			deltas
 		];
-
-		delete deltas.newLatLng;
-		delete deltas.oriLatLng;
 
 		this._do(L.larva.l10n.editPolyline, this._edit, args, this._unEdit, args, true);
 	},
 
-	_onHandleMove: function (evt) {
-		var sourceEvent = L.larva.getSourceEvent(evt);
+	_onHandleDrag: function (evt) {
+		var originalEvent = L.larva.getOriginalEvent(evt);
 
-		var dx = sourceEvent.clientX - this._origin.x,
-		    dy = sourceEvent.clientY - this._origin.y;
+		var dx = originalEvent.clientX - this._origin.x,
+		    dy = originalEvent.clientY - this._origin.y;
 
-		var newPoint = this._originalPoint.add(L.point(dx, dy));
+		var newPoint = this._deltas.pointOrigin.add(L.point(dx, dy));
+		var newLatLng = this.getMap().layerPointToLatLng(newPoint);
 
-		var latlng = this._frame.getLatLng(this._handleId),
-			 newLatLng = this.getMap().layerPointToLatLng(newPoint);
-
-		latlng.lat = newLatLng.lat;
-		latlng.lng = newLatLng.lng;
-
-		this._deltas.newLatLng = newLatLng;
+		this._handle.getLatLng().lat = newLatLng.lat;
+		this._handle.getLatLng().lng = newLatLng.lng;
 
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.updateHandle(this._handleId);
+		this._handle.update(this.getMap());
 	},
 
-	_onHandleStart: function (evt) {
-		var sourceEvent;
-
-		this._handleId = evt.id;
+	_onHandleDragStart: function (evt) {
+		var originalEvent;
 
 		if (this.options.ghost) {
-			this._frame.startGhost(evt.id);
+			this._frame.startGhost(evt.handle);
 			this._frame.on('ghost:end', this._onGhostEnd, this);
 		} else {
-			sourceEvent = L.larva.getSourceEvent(evt);
+			originalEvent = L.larva.getOriginalEvent(evt);
 			this._origin = {
-				x: sourceEvent.clientX, y: sourceEvent.clientY
+				x: originalEvent.clientX, y: originalEvent.clientY
 			};
 
+			this._handle = evt.handle;
 			this._deltas = {
-				oriLatLng: this._frame.getLatLng(evt.id).clone()
+				latLngOrigin: evt.handle.getLatLng().clone(),
+				pointOrigin: evt.handle.getPoint().clone()
 			};
 
-			this._originalPoint = this._frame.getPoint(evt.id).clone();
 			this._frame
-				.on('handle:move', this._onHandleMove, this)
-				.on('handle:end', this._onHandleEnd, this);
+				.on('handle:drag', this._onHandleDrag, this)
+				.on('handle:dragend', this._onHandleDragEnd, this);
 		}
 	},
 
-	_removeLatLng: function (handleId) {
-		var latlng = this._frame.getLatLng(handleId),
+	_removeLatLng: function (handle) {
+		var latlng = handle.getLatLng(),
 		    latlngs = this._path.getLatLngs(),
 		    index, p;
 
@@ -249,15 +239,13 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		return found;
 	},
 
-	_unEdit: function (handleId, deltas) {
-		var latlng = this._frame.getLatLng(handleId);
+	_unEdit: function (handle, deltas) {
+		var latlng = handle.getLatLng();
 		latlng.lat -= deltas.lat;
 		latlng.lng -= deltas.lng;
-
-		this._path.updateBounds();
+		handle.update(this.getMap());
+		this._frame.redraw();
 		this._path.redraw();
-
-		this._frame.updateHandle(handleId);
 	},
 
 	_unEditAddVertex: function () {
@@ -289,7 +277,7 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
  * @memberOf L.larva.handler.Polyline.Edit
  * @static
  * @param  {L.Point} point
- * @param  {Number} maxNewVertexDistance
+ * @param  {Number} maxDist
  * @param  {LatLng[]} latlngs
  * @param  {L.Map} map
  * @param  {Boolean} closed
@@ -298,29 +286,28 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 L.larva.handler.Polyline.Edit.searchNearestPointIn = function (point, maxDist, latlngs, map, closed) {
 	var found = [],
 	    aPoint, bPoint,
-	    i, index, l, dist;
+	    i, l, dist;
 
-	if (closed) {
-		l = latlngs.length;
-	} else {
-		l = latlngs.length - 1;
-	}
+	l = (closed) ? latlngs.length : latlngs.length - 1;
 
-	for (i = 0; i < l; i++) {
+	if (latlngs.length) {
+		aPoint = map.latLngToLayerPoint(latlngs[0]);
 
-		index = (i + 1) % latlngs.length;
+		for (i = 0; i < l; i++) {
 
-		aPoint = map.latLngToLayerPoint(latlngs[i]);
-		bPoint = map.latLngToLayerPoint(latlngs[index]);
+			bPoint = map.latLngToLayerPoint(latlngs[(i + 1) % latlngs.length]);
 
-		dist = L.LineUtil.pointToSegmentDistance(point, aPoint, bPoint);
+			dist = L.LineUtil.pointToSegmentDistance(point, aPoint, bPoint);
 
-		if (dist <= maxDist) {
-			found.push({
-				point: L.LineUtil.closestPointOnSegment(point, aPoint, bPoint),
-				index: index,
-				latlngs: latlngs
-			});
+			if (dist <= maxDist) {
+				found.push({
+					point: L.LineUtil.closestPointOnSegment(point, aPoint, bPoint),
+					index: i + 1,
+					latlngs: latlngs
+				});
+			}
+
+			aPoint = bPoint;
 		}
 	}
 
