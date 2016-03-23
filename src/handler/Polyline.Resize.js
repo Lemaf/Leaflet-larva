@@ -2,7 +2,6 @@
  * @requires ../frame/Rect.js
  * @requires ../frame/RECT_STYLE.js
  * @requires ../ext/L.Polyline.js
- * 
  * @requires Polyline.Transform.js
  */
 
@@ -21,7 +20,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 
 		this._frame.setStyle(this._frameStyle);
 
-		this._frame.on('drag:start', this._onStart, this);
+		this._frame.on('handle:dragstart', this._onHandleDragStart, this);
 	},
 
 	_onEndOffTheFly: function () {
@@ -29,8 +28,8 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._stopPreview();
 
 		this._frame
-			.off('drag:move', this._onMoveOffTheFly, this)
-			.off('drag:end', this._onEndOffTheFly, this);
+			.off('drag', this._onDragOffTheFly, this)
+			.off('dragend', this._onEndOffTheFly, this);
 
 		delete this._reference;
 		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
@@ -45,7 +44,7 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale], true);
 	},
 
-	_onMoveOffTheFly: function (evt) {
+	_onDragOffTheFly: function (evt) {
 		this._transformPreview(this._scale = this._scaleOf(evt));
 	},
 
@@ -53,9 +52,8 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		this._transform(this._scale = this._scaleOf(evt));
 	},
 
-	_onStart: function (evt) {
-
-		if (!evt.handle || evt.handle === L.larva.frame.Rect.MIDDLE_MIDDLE) {
+	_onHandleDragStart: function (evt) {
+		if (evt.handle.getPosition() === L.larva.frame.RectHandle.MIDDLE_MIDDLE) {
 			return;
 		}
 
@@ -68,75 +66,74 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 		};
 
 		// x
-		switch (evt.handle) {
-			case L.larva.frame.Rect.TOP_LEFT:
-			case L.larva.frame.Rect.MIDDLE_LEFT:
-			case L.larva.frame.Rect.BOTTOM_LEFT:
+		switch (evt.handle.getPosition()) {
+			case L.larva.frame.RectHandle.TOP_LEFT:
+			case L.larva.frame.RectHandle.MIDDLE_LEFT:
+			case L.larva.frame.RectHandle.BOTTOM_LEFT:
 				reference.screenX = bounding.right;
 				break;
 
-			case L.larva.frame.Rect.TOP_MIDDLE:
-			case L.larva.frame.Rect.BOTTOM_MIDDLE:
+			case L.larva.frame.RectHandle.TOP_MIDDLE:
+			case L.larva.frame.RectHandle.BOTTOM_MIDDLE:
 				reference.screenX = bounding.left + reference.width / 2;
 				break;
 
-			case L.larva.frame.Rect.TOP_RIGHT:
-			case L.larva.frame.Rect.MIDDLE_RIGHT:
-			case L.larva.frame.Rect.BOTTOM_RIGHT:
+			case L.larva.frame.RectHandle.TOP_RIGHT:
+			case L.larva.frame.RectHandle.MIDDLE_RIGHT:
+			case L.larva.frame.RectHandle.BOTTOM_RIGHT:
 				reference.screenX = bounding.left;
 				break;
 		}
 
 		// y
-		switch (evt.handle) {
-			case L.larva.frame.Rect.TOP_LEFT:
-			case L.larva.frame.Rect.TOP_MIDDLE:
-			case L.larva.frame.Rect.TOP_RIGHT:
+		switch (evt.handle.getPosition()) {
+			case L.larva.frame.RectHandle.TOP_LEFT:
+			case L.larva.frame.RectHandle.TOP_MIDDLE:
+			case L.larva.frame.RectHandle.TOP_RIGHT:
 				reference.screenY = bounding.bottom;
 				break;
 
-			case L.larva.frame.Rect.MIDDLE_LEFT:
-			case L.larva.frame.Rect.MIDDLE_RIGHT:
+			case L.larva.frame.RectHandle.MIDDLE_LEFT:
+			case L.larva.frame.RectHandle.MIDDLE_RIGHT:
 				reference.screenY = bounding.top + reference.height / 2;
 				break;
 
-			case L.larva.frame.Rect.BOTTOM_LEFT:
-			case L.larva.frame.Rect.BOTTOM_MIDDLE:
-			case L.larva.frame.Rect.BOTTOM_RIGHT:
+			case L.larva.frame.RectHandle.BOTTOM_LEFT:
+			case L.larva.frame.RectHandle.BOTTOM_MIDDLE:
+			case L.larva.frame.RectHandle.BOTTOM_RIGHT:
 				reference.screenY = bounding.top;
 				break;
 		}
 
 		// invertX
-		switch (evt.handle) {
-			case L.larva.frame.Rect.TOP_LEFT:
-			case L.larva.frame.Rect.MIDDLE_LEFT:
-			case L.larva.frame.Rect.BOTTOM_LEFT:
+		switch (evt.handle.getPosition()) {
+			case L.larva.frame.RectHandle.TOP_LEFT:
+			case L.larva.frame.RectHandle.MIDDLE_LEFT:
+			case L.larva.frame.RectHandle.BOTTOM_LEFT:
 				reference.invertX = true;
 		}
 
 		// invertY
-		switch (evt.handle) {
-			case L.larva.frame.Rect.TOP_LEFT:
-			case L.larva.frame.Rect.TOP_MIDDLE:
-			case L.larva.frame.Rect.TOP_RIGHT:
+		switch (evt.handle.getPosition()) {
+			case L.larva.frame.RectHandle.TOP_LEFT:
+			case L.larva.frame.RectHandle.TOP_MIDDLE:
+			case L.larva.frame.RectHandle.TOP_RIGHT:
 				reference.invertY = true;
 		}
-
 
 		reference.point = this.layerPointToWorldPoint(
 			reference.screenX - bounding.left + position.x,
 			reference.screenY - bounding.top + position.y
 		);
 
-		switch (evt.handle) {
-			case L.larva.frame.Rect.TOP_MIDDLE:
-			case L.larva.frame.Rect.BOTTOM_MIDDLE:
+		switch (evt.handle.getPosition()) {
+			case L.larva.frame.RectHandle.TOP_MIDDLE:
+			case L.larva.frame.RectHandle.BOTTOM_MIDDLE:
 				delete reference.screenX;
 				break;
 
-			case L.larva.frame.Rect.MIDDLE_LEFT:
-			case L.larva.frame.Rect.MIDDLE_RIGHT:
+			case L.larva.frame.RectHandle.MIDDLE_LEFT:
+			case L.larva.frame.RectHandle.MIDDLE_RIGHT:
 				delete reference.screenY;
 				break;
 		}
@@ -146,18 +143,18 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 
 		if (this.options.onTheFly) {
 			this._frame
-				.on('drag:move', this._onMoveOnTheFly, this)
-				.on('drag:end', this._onEndOnTheFly, this);
+				.on('drag', this._onMoveOnTheFly, this)
+				.on('dragend', this._onEndOnTheFly, this);
 		} else {
 			this._startPreview();
 			this._frame
-				.on('drag:move', this._onMoveOffTheFly, this)
-				.on('drag:end', this._onEndOffTheFly, this);
+				.on('drag', this._onDragOffTheFly, this)
+				.on('dragend', this._onEndOffTheFly, this);
 		}
 	},
 
 	_scaleOf: function (evt) {
-		var event = L.larva.getSourceEvent(evt);
+		var event = L.larva.getOriginalEvent(evt);
 
 		var x = null, y = null;
 

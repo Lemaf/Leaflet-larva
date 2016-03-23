@@ -4,7 +4,9 @@
  * @requires ../Util.js
  * @requires New.Polygon.js
  */
-L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
+L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend(
+/** @lends L.larva.handler.Polygon.Edit.prototype */
+{
 
 	options: {
 		allowMakeHole: true,
@@ -104,8 +106,8 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend({
 		}
 	},
 
-	_removeLatLng: function (handleId) {
-		var latlng = this._frame.getLatLng(handleId),
+	_removeLatLng: function (handle) {
+		var latlng = handle.getLatLng(),
 		    latlngs = this._path.getLatLngs(),
 		    index, i=0, p=0;
 

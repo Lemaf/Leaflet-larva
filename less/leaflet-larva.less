@@ -1,0 +1,118 @@
+@import (reference) "includes/mixins.less";
+@import  "includes/theme.less";
+
+.llarva-frame-rect {
+	background: @rectframe-background;
+	border: @rectframe-border;
+	position: absolute;
+}
+
+.llarva-frame-rect-resize {
+
+	cursor: default;
+}
+
+.llarva-tl,
+.llarva-tm,
+.llarva-tr,
+.llarva-ml,
+.llarva-mm,
+.llarva-mr,
+.llarva-bl,
+.llarva-bm,
+.llarva-br {
+
+	&-resize {
+		background: url(leaflet-larva.png);
+		background-position: -3px -3px;
+	}
+}
+
+.llarva- {
+	&tl-resize {
+		cursor: nw-resize;
+	}
+
+	&tm-resize {
+		cursor: n-resize;
+	}
+
+	&tr-resize {
+		cursor: ne-resize;
+	}
+
+	&ml-resize {
+		cursor: w-resize;
+	}
+
+	&mr-resize {
+		cursor: e-resize;
+	}
+
+	&bl-resize {
+		cursor: sw-resize;
+	}
+
+	&bm-resize {
+		cursor: s-resize;
+	}
+
+	&br-resize {
+		cursor: se-resize;
+	}
+}
+
+
+.llarva-frame-rect-rotate {
+
+	cursor: default;
+
+
+}
+
+.llarva-tl,
+.llarva-tm,
+.llarva-tr,
+.llarva-ml,
+.llarva-mr,
+.llarva-bl,
+.llarva-bm,
+.llarva-br {
+
+	&-rotate {
+		cursor: -webkit-grab;
+		cursor: -moz-grab;
+
+		background: url(leaflet-larva.png);
+		background-position: -27px -3px;
+	}
+}
+
+.llarva-mm {
+	cursor: -webkit-grab;
+	cursor: -moz-grab;
+	background: url(leaflet-larva.png);
+	background-position: -50px -3px;
+}
+
+.llarva-frame-recthandle {
+	position: absolute;
+	height: @handle-height;
+	width: @handle-width;
+}
+
+.llarva-frame-vertexhandle {
+	background: @frame-vertexhandle-background;
+	border: @frame-vertexhandle-border;
+	height: @frame-vertexhandle-height;
+	position: absolute;
+	width: @frame-vertexhandle-width;
+}
+
+.leaflet-llarva-frame-rect-pane {
+	z-index: 500;
+}
+
+.leaflet-llarva-frame-handles-pane {
+	z-index: 600;
+}

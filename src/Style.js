@@ -43,7 +43,6 @@ L.larva.Style = L.Class.extend(
 	},
 
 	initialize: function (source) {
-
 		if (source instanceof L.Path) {
 			source = source.options;
 		}
@@ -51,6 +50,20 @@ L.larva.Style = L.Class.extend(
 		L.larva.Style.STYLES.forEach(function (styleName) {
 			this[styleName] = source[styleName];
 		}, this);
+	},
+
+	/**
+	 * @return {Object} style
+	 */
+	getStyle: function () {
+		var style = {};
+		for (var styleName in this) {
+			if (this.hasOwnProperty(styleName)) {
+				style[styleName] = this[styleName];
+			}
+		}
+
+		return style;
 	},
 
 	/**

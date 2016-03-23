@@ -17,16 +17,18 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 
 	addHooks: function() {
 		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
-		this._frame.on('drag:start', this._onStart, this);
+		this._frame.on('dragstart', this._onDragStart, this);
 
-		this._previousCursor = this._frame.getComputedStyle().cursor;
-		this._frame.setElementStyle({
-			cursor: 'move'
-		});
+		//this._previousCursor = this._frame.getComputedStyle().cursor;
+		// this._frame.setElementStyle({
+		// 	cursor: 'move'
+		// });
+
+		this._frame.redraw();
 	},
 
 	_deltaOf: function (evt) {
-		var event = L.larva.getSourceEvent(evt);
+		var event = L.larva.getOriginalEvent(evt);
 		var worldPoint = this._getEventWorldPoint(event);
 
 		var x = worldPoint.x - this._startPosition.x,
@@ -47,59 +49,68 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 	},
 
 	_getEventWorldPoint: function(event) {
-		var bounding = this._frame.getFrameClientRect(),
-		    position = this._frame.getPosition();
+		var pagePosition = this._frame.getPosition(true),
+		    layerPosition = this._frame.getPosition();
 
 		return L.larva.project(
 			this.unproject(
-				event.clientX - bounding.left + position.x,
-				event.clientY - bounding.top + position.y
+				event.clientX - pagePosition.x + layerPosition.x,
+				event.clientY - pagePosition.y + layerPosition.y
 			)
 		);
 	},
 
 
-	_onEndOffTheFly: function () {
+	_onDragEndOffTheFly: function () {
 		this._stopPreview();
 
 		this._frame
-			.off('drag:move', this._onMoveOffTheFly, this)
-			.off('drag:end', this._onEndOffTheFly, this);
+			.off('drag', this._onDragOffTheFly, this)
+			.off('dragend', this._onDragEndOffTheFly, this)
+			.unlockDraggagle();
 
-		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
+		if (this._delta) {
+			this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
+		}
 	},
 
-	_onEndOnTheFly: function () {
+	_onDragEndOnTheFly: function () {
 		this._frame
-			.off('drag:move', this._onMoveOnTheFly, this)
-			.off('drag:end', this._onEndOnTheFly);
+			.off('drag', this._onDragOnTheFly, this)
+			.off('dragend', this._onDragEndOnTheFly)
+			.unlockDraggagle();
 
-		this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta], true);
+		if (this._delta) {
+			this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta], true);
+		}
 	},
 
-	_onMoveOnTheFly: function (evt) {
+	_onDragOnTheFly: function (evt) {
 		this._transform(this._delta = this._deltaOf(evt));
 	},
 
-	_onMoveOffTheFly: function (evt) {
+	_onDragOffTheFly: function (evt) {
 		this._transformPreview(this._delta = this._deltaOf(evt));
 	},
 
-	_onStart: function (evt) {
+	_onDragStart: function (evt) {
 		if (!evt.handle) {
 			this.backupLatLngs();
 
-			this._startPosition = this._getEventWorldPoint(L.larva.getSourceEvent(evt));
+			delete this._delta;
+			this._startPosition = this._getEventWorldPoint(L.larva.getOriginalEvent(evt));
+
+			this._frame.lockDraggables();
 
 			if (this.options.onTheFly) {
 				this._frame
-					.on('drag:move', this._onMoveOnTheFly, this)
-					.on('drag:end', this._onEndOnTheFly, this);
+					.on('drag', this._onDragOnTheFly, this)
+					.on('dragend', this._onDragEndOnTheFly, this);
 			} else {
 				this._startPreview();
 				this._frame
-					.on('drag:move', this._onMoveOffTheFly, this)
-					.on('drag:end', this._onEndOffTheFly, this);
+					.on('drag', this._onDragOffTheFly, this)
+					.on('dragend', this._onDragEndOffTheFly, this);
 			}
 		}
 
