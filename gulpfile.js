@@ -1,18 +1,11 @@
 var gulp = require('gulp');
 
-var SOURCES = {
-	JS: [
-		'L.larva.js',
-		'handler/Polyline.Rotate.js',
-		'handler/Polyline.Move.js',
-		'handler/Polyline.Resize.js',
-		'handler/Polyline.Edit.js',
-		'handler/Polygon.Edit.js',
-		'handler/New.Polyline.js',
-		'handler/New.Polygon.js'
+function sources(type) {
+	var fs = require('fs');
 
-	]
-};
+	var content = fs.readFileSync(type + '.sources', 'utf8');
+	return content.split(/[\n\r]+/g);
+}
 
 gulp.task('lint:javascript', function () {
 
@@ -60,7 +53,7 @@ gulp.task('concat:javascript', ['lint:javascript'], function () {
 	wrapJS = require('gulp-wrap-js'),
 	path = require('path');
 
-	return gulp.src(SOURCES.JS, {cwd: 'src/', 'base': 'src'})
+	return gulp.src(sources('scripts'), {cwd: 'src/', 'base': 'src'})
 		.pipe(resolveDeps())
 		.pipe(sourcemaps.init())
 		.pipe(concat('leaflet-larva.js'))
@@ -100,7 +93,7 @@ gulp.task('less:less', function () {
 	var less = require('gulp-less'),
 	path = require('path');
 
-	return gulp.src('*.less', {cwd: 'less'})
+	return gulp.src(sources('less'), {cwd: 'less'})
 		.pipe(less({
 			paths: [path.join(__dirname,'less', 'includes')]
 		}))
