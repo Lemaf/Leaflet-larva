@@ -28,9 +28,9 @@ L.larva.Undoable = {
 					undoable: this,
 					desc: desc,
 					doFn: doFn,
-					doArgs: doArgs || Array.prototype,
+					doArgs: doArgs,
 					undoFn: undoFn,
-					undoArgs: undoArgs || Array.prototype
+					undoArgs: undoArgs
 				})
 			});
 		} else if (!applied) {
