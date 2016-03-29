@@ -65,7 +65,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	/**
-	 * @param {Boolean} [pagePosition=false] Screen
+	 * @param {Boolean} [pagePosition=false] Page position or layer position?
 	 * @return {L.Point}
 	 */
 	getPosition: function (pagePosition) {
@@ -136,12 +136,6 @@ L.larva.frame.Rect = L.Layer.extend(
 		this._path.off('redraw', this._onPathRedraw, this);
 	},
 
-	/**
-	 * @param {Object} styles
-	 * @param {HTMLElement} element
-	 */
-	setElementStyle: function (/*styles, element*/) {
-	},
 	/**
 	 * @param {L.larva.frame.RECT_STYLE} style
 	 */
