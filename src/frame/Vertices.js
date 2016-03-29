@@ -68,6 +68,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 
 	onAdd: function () {
 		this.redraw(true);
+		this._path.on('redraw', this._onPathRedraw, this);
 	},
 
 	onRemove: function () {
@@ -77,6 +78,7 @@ L.larva.frame.Vertices = L.Layer.extend(
 		}
 
 		this._lines.splice(0, this._lines.length);
+		this._path.off('redraw', this._onPathRedraw, this);
 	},
 
 	/**
@@ -279,6 +281,10 @@ L.larva.frame.Vertices = L.Layer.extend(
 	},
 
 	_onMapZoomEnd: function () {
+		this._onMapMoveEnd();
+	},
+
+	_onPathRedraw: function () {
 		this._onMapMoveEnd();
 	},
 

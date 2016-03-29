@@ -51,6 +51,7 @@ L.larva.Command = L.Class.extend(
 	description: function () {
 		return this._desc;
 	},
+
 	/**
 	 * @return {Number}
 	 */
@@ -70,6 +71,9 @@ L.larva.Command = L.Class.extend(
 		}
 	},
 
+	/**
+	 * @return {*}
+	 */
 	undoable: function () {
 		return this._undoable;
 	}

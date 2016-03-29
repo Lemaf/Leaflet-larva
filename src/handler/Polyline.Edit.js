@@ -70,7 +70,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlng.lat += deltas.lat;
 		latlng.lng += deltas.lng;
 		handle.update(this.getMap());
-		this._frame.redraw();
 		this._path.redraw();
 	},
 
@@ -244,7 +243,6 @@ L.larva.handler.Polyline.Edit = L.larva.handler.Polyline.extend(
 		latlng.lat -= deltas.lat;
 		latlng.lng -= deltas.lng;
 		handle.update(this.getMap());
-		this._frame.redraw();
 		this._path.redraw();
 	},
 

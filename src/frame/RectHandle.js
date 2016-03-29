@@ -42,6 +42,12 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 	},
 
 	/**
+	 */
+	freeze: function () {
+		this._freeze = true;
+	},
+
+	/**
 	 * @return {String}
 	 */
 	getPosition: function () {
@@ -57,8 +63,11 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 	 * @return {[type]}             [description]
 	 */
 	lock: function (layerBounds) {
-		var currentPos = L.DomUtil.getPosition(this._handleEl);
-		this._lock = currentPos.subtract(layerBounds.min);
+		var currentPosition = L.DomUtil.getPosition(this._handleEl);
+
+		if (currentPosition) {
+			this._lock = currentPosition.subtract(layerBounds.min);
+		}
 	},
 
 	setCssSuffix: function (suffix) {
@@ -76,19 +85,60 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 		}
 
 		if (draggable) {
+
 			if (!this._draggable) {
 				this._draggable = new L.Draggable(this._handleEl);
-				this._draggable.once('dragend', this._onDragEnd, this);
+				this._draggable.on('dragend', this._onDragEnd, this);
 			}
+
 			this._draggable.enable();
+
+			if (!this._relative) {
+				var rx, ry;
+				switch (this._position[0]) {
+					case 't':
+						ry = 0;
+						break;
+					case 'm':
+						ry = 0.5;
+						break;
+					case 'b':
+						ry = 1;
+						break;
+				}
+
+				switch (this._position[1]) {
+					case 'l':
+						rx = 0;
+						break;
+					case 'm':
+						rx = 0.5;
+						break;
+					case 'r':
+						rx = 1;
+						break;
+				}
+
+				this._relative = L.point(rx, rx);
+			}
+
 		} else {
 			if (this._draggable) {
 				this._draggable.disable();
 				delete this._draggable;
 			}
+			delete this._relative;
 		}
 
 		return this;
+	},
+
+	unfreeze: function () {
+		delete this._freeze;
+
+		if (this._relative) {
+			this._updateRelative();
+		}
 	},
 
 	/**
@@ -100,58 +150,77 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 
 	/**
 	 * @param  {L.map} map
-	 * @param  {L.Bounds} layerBounds
+	 * @param  {L.Bounds} bounds
 	 * @return {L.larva.frame.rectHandle} this
 	 */
-	update: function (map, layerBounds) {
-		var top, left;
+	update: function (map, bounds) {
+		var y, x;
 
-		if (!this._handleEl.offsetParent) {
+		this._lastBounds = bounds;
+
+		if (!this._handleEl.offsetParent || (this._freeze && L.DomUtil.getPosition(this._handleEl))) {
 			return;
 		}
 
 		var point;
 
 		if (this._lock) {
-			point = layerBounds.min.add(this._lock);
+			point = bounds.min.add(this._lock);
 		} else {
-			switch (this._position[0]) {
-				case 't':
-					top = layerBounds.min.y;
-					break;
+			if (this._relative) {
+				point = bounds.min.add(bounds.max.subtract(bounds.min).scaleBy(this._relative));
+			} else {
+				switch (this._position[0]) {
+					case 't':
+						y = bounds.min.y;
+						break;
 
-				case 'm':
-					top = (layerBounds.max.y + layerBounds.min.y) / 2;
-					break;
+					case 'm':
+						y = (bounds.max.y + bounds.min.y) / 2;
+						break;
 
-				case 'b':
-					top = layerBounds.max.y;
-					break;
+					case 'b':
+						y = bounds.max.y;
+						break;
+				}
+
+				switch (this._position[1]) {
+					case 'l':
+						x = bounds.min.x;
+						break;
+
+					case 'm':
+						x = (bounds.max.x + bounds.min.x) / 2;
+						break;
+
+					case 'r':
+						x = bounds.max.x;
+						break;
+				}
+
+				point = L.point(x, y);
 			}
 
-			switch (this._position[1]) {
-				case 'l':
-					left = layerBounds.min.x;
-					break;
-
-				case 'm':
-					left = (layerBounds.max.x + layerBounds.min.x) / 2;
-					break;
-
-				case 'r':
-					left = layerBounds.max.x;
-					break;
-			}
-			point = L.point(left, top).subtract(this._halfSize);
+			point = point.subtract(this._halfSize);
 		}
 
-		if (this._lock || !this._draggable || !L.DomUtil.getPosition(this._handleEl)) {
+		if (point) {
 			L.DomUtil.setPosition(this._handleEl, point);
 		}
 	},
 
 	_onDragEnd: function () {
 		this._dragged = true;
+		this._updateRelative();
+	},
+
+	_updateRelative: function () {
+		var lastBounds, point;
+		if ((lastBounds = this._lastBounds)) {
+			point = L.DomUtil.getPosition(this._handleEl);
+			this._relative = point.add(this._halfSize).subtract(lastBounds.min)
+			                 .unscaleBy(lastBounds.max.subtract(lastBounds.min));
+		}
 	}
 });
 

@@ -1,6 +1,7 @@
 /**
  * @requires package.js
  * @requires RectHandle.js
+ * @requires ../ext/L.Path.js
  */
 
 /**
@@ -33,6 +34,16 @@ L.larva.frame.Rect = L.Layer.extend(
 
 		if (!map.getPane(this.options.handlePane)) {
 			map.createPane(this.options.handlePane);
+		}
+	},
+
+	/**
+	 */
+	freezeDraggables: function () {
+		for (var pos in this._handles) {
+			if (this._handles[pos].isDraggable()) {
+				this._handles[pos].freeze();
+			}
 		}
 	},
 
@@ -104,16 +115,25 @@ L.larva.frame.Rect = L.Layer.extend(
 				.on('dragstart', this._onHandleDragStart, this);
 		}, this);
 
-		// this._draggables = {};
-		//this._updateFrame(true);
+		this._path.on('redraw', this._onPathRedraw, this);
 	},
 
 	redraw: function () {
-		this._updateFrame(true);
+		this._updateFrame();
 	},
 
 	onRemove: function() {
+		var position;
 		L.DomEvent.off(this._el, L.Draggable.START.join(' '), this._onStart, this);
+
+		for (position in this._handles) {
+			this._handles[position]
+				.off('dragstart', this._onHandleDragStart, this)
+				.remove();
+			delete this._handles[position];
+		}
+
+		this._path.off('redraw', this._onPathRedraw, this);
 	},
 
 	/**
@@ -146,13 +166,23 @@ L.larva.frame.Rect = L.Layer.extend(
 			}
 		}
 
-		this._updateFrame(true);
+		this._updateFrame();
+	},
+
+	/**
+	 */
+	unfreezeDraggables: function () {
+		for (var pos in this._handles) {
+			if (this._handles[pos].isDraggable()) {
+				this._handles[pos].unfreeze();
+			}
+		}
 	},
 
 	/**
 	 * @return {L.larva.frame.Rect} this
 	 */
-	unlockDraggagle: function () {
+	unlockDraggagles: function () {
 		var handle;
 		for (var pos in this._handles) {
 			handle = this._handles[pos];
@@ -168,7 +198,7 @@ L.larva.frame.Rect = L.Layer.extend(
 	 * @param {L.LatLngBounds} bounds
 	 */
 	updateToBounds: function (bounds) {
-		this._updateFrame(true, bounds);
+		this._updateFrame(bounds);
 	},
 
 	_onDocEnd: function (evt) {
@@ -209,7 +239,11 @@ L.larva.frame.Rect = L.Layer.extend(
 	},
 
 	_onMapZoom: function () {
-		this._updateFrame(true);
+		this._updateFrame();
+	},
+
+	_onPathRedraw: function () {
+		this._updateFrame();
 	},
 
 	_onStart: function (evt) {
@@ -226,37 +260,35 @@ L.larva.frame.Rect = L.Layer.extend(
 		L.DomUtil.addClass(document.body, 'leaflet-dragging');
 	},
 
-	_updateFrame: function (updateBounds, userBounds) {
+	_updateFrame: function (userBounds) {
 		var bounds = userBounds || this._path.getBounds();
 
-		if (updateBounds) {
-			var southWestPoint = this._map.latLngToLayerPoint(bounds.getSouthWest()),
-			    northEastPoint = this._map.latLngToLayerPoint(bounds.getNorthEast());
+		var southWestPoint = this._map.latLngToLayerPoint(bounds.getSouthWest()),
+		    northEastPoint = this._map.latLngToLayerPoint(bounds.getNorthEast());
 
-			var computed = getComputedStyle(this._el),
-			    borders = {};
+		var computed = getComputedStyle(this._el),
+		    borders = {};
 
-			['Left', 'Right', 'Bottom', 'Top'].forEach(function(border) {
-				borders[border.toLowerCase()] = parseInt(computed['border' + border + 'Width']);
-			});
+		['Left', 'Right', 'Bottom', 'Top'].forEach(function(border) {
+			borders[border.toLowerCase()] = parseInt(computed['border' + border + 'Width']);
+		});
 
-			var layerBounds = L.bounds(
-				L.point(southWestPoint.x, northEastPoint.y),
-				L.point(northEastPoint.x, southWestPoint.y));
+		var layerBounds = L.bounds(
+			L.point(southWestPoint.x, northEastPoint.y),
+			L.point(northEastPoint.x, southWestPoint.y));
 
-			var width = layerBounds.max.x - layerBounds.min.x - borders.left - borders.right,
-			    height = layerBounds.max.y - layerBounds.min.y - borders.top - borders.bottom;
+		var width = layerBounds.max.x - layerBounds.min.x - borders.left - borders.right,
+		    height = layerBounds.max.y - layerBounds.min.y - borders.top - borders.bottom;
 
-			L.extend(this._el.style, {
-				height: height + 'px',
-				width: width + 'px'
-			});
+		L.extend(this._el.style, {
+			height: height + 'px',
+			width: width + 'px'
+		});
 
-			L.DomUtil.setPosition(this._el, layerBounds.min);
+		L.DomUtil.setPosition(this._el, layerBounds.min);
 
-			for (var id in this._handles) {
-				this._handles[id].update(this._map, layerBounds);
-			}
+		for (var id in this._handles) {
+			this._handles[id].update(this._map, layerBounds);
 		}
 	}
 });

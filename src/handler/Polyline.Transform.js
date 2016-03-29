@@ -160,7 +160,6 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		this._path.updateBounds();
 		this._path.redraw();
-		this._frame.redraw();
 	},
 	/**
 	 * @abstract
@@ -190,7 +189,6 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 		args.push.apply(args, arguments);
 
 		preview.layer.forEachLatLng(function (latlng) {
-
 			original = args[0] = L.larva.project(latlng._original);
 			transformed.x = original.x;
 			transformed.y = original.y;
@@ -235,8 +233,6 @@ L.larva.handler.Polyline.Transform = L.larva.handler.Polyline.extend(
 
 		this._path.updateBounds();
 		this._path.redraw();
-
-		this._frame.redraw();
 	},
 	/**
 	 * @abstract

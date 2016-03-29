@@ -88,6 +88,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 			.off('dragend', this._onDragEndOffTheFly, this);
 
 		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
+		this._frame.unfreezeDraggables();
 	},
 
 	_onDragEndOnTheFly: function () {
@@ -96,6 +97,7 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 			.off('dragend', this._onDragEndOnTheFly, this);
 
 		this._apply(L.larva.l10n.transformRotate, [this._params], [this._params], true);
+		this._frame.unfreezeDraggables();
 	},
 
 	_onDragOffTheFly: function (evt) {
@@ -129,6 +131,8 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 		vector.length = 1;
 
 		this.backupLatLngs();
+
+		this._frame.freezeDraggables();
 
 		if (this.options.onTheFly) {
 			this._frame

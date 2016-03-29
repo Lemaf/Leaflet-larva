@@ -18,12 +18,6 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 	addHooks: function() {
 		this._frame = L.larva.frame.rect(this._path).addTo(this.getMap());
 		this._frame.on('dragstart', this._onDragStart, this);
-
-		//this._previousCursor = this._frame.getComputedStyle().cursor;
-		// this._frame.setElementStyle({
-		// 	cursor: 'move'
-		// });
-
 		this._frame.redraw();
 	},
 
@@ -67,7 +61,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 		this._frame
 			.off('drag', this._onDragOffTheFly, this)
 			.off('dragend', this._onDragEndOffTheFly, this)
-			.unlockDraggagle();
+			.unlockDraggagles();
 
 		if (this._delta) {
 			this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta]);
@@ -78,7 +72,7 @@ L.larva.handler.Polyline.Move = L.larva.handler.Polyline.Transform.extend(
 		this._frame
 			.off('drag', this._onDragOnTheFly, this)
 			.off('dragend', this._onDragEndOnTheFly)
-			.unlockDraggagle();
+			.unlockDraggagles();
 
 		if (this._delta) {
 			this._apply(L.larva.l10n.transformMove, [this._delta], [this._delta], true);
