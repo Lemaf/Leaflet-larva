@@ -142,23 +142,18 @@ L.larva.frame.Rect = L.Layer.extend(
 	setStyle: function (style) {
 		L.DomUtil.addClass(this._el, style.className);
 
-		var y = 'tmb', x = 'lmr', yx, handleStyle, handle;
+		var handleStyle, handle;
 
-		for (var iy=0; iy < y.length; iy++) {
-			for (var ix=0; ix < x.length; ix++) {
-				yx = y[iy] + x[ix];
-				handle = this._handles[yx];
-				handle.setCssSuffix(style.handleSuffix);
-				handleStyle = style[yx];
-
-				if (handleStyle && handleStyle.hide) {
-					handle.setDraggable(false).remove();
-					continue;
-				}
-
+		['tl', 'tm', 'tr', 'ml', 'mr', 'bl', 'bm', 'br', 'mm'].forEach(function (position) {
+			handle = this._handles[position];
+			handle.setCssSuffix(style.handleSuffix);
+			handleStyle = style[position];
+			if (handleStyle && handleStyle.hide) {
+				handle.setDraggable(false).remove();
+			} else {
 				handle.add().setDraggable(handleStyle && !!handleStyle.draggable);
 			}
-		}
+		 }, this);
 
 		this._updateFrame();
 	},

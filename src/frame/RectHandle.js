@@ -167,9 +167,7 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 		if (this._lock) {
 			point = bounds.min.add(this._lock);
 		} else {
-			if (this._relative) {
-				point = bounds.min.add(bounds.max.subtract(bounds.min).scaleBy(this._relative));
-			} else {
+			if (!this._draggable) {
 				switch (this._position[0]) {
 					case 't':
 						y = bounds.min.y;
@@ -197,16 +195,15 @@ L.larva.frame.RectHandle = L.larva.frame.Handle.extend(
 						x = bounds.max.x;
 						break;
 				}
-
 				point = L.point(x, y);
+			} else {
+				point = bounds.min.add(bounds.max.subtract(bounds.min).scaleBy(this._relative));
 			}
 
 			point = point.subtract(this._halfSize);
 		}
 
-		if (point) {
-			L.DomUtil.setPosition(this._handleEl, point);
-		}
+		L.DomUtil.setPosition(this._handleEl, point);
 	},
 
 	_onDragEnd: function () {
