@@ -14,11 +14,6 @@
 L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 /** @lends L.larva.handler.Polyline.Rotate.prototype */
 {
-
-	options: {
-		noUpdate: [L.larva.frame.Rect.MIDDLE_MIDDLE]
-	},
-
 	initialize: function (path, options) {
 		L.larva.handler.Polyline.Transform.prototype.initialize.call(this, path, L.larva.frame.RECT_STYLE.ROTATE, options);
 	},
