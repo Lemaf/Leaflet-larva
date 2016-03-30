@@ -12,7 +12,13 @@ L.larva.handler.Polygon.Edit = L.larva.handler.Polyline.Edit.extend(
 		allowMakeHole: true,
 		makeHoleCursor: 'crosshair',
 		newHoleOptions: {
-
+			layerOptions: {
+				color: '#ff004b',
+				fill: true,
+				fillColor: '#f00',
+				stroke: true,
+				weight: 1
+			}
 		}
 	},
 

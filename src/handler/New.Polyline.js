@@ -25,7 +25,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		minSqrDistance: 100,
 
 		handleStyle: {
-			border: '1px solid #0f0',
+			border: 'none',
 			cursor: 'crosshair',
 			height: '20px',
 			position: 'absolute',
@@ -73,7 +73,7 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 		);
 
 		this._newLatLng = new L.LatLng(0, 0);
-		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options, {
+		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options.layerOptions, {
 			noClip: true
 		}));
 
