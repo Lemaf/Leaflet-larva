@@ -32,7 +32,9 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 			.off('dragend', this._onEndOffTheFly, this);
 
 		delete this._reference;
-		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
+		if (this._scale) {
+			this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale]);
+		}
 	},
 
 	_onEndOnTheFly: function () {
@@ -41,7 +43,10 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 			.off('drag:end', this._onEndOnTheFly, this);
 
 		delete this._reference;
-		this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale], true);
+
+		if (this._scale) {
+			this._apply(L.larva.l10n.transformResize, [this._scale], [this._scale], true);
+		}
 	},
 
 	_onDragOffTheFly: function (evt) {
@@ -140,6 +145,8 @@ L.larva.handler.Polyline.Resize = L.larva.handler.Polyline.Transform.extend(
 
 
 		this.backupLatLngs();
+
+		delete this._scale;
 
 		if (this.options.onTheFly) {
 			this._frame
