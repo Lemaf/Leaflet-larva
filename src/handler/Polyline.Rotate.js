@@ -82,9 +82,10 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 			.off('drag', this._onDragOffTheFly, this)
 			.off('dragend', this._onDragEndOffTheFly, this);
 
+		this._frame.unfreezeDraggables();
+
 		if (this._params) {
 			this._apply(L.larva.l10n.transformRotate, [this._params], [this._params]);
-			this._frame.unfreezeDraggables();
 		}
 	},
 
@@ -93,9 +94,10 @@ L.larva.handler.Polyline.Rotate = L.larva.handler.Polyline.Transform.extend(
 			.off('drag', this._onDragOnTheFly, this)
 			.off('dragend', this._onDragEndOnTheFly, this);
 
+		this._frame.unfreezeDraggables();
+
 		if (this._params) {
 			this._apply(L.larva.l10n.transformRotate, [this._params], [this._params], true);
-			this._frame.unfreezeDraggables();
 		}
 	},
 

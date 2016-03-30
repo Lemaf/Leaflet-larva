@@ -74,7 +74,8 @@ L.larva.handler.New.Polyline = L.larva.handler.New.extend(
 
 		this._newLatLng = new L.LatLng(0, 0);
 		this._previewLayer = this._lineLayer = L.polyline([], L.extend({}, this.options.layerOptions, {
-			noClip: true
+			noClip: true,
+			fill: false
 		}));
 
 		this._map
